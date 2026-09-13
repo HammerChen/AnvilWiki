@@ -11,7 +11,7 @@
  */
 
 /** Keep in sync with package.json "version" (used by the announcement bar). */
-export const PROJECT_VERSION = '2.20.0';
+export const PROJECT_VERSION = '2.21.0';
 
 export type LandingLocale = 'en' | 'zh';
 
@@ -345,7 +345,7 @@ const en: LandingContent = {
   description:
     'An open-source game wiki template with an AI-native content workflow: pick the right game, generate pages by talking to your AI tool, codes pages stay fresh on autopilot. Lighthouse 4×100, free on Cloudflare, 100% ad revenue yours.',
   announcement: {
-    text: `AnvilWiki template update log (v${PROJECT_VERSION}): AGENTS.md suite-list consistency gate — a 17th test suite pins the suite list in agent instructions to the real tests/ directory, so drift turns CI red. This bar tracks template releases — details & full changelog on GitHub Releases.`,
+    text: `AnvilWiki template update log (v${PROJECT_VERSION}): mobile landing rework + site-wide search — top-left mobile menu, full-width mobile search bar, dismissible banner; community highlights are now searchable with deep links, and search is hardened for in-app browsers. This bar tracks template releases — details & full changelog on GitHub Releases.`,
     href: RELEASES,
     dismissLabel: 'Dismiss announcement',
   },
@@ -859,7 +859,7 @@ const zh: LandingContent = {
   description:
     '开源游戏 wiki 模板 + AI 原生内容工作流:选对游戏、和 AI 对话就能产页、codes 页自动保鲜。Lighthouse 4×100、Cloudflare 免费部署、广告收入 100% 归你。',
   announcement: {
-    text: `AnvilWiki 模板更新日志（v${PROJECT_VERSION}）：AGENTS.md 套件清单一致性门禁——第 17 套测试把智能体指令里的套件清单钉到 tests/ 目录实况，漏更即 CI 红灯。本条为模板发版通告，非站点故障；详情与完整变更见 GitHub Releases。`,
+    text: `AnvilWiki 模板更新日志（v${PROJECT_VERSION}）：landing 移动端重做 + 全站搜索——左上角移动菜单、全宽搜索条、公告条可关闭；社群精华可搜可定位，搜索针对内置浏览器老内核加固。本条为模板发版通告，非站点故障；详情与完整变更见 GitHub Releases。`,
     href: RELEASES,
     dismissLabel: '关闭公告',
   },
