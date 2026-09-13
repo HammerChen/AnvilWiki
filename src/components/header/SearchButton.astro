@@ -485,6 +485,19 @@ const closeLabel = labels?.close ?? nav.close ?? 'Close';
       }
       setBodyLock(false);
     };
+    /* Autofocus only where a fine pointer exists: on phones the programmatic
+       focus pops the soft keyboard and old iOS WebKit shoves the fixed
+       dialog off-screen — the user taps the field themselves instead. */
+    const focusInput = () => {
+      const fine =
+        window.matchMedia &&
+        window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+      if (!fine) return;
+      setTimeout(() => {
+        const input = modal.querySelector('input');
+        if (input) input.focus();
+      }, 60);
+    };
 
     const openModal = async () => {
       if (typeof modal.showModal === 'function') {
@@ -543,8 +556,7 @@ const closeLabel = labels?.close ?? nav.close ?? 'Close';
               },
             });
             setTimeout(() => {
-              const input = modal.querySelector('input');
-              if (input) input.focus();
+              focusInput();
             }, 60);
           } else {
             console.warn('[search] PagefindUI not found on window after loading pagefind-ui.js');
@@ -554,8 +566,7 @@ const closeLabel = labels?.close ?? nav.close ?? 'Close';
         }
       } else {
         setTimeout(() => {
-          const input = modal.querySelector('input');
-          if (input) input.focus();
+          focusInput();
         }, 50);
       }
     };

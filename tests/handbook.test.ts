@@ -164,6 +164,17 @@ describe('handbook search contract (Pagefind)', () => {
     expect(inlineScript).toContain("querySelectorAll('[data-open-search]')");
     expect(inlineScript).not.toMatch(/\?\?|\?\./);
   });
+
+  it('postbuild lowers the Pagefind bundles to ES2018 (old-webview input mount)', () => {
+    // pagefind-ui.js ships with optional chaining — a SyntaxError on WeChat
+    // X5 / pre-13.4 Safari kernels, so PagefindUI never mounts and the search
+    // dialog opens with NO input inside. The postbuild transpile step lowers
+    // every dist/pagefind/*.js in place; dropping it silently re-breaks
+    // search on those phones while every other gate stays green.
+    const pkg = JSON.parse(src('package.json')) as { scripts: Record<string, string> };
+    expect(pkg.scripts.postbuild).toContain('node scripts/transpile-pagefind.mjs');
+    expect(src('scripts/transpile-pagefind.mjs')).toContain("target: ['es2018']");
+  });
 });
 
 describe('manualListRows: stage grouping', () => {
