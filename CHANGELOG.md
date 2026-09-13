@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **demo 顶栏模板入口从裸锤子图标改为带文字标签**——demo 访客（尤其新手）把 header 右侧 icon-only 的锤子当成游戏内「锻造」功能（title 悬停提示触屏不可见），反向误导；现宽屏（lg+）显示「Built with AnvilWiki」文字标签、窄屏回落图标，移动端菜单入口文案统一同源。文案收进 `src/config/project.ts` 的 `landingLink` 常量（跟随 `zhLandingLink` 先例：demo 专属层走 config 不进 locale JSON，fork 随 `landingLinkEnabled` 翻转永不渲染），页脚锤子为站牌 logo 无歧义不动。
+
 ## [2.20.0] — 2026-09-13
 
 ### Added

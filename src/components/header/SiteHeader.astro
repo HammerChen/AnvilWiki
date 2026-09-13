@@ -12,7 +12,7 @@ import { localizePath } from '~/lib/url';
 import ThemeToggle from './ThemeToggle.astro';
 import LanguageSwitcher from './LanguageSwitcher.astro';
 import SearchButton from './SearchButton.astro';
-import { landingLinkEnabled, zhLandingLink } from '~/config/project';
+import { landingLink, landingLinkEnabled, zhLandingLink } from '~/config/project';
 
 interface Props {
   locale: Locale;
@@ -83,12 +83,13 @@ const samePagePathFor = (loc: Locale) => {
     <div class="ml-auto flex items-center gap-1">
       {landingLinkEnabled && (
         <a
-          href="/landing/"
-          class="inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-nav"
-          aria-label="About the AnvilWiki template"
-          title="About the AnvilWiki template"
+          href={landingLink.href}
+          class="inline-flex h-9 items-center gap-1.5 rounded-md px-2 text-xs font-medium text-muted-foreground transition hover:bg-muted hover:text-nav"
+          aria-label={landingLink.ariaLabel}
+          title={landingLink.ariaLabel}
         >
-          <Icon name="lucide:hammer" class="h-5 w-5" />
+          <Icon name="lucide:hammer" class="h-5 w-5 shrink-0" />
+          <span class="hidden whitespace-nowrap lg:inline">{landingLink.label}</span>
         </a>
       )}
       <SearchButton locale={locale} />
@@ -152,11 +153,11 @@ const samePagePathFor = (loc: Locale) => {
           </div>
           {landingLinkEnabled && (
             <a
-              href="/landing/"
+              href={landingLink.href}
               class="mt-1 flex items-center gap-2 border-t border-border px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted hover:text-nav"
             >
               <Icon name="lucide:hammer" class="h-4 w-4" />
-              <span>AnvilWiki Template</span>
+              <span>{landingLink.label}</span>
             </a>
           )}
         </div>
