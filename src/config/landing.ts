@@ -24,7 +24,7 @@ export interface LandingContent {
   htmlLang: string;
   title: string;
   description: string;
-  announcement: { text: string; href: string } | null;
+  announcement: { text: string; href: string; dismissLabel: string } | null;
   hero: {
     badge: string;
     title: string;
@@ -346,6 +346,7 @@ const en: LandingContent = {
   announcement: {
     text: `AnvilWiki template update log (v${PROJECT_VERSION}): AGENTS.md suite-list consistency gate — a 17th test suite pins the suite list in agent instructions to the real tests/ directory, so drift turns CI red. This bar tracks template releases — details & full changelog on GitHub Releases.`,
     href: RELEASES,
+    dismissLabel: 'Dismiss announcement',
   },
   hero: {
     badge: 'Open Source · MIT · Cloudflare Pages',
@@ -858,6 +859,7 @@ const zh: LandingContent = {
   announcement: {
     text: `AnvilWiki 模板更新日志（v${PROJECT_VERSION}）：AGENTS.md 套件清单一致性门禁——第 17 套测试把智能体指令里的套件清单钉到 tests/ 目录实况，漏更即 CI 红灯。本条为模板发版通告，非站点故障；详情与完整变更见 GitHub Releases。`,
     href: RELEASES,
+    dismissLabel: '关闭公告',
   },
   hero: {
     badge: '开源 · MIT 协议 · Cloudflare Pages',

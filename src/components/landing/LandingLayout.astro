@@ -112,16 +112,56 @@ const description = pageDescription ?? t.description;
     })();
   </script>
 
-  {/* Announcement bar (optional — see landing.ts); line-clamped so a long
-      entry can't stack 3+ rows under the sticky header on phones. */}
+  {/* Announcement bar (optional — see landing.ts). Dismissible: the X
+      persists to localStorage keyed by the announcement TEXT, so dismissing
+      hides this entry but a future release's new text shows again (same
+      degrade-to-no-remember pattern as StickyBanner when storage is blocked).
+      line-clamped so a long entry can't stack 3+ rows on phones. */}
   {t.announcement && (
-    <a
-      href={t.announcement.href}
-      class="block bg-nav/10 px-4 py-1.5 text-center text-xs font-medium text-nav transition hover:bg-nav/15"
+    <div
+      id="announcement-bar"
+      data-announce-text={t.announcement.text}
+      class="relative bg-nav/10 py-1.5 pl-4 pr-10 text-center text-xs font-medium text-nav"
     >
-      <span class="line-clamp-2">{t.announcement.text}</span>
-    </a>
+      {/* line-clamp-2 alone on purpose — pairing it with `block` lets the
+          later display:block declaration win and silently kill the clamp. */}
+      <a href={t.announcement.href} class="line-clamp-2 transition hover:text-foreground">
+        {t.announcement.text}
+      </a>
+      <button
+        id="dismiss-announcement"
+        type="button"
+        aria-label={t.announcement.dismissLabel}
+        class="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-nav/70 transition hover:bg-nav/15 hover:text-nav"
+      >
+        <Icon name="lucide:x" class="h-3.5 w-3.5" />
+      </button>
+    </div>
   )}
+  <script is:inline>
+    (() => {
+      const bar = document.getElementById('announcement-bar');
+      if (!bar) return;
+      let dismissedFor = '';
+      try {
+        dismissedFor = localStorage.getItem('landing-announcement-dismissed') || '';
+      } catch {
+        /* storage unavailable — dismiss still works, just not remembered */
+      }
+      if (dismissedFor && dismissedFor === bar.getAttribute('data-announce-text')) {
+        bar.remove();
+        return;
+      }
+      document.getElementById('dismiss-announcement')?.addEventListener('click', () => {
+        try {
+          localStorage.setItem('landing-announcement-dismissed', bar.getAttribute('data-announce-text') || '');
+        } catch {
+          /* storage unavailable */
+        }
+        bar.remove();
+      });
+    })();
+  </script>
 
   {/* Minimal header — logo + language + GitHub + theme toggle */}
   <header class="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur">

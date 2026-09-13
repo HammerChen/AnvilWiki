@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **landing 公告条可关闭**——用户反馈横幅要有关闭按钮：右上角 ×（`lucide:x`，aria-label 走 landing.ts 新增 `announcement.dismissLabel` 双语文案「Dismiss announcement/关闭公告」），点击移除公告条并写 localStorage；持久化按**公告文本**做键（`landing-announcement-dismissed`），关掉的是当前这条——下次发版新文本的公告会重新出现；存储被隐私扩展拦截时降级为「能关但不记忆」（StickyBanner 同款模式与注释口径）。
 - **landing 全站搜索：社群精华/对比页/落地页正文进 Pagefind 索引，搜索入口扩到全部 landing 页**——用户反馈「搜索只能搜手册，搜不到群聊精华」：社群精华页（`CommunityHighlights`）、对比页（`ComparisonPage`）、中英落地页正文（`landing.astro`/`zh/landing.astro` 九个营销区块）标记 `data-pagefind-body` 进索引，微信 QR 浮卡有意留在标记外（卡片文案永不成为搜索结果）；`LandingLayout` 的 `search` 开关默认 false→true——v2.14.0「营销 landing 不进搜索」的噪音隔离决策在当时 landing 页零索引内容的前提下成立，现在 landing 自身有了可搜内容（精华/对比/卖点），全站互搜才是预期；docs 页显式传参不变，共享文案 placeholder 改「Search AnvilWiki.../搜索 AnvilWiki…」（原「Search the docs.../搜索手册文档…」覆盖面已失真）；`tests/handbook.test.ts` Pagefind 契约扩 3 条钉住（三类页面标记在位/浮卡在标记外/布局默认开搜索+移动菜单搜索入口）。
 
 ### Fixed
