@@ -149,7 +149,7 @@ function buildLastmodMap(
   return map;
 }
 
-const siteOrigin = process.env.SITE_URL || 'https://anvilwiki.pages.dev';
+const siteOrigin = process.env.SITE_URL || 'https://anvil.wiki';
 
 // trailingSlash:'always' makes every generated URL end with "/", but the
 // lookup tables above (lastmodMap / noindexPaths / coverage keys) are built
@@ -204,7 +204,7 @@ function alternatesFor(pagePath: string): Array<{ lang: string; url: string }> |
 
 // https://astro.build/config
 export default defineConfig({
-  site: process.env.SITE_URL || 'https://anvilwiki.pages.dev',
+  site: process.env.SITE_URL || 'https://anvil.wiki',
   output: 'static',
   // Cloudflare Pages serves directory builds at /path/ — with 'never' every
   // canonical/sitemap/internal link said /path, so each page 308'd once and

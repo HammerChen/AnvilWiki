@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Open-source game wiki site template. Astro + Cloudflare Pages. Free, fast, beginner-friendly.",
   "license": "MIT",
-  "homepage": "https://anvilwiki.pages.dev",
+  "homepage": "https://anvil.wiki",
   "repository": {
     "type": "git",
     "url": "https://github.com/PNGTRID/AnvilWiki.git"

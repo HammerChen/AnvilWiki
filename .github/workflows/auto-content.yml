@@ -98,7 +98,7 @@ jobs:
       - name: Quality gates (green = PR, red = nothing)
         uses: ./.github/actions/gates
         with:
-          site-url: ${{ vars.SITE_URL || 'https://anvilwiki.pages.dev' }}
+          site-url: ${{ vars.SITE_URL || 'https://anvil.wiki' }}
 
       - name: Open draft PR
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8

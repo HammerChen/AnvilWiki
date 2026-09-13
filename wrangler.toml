@@ -1,6 +1,6 @@
 # ⚠️⚠️⚠️ FORKERS READ THIS FIRST ⚠️⚠️⚠️
 #
-# This wrangler.toml contains the DEMO SITE config (anvilwiki.pages.dev).
+# This wrangler.toml contains the DEMO SITE config (anvil.wiki).
 # The [vars] below point at PNGTRID/AnvilWiki's own GitHub Discussions.
 #
 # When you fork: EITHER
@@ -35,8 +35,8 @@ pages_build_output_dir = "dist"
 
 [vars]
 # Site (must include https:// protocol — Astro validates this as a URL)
-SITE_URL = "https://anvilwiki.pages.dev"
-# Giscus comments (DEMO — anvilwiki.pages.dev points at PNGTRID/AnvilWiki Discussions)
+SITE_URL = "https://anvil.wiki"
+# Giscus comments (DEMO — anvil.wiki points at PNGTRID/AnvilWiki Discussions)
 PUBLIC_GISCUS_REPO = "PNGTRID/AnvilWiki"
 PUBLIC_GISCUS_REPO_ID = "R_kgDOT1aRPQ"
 PUBLIC_GISCUS_CATEGORY = "Announcements"

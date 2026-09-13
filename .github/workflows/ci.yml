@@ -45,7 +45,7 @@ jobs:
       - name: Quality gates
         uses: ./.github/actions/gates
         with:
-          site-url: ${{ vars.SITE_URL || 'https://anvilwiki.pages.dev' }}
+          site-url: ${{ vars.SITE_URL || 'https://anvil.wiki' }}
 
   # apply-template has ZERO vitest coverage and only breaks in real
   # (non-dry-run) mode, which the demo repo never exercises — three real-mode

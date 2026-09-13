@@ -39,7 +39,9 @@ const REL = (p: string) => path.relative(ROOT, p);
 // Demo markers — KEEP IN SYNC with scripts/apply-template.ts (DEMO_COVERS /
 // clearDemoAssets) and .github/workflows/setup.yml ("Clear demo content").
 // ---------------------------------------------------------------------------
-const DEMO_DOMAIN = 'anvilwiki.pages.dev';
+/** Demo domains that must be rebranded in a fork: the canonical anvil.wiki and
+ * the legacy pages.dev host (also the apply-template CLI placeholder default). */
+const DEMO_DOMAINS = ['anvil.wiki', 'anvilwiki.pages.dev'];
 const DEMO_GAME_NAME = 'Anvil Quest';
 /** Demo-game identifiers that must never appear in RENDERED code-layer output. */
 const DEMO_CODE_STRINGS = ['anvil quest', 'anvilquest', 'emberfang', 'stormcaller'];
@@ -164,8 +166,8 @@ check(() => {
   const domain = siteSrc.match(/^\s*domain:\s*['"]([^'"]+)['"]/m)?.[1];
   if (!domain) {
     fail('could not parse `domain` in src/config/site.ts');
-  } else if (domain === DEMO_DOMAIN) {
-    warn(`site.ts domain is still the demo "${DEMO_DOMAIN}" — fine for the demo repo, but a fork must rebrand (pnpm apply-template) before its second site.`);
+  } else if (DEMO_DOMAINS.includes(domain)) {
+    warn(`site.ts domain is still a demo domain ("${domain}") — fine for the demo repo, but a fork must rebrand (pnpm apply-template) before its second site.`);
   } else {
     ok(`site.ts domain "${domain}" is not the demo domain`);
   }
@@ -353,7 +355,7 @@ check(() => {
   const siteUrl = read('wrangler.toml').match(/^SITE_URL\s*=\s*"([^"]+)"/m)?.[1];
   if (!siteUrl) {
     warn('wrangler.toml has no SITE_URL in [vars] — see docs/deployment.md');
-  } else if (siteUrl === `https://${DEMO_DOMAIN}`) {
+  } else if (DEMO_DOMAINS.some((d) => siteUrl === `https://${d}`)) {
     warn(`wrangler.toml SITE_URL is still the demo "${siteUrl}" — while this file exists it OVERRIDES the dashboard; a fork must edit [vars] or delete the file.`);
   } else {
     ok(`wrangler.toml SITE_URL "${siteUrl}" is not the demo domain`);

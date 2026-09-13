@@ -51,7 +51,7 @@ describe('runDoctor', () => {
     expect(r.checks.find((c) => c.name === 'gsc-access')).toBeUndefined();
     // Discoverability contract: the degraded-mode line must carry the setup
     // guide (fix lines only render on FAIL, so the pointer lives in detail).
-    expect(gsc.detail).toContain('https://anvilwiki.pages.dev/landing/docs/ai-ops/');
+    expect(gsc.detail).toContain('https://anvil.wiki/landing/docs/ai-ops/');
     expect(formatDoctor(r)).toContain('landing/docs/ai-ops');
   });
 

@@ -2,13 +2,13 @@
 
 > 全部文档按**角色**和**使用时机**组织。从下面找到你的路径,按顺序读即可。
 
-**先看这个:[站内文档中心](https://anvilwiki.pages.dev/zh/landing/docs)** —— 两本**相互独立**的引导式手册:[学习手册](https://anvilwiki.pages.dev/zh/landing/docs/learn)(零基础向,从选游戏到赚到钱、再到模板化复制、批量铺内页和 SEO 进阶,每步 SOP + 可复制提示词;6 阶段 29 课+3 附录)+ [开发手册](https://anvilwiki.pages.dev/zh/landing/docs/dev)(定制/集成/同步/AI 运营,按需查询),中英双语;本页的仓库文档是配套的查阅式参考。手册 markdown 源码在 [`handbook/`](handbook/) 目录(fork 后保留)。
+**先看这个:[站内文档中心](https://anvil.wiki/zh/landing/docs)** —— 两本**相互独立**的引导式手册:[学习手册](https://anvil.wiki/zh/landing/docs/learn)(零基础向,从选游戏到赚到钱、再到模板化复制、批量铺内页和 SEO 进阶,每步 SOP + 可复制提示词;6 阶段 29 课+3 附录)+ [开发手册](https://anvil.wiki/zh/landing/docs/dev)(定制/集成/同步/AI 运营,按需查询),中英双语;本页的仓库文档是配套的查阅式参考。手册 markdown 源码在 [`handbook/`](handbook/) 目录(fork 后保留)。
 
 ## 快速索引
 
 | 文档 | 一句话 | 读者 |
 |---|---|---|
-| [handbook/](handbook/) | 📚 站内手册源码:学习手册(6 阶段 29 课+3 附录)+ 开发手册(9 课),中英双语 | 🎯 新手从[学习手册](https://anvilwiki.pages.dev/zh/landing/docs/learn)开始 |
+| [handbook/](handbook/) | 📚 站内手册源码:学习手册(6 阶段 29 课+3 附录)+ 开发手册(9 课),中英双语 | 🎯 新手从[学习手册](https://anvil.wiki/zh/landing/docs/learn)开始 |
 | [game-selection.md](game-selection.md) | 做哪个游戏?上线第一天写什么? | 🎯 想建站赚钱的人(从这里开始) |
 | [sourcing.md](sourcing.md) | 去哪挖词:9 个渠道 + 第 7 条判断(意图满足度)+ 选词决策管理表 | 🎯 候选池不够大、想系统挖词的人 |
 | [requirements/](../requirements/) | 建站前内容准备两张表:事实来源表 + 对标参考表(模板) | 🎯 选好游戏、准备让 AI 产页的人 |
@@ -36,7 +36,7 @@
 
 ```
 0. 站内学习手册           ← 引导式主线:选品→建站→AI 产页→部署→变现运营
-                            (https://anvilwiki.pages.dev/zh/landing/docs,含提示词)
+                            (https://anvil.wiki/zh/landing/docs,含提示词)
 1. game-selection.md      ← 先回答"做哪个游戏",这比建站重要
    └ sourcing.md          ← 候选池不够大时:9 个挖词渠道 + 选词决策管理表
    (懒人通道:对 AI 说「帮我挖词」——/anvil-find-keywords 自动跑挖候选→快验→打分)

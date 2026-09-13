@@ -8,7 +8,7 @@ inputs:
   site-url:
     description: 'SITE_URL for the build step (CI passes vars.SITE_URL; falls back to the demo domain).'
     required: false
-    default: 'https://anvilwiki.pages.dev'
+    default: 'https://anvil.wiki'
 
 runs:
   using: 'composite'

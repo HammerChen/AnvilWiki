@@ -15,26 +15,26 @@
 [![Cloudflare Pages](https://img.shields.io/badge/Cloudflare-Pages-F38020?logo=cloudflare&logoColor=white)](https://pages.cloudflare.com)
 [![Release](https://img.shields.io/github/v/release/PNGTRID/AnvilWiki?label=Release&color=brightgreen)](https://github.com/PNGTRID/AnvilWiki/releases)
 [![CI](https://github.com/PNGTRID/AnvilWiki/actions/workflows/ci.yml/badge.svg)](https://github.com/PNGTRID/AnvilWiki/actions/workflows/ci.yml)
-[![Live Demo](https://img.shields.io/badge/Demo-anvilwiki.pages.dev-brightgreen)](https://anvilwiki.pages.dev/)
-[![Docs](https://img.shields.io/badge/Docs-/landing/docs-8b5cf6)](https://anvilwiki.pages.dev/landing/docs)
+[![Live Demo](https://img.shields.io/badge/Demo-anvil.wiki-brightgreen)](https://anvil.wiki/)
+[![Docs](https://img.shields.io/badge/Docs-/landing/docs-8b5cf6)](https://anvil.wiki/landing/docs)
 [![Works with](https://img.shields.io/badge/Works_with-Claude_Code_%7C_Codex_%7C_Cursor_%7C_ZCode-blueviolet)](.agent/skills/)
 
-[![Demo site homepage](public/images/showcase/demo-home.webp)](https://anvilwiki.pages.dev/)
+[![Demo site homepage](public/images/showcase/demo-home.webp)](https://anvil.wiki/)
 
 <p align="center">
-  <a href="https://anvilwiki.pages.dev/bosses/emberfang/"><img src="public/images/showcase/demo-article.webp" width="32%" alt="Boss stat card"></a>
-  <a href="https://anvilwiki.pages.dev/codes/all-codes/"><img src="public/images/showcase/demo-codes.webp" width="32%" alt="Codes page — tap to copy"></a>
-  <a href="https://anvilwiki.pages.dev/guides/weapon-tier-list/"><img src="public/images/showcase/demo-tier-list.webp" width="32%" alt="Weapon tier list"></a>
+  <a href="https://anvil.wiki/bosses/emberfang/"><img src="public/images/showcase/demo-article.webp" width="32%" alt="Boss stat card"></a>
+  <a href="https://anvil.wiki/codes/all-codes/"><img src="public/images/showcase/demo-codes.webp" width="32%" alt="Codes page — tap to copy"></a>
+  <a href="https://anvil.wiki/guides/weapon-tier-list/"><img src="public/images/showcase/demo-tier-list.webp" width="32%" alt="Weapon tier list"></a>
 </p>
 
 > Boss 数据卡 · 兑换码一键复制 · 武器强度榜——wiki 级呈现的其中三页,点图直达对应页面。Boss stat cards, tap-to-copy codes, tier lists — three of the wiki-grade page types; click through to the live pages.
 
-> Lighthouse 4×100 — 实测于 [anvilwiki.pages.dev](https://anvilwiki.pages.dev/)（2026-09-03）
+> Lighthouse 4×100 — 实测于 [anvil.wiki](https://anvil.wiki/)（2026-09-03）
 > 
-> [![Performance 100](https://img.shields.io/badge/Performance-100-058627?style=flat-square&logo=lighthouse&logoColor=white)](https://anvilwiki.pages.dev/)
-> [![Accessibility 100](https://img.shields.io/badge/Accessibility-100-058627?style=flat-square&logo=lighthouse&logoColor=white)](https://anvilwiki.pages.dev/)
-> [![Best Practices 100](https://img.shields.io/badge/Best_Practices-100-058627?style=flat-square&logo=lighthouse&logoColor=white)](https://anvilwiki.pages.dev/)
-> [![SEO 100](https://img.shields.io/badge/SEO-100-058627?style=flat-square&logo=lighthouse&logoColor=white)](https://anvilwiki.pages.dev/)
+> [![Performance 100](https://img.shields.io/badge/Performance-100-058627?style=flat-square&logo=lighthouse&logoColor=white)](https://anvil.wiki/)
+> [![Accessibility 100](https://img.shields.io/badge/Accessibility-100-058627?style=flat-square&logo=lighthouse&logoColor=white)](https://anvil.wiki/)
+> [![Best Practices 100](https://img.shields.io/badge/Best_Practices-100-058627?style=flat-square&logo=lighthouse&logoColor=white)](https://anvil.wiki/)
+> [![SEO 100](https://img.shields.io/badge/SEO-100-058627?style=flat-square&logo=lighthouse&logoColor=white)](https://anvil.wiki/)
 
 ---
 
@@ -42,11 +42,11 @@
 
 | 你想… | 去这里 |
 |---|---|
-| **零基础从零做一个赚钱的游戏站** | 📚 [学习手册](https://anvilwiki.pages.dev/zh/landing/docs/learn)——每步写明「做什么/怎么做/你会看到什么」,含可复制的 AI 提示词 |
-| 看「从零到赚钱」的全部工作量 | 🗺️ [文档中心首页](https://anvilwiki.pages.dev/zh/landing/docs)——10 件事全景清单,逐项点入 |
-| 深度定制 / 给模板写代码 | 🔧 [开发手册](https://anvilwiki.pages.dev/zh/landing/docs/dev) |
-| 看看做出来长什么样 | 🎮 [在线 Demo](https://anvilwiki.pages.dev/)——虚构游戏「Anvil Quest」的完整 wiki |
-| 对比 Fandom / Wiki.js / 其他方案 | ⚖️ [完整对比页](https://anvilwiki.pages.dev/zh/landing/comparison)——三种物种、自托管引擎数据表、什么时候不该选 AnvilWiki |
+| **零基础从零做一个赚钱的游戏站** | 📚 [学习手册](https://anvil.wiki/zh/landing/docs/learn)——每步写明「做什么/怎么做/你会看到什么」,含可复制的 AI 提示词 |
+| 看「从零到赚钱」的全部工作量 | 🗺️ [文档中心首页](https://anvil.wiki/zh/landing/docs)——10 件事全景清单,逐项点入 |
+| 深度定制 / 给模板写代码 | 🔧 [开发手册](https://anvil.wiki/zh/landing/docs/dev) |
+| 看看做出来长什么样 | 🎮 [在线 Demo](https://anvil.wiki/)——虚构游戏「Anvil Quest」的完整 wiki |
+| 对比 Fandom / Wiki.js / 其他方案 | ⚖️ [完整对比页](https://anvil.wiki/zh/landing/comparison)——三种物种、自托管引擎数据表、什么时候不该选 AnvilWiki |
 
 ## 📖 中文文档
 
@@ -54,7 +54,7 @@
 
 **跑完这一节你会得到**:一个跑在 Cloudflare 免费版上、属于你自己的 wiki 站(先以 demo 内容上线,换成你的游戏、清掉 demo,随时可以做)。
 
-**开始前需要**:[Node.js 22+](https://nodejs.org) 和 pnpm(没装 pnpm?终端跑 `npm install -g pnpm`;或跟着[学习手册「装好 6 样工具」一课](https://anvilwiki.pages.dev/zh/landing/docs/install-tools)把 6 样工具一次装齐)。
+**开始前需要**:[Node.js 22+](https://nodejs.org) 和 pnpm(没装 pnpm?终端跑 `npm install -g pnpm`;或跟着[学习手册「装好 6 样工具」一课](https://anvil.wiki/zh/landing/docs/install-tools)把 6 样工具一次装齐)。
 
 ```bash
 # 1. Fork 本仓库(仓库右上角 Fork 按钮),然后克隆你的 fork(换成你的 GitHub 用户名)
@@ -81,7 +81,7 @@ git push           # 第 5 步 Cloudflare 连的是 GitHub 远端仓库,不推�
 
 **不想碰终端?有一条零命令路径**:fork 后打开你仓库的 **Actions** 页签 → 左侧选 **Initialize AnvilWiki** → **Run workflow**(填你的域名)→ 合并它开好的 PR → 直接做上面的第 5 步。游戏名、主题色等之后随时可以让 AI 助手帮你改。
 
-**完全新手?别从这里开始**——先去[学习手册](https://anvilwiki.pages.dev/zh/landing/docs/learn):「选品找词」一个阶段帮你把游戏选对,「装好 6 样工具」把终端、Node、Git、AI 助手怎么装、每步会看到什么全部写清,然后「把站跑起来」才动手建站。手册源码在 [`docs/handbook/`](docs/handbook/),fork 后依然保留(但站内文档中心页面会自动移除,属正常)。
+**完全新手?别从这里开始**——先去[学习手册](https://anvil.wiki/zh/landing/docs/learn):「选品找词」一个阶段帮你把游戏选对,「装好 6 样工具」把终端、Node、Git、AI 助手怎么装、每步会看到什么全部写清,然后「把站跑起来」才动手建站。手册源码在 [`docs/handbook/`](docs/handbook/),fork 后依然保留(但站内文档中心页面会自动移除,属正常)。
 
 ### 这是什么？
 
@@ -93,7 +93,7 @@ AnvilWiki 是一个**游戏 SEO 内容站模板**——用来快速搭建围绕�
 
 ### 核心特性
 
-- 📚 **零基础双手册**:学习手册(6 阶段 29 课+3 附录)+ 开发手册(9 课),中英双语,从选游戏到赚到钱,每步 SOP + 可复制 AI 提示词([站内阅读](https://anvilwiki.pages.dev/zh/landing/docs))
+- 📚 **零基础双手册**:学习手册(6 阶段 29 课+3 附录)+ 开发手册(9 课),中英双语,从选游戏到赚到钱,每步 SOP + 可复制 AI 提示词([站内阅读](https://anvil.wiki/zh/landing/docs))
 - 🤖 **AI 对话即产页**:内容技能随仓库分发(`.agent/skills/`),对 ZCode / Claude Code / Codex 说「根据这些笔记写篇攻略」,产出自动通过构建质检;批量产页走 **PR 门控管道**——AI 写、八道质量门禁验、你审完才合并([docs/content-pipeline.md](docs/content-pipeline.md))
 - 🧭 **一套工具管 N 个站**:`anvilwiki-ops`(npx 免安装 + MCP)让 AI 替你拉 GSC/Cloudflare 数据、给优化清单,并追踪 ChatGPT/Perplexity 等 **AI 引用来路**([docs/multi-site.md](docs/multi-site.md))
 - 🧰 **产能三件套**:`pnpm template-audit` 检查「这个站还能不能干净复制成下一个」、`pnpm bulk-new-posts` 从关键词清单批量铺内页草稿、`pnpm gen-covers` 自动生成 1200×675 封面(中日文标题自动配字体)
@@ -117,13 +117,13 @@ fork 后用 ZCode / Claude Code / Codex / Cursor 打开仓库,直接对话即可
 | `anvil-refresh` | 新鲜度巡检 → 输出「该更新什么」优先级清单 |
 | `anvil-adsense-audit` | AdSense 申请前逐项体检(22 项政策清单,模板已解决的项自动给证据) |
 
-完整的提示词库(选品分析、产页、批量产页、翻译、SEO 体检、关键词选题等模板)在[学习手册](https://anvilwiki.pages.dev/zh/landing/docs/learn)里,整段复制就能用。
+完整的提示词库(选品分析、产页、批量产页、翻译、SEO 体检、关键词选题等模板)在[学习手册](https://anvil.wiki/zh/landing/docs/learn)里,整段复制就能用。
 
 ### 文档在哪里?
 
 | 入口 | 内容 |
 |---|---|
-| 📚 [站内文档中心](https://anvilwiki.pages.dev/zh/landing/docs) | **首选**:双手册 + 「从零到赚钱 10 件事」全景清单,中英双语 |
+| 📚 [站内文档中心](https://anvil.wiki/zh/landing/docs) | **首选**:双手册 + 「从零到赚钱 10 件事」全景清单,中英双语 |
 | 🗂️ [docs/README.md](docs/README.md) | 仓库内全部参考文档索引(选品/挖词/部署/SEO/广告/内容管道/多站运营…),按角色与时机分类,附四条阅读路径 |
 | 📋 [requirements/](requirements/) | 建站前素材准备模板:事实来源表 + 对标参考表 |
 | 🏗️ [docs/PRD.md](docs/PRD.md) | 架构唯一真相源:想知道「为什么这么设计」看这里 |
@@ -138,7 +138,7 @@ fork 后用 ZCode / Claude Code / Codex / Cursor 打开仓库,直接对话即可
 | AI 产页 | **技能随仓库分发,对话即产页** | 无 | 自己搭 |
 | 上手门槛 | **零基础引导式双手册** | 低但受制于人 | 高 |
 
-更完整的选型对比——含 Wiki.js、BookStack、MediaWiki、DokuWiki、Docmost 五个自托管引擎的数据表,以及「什么时候不该选 AnvilWiki」:见[完整对比页](https://anvilwiki.pages.dev/zh/landing/comparison)。
+更完整的选型对比——含 Wiki.js、BookStack、MediaWiki、DokuWiki、Docmost 五个自托管引擎的数据表,以及「什么时候不该选 AnvilWiki」:见[完整对比页](https://anvil.wiki/zh/landing/comparison)。
 
 ### 常见问题
 
@@ -161,11 +161,11 @@ fork 后用 ZCode / Claude Code / Codex / Cursor 打开仓库,直接对话即可
 | [Sephiria Builds](https://sephiriabuilds.xyz/) | Sephiria | 动作肉鸽 Sephiria 的 build 数据库——带版本戳的武器强度榜与证据分级的 build 攻略 |
 | [Resonance Wiki](https://resonanceplaguetale.wiki/) | Resonance: A Plague Tale Legacy | 全章节流程攻略、全部收集品位置、奖杯路线图、谜题解法与技能推荐 |
 
-提 PR 在 `src/config/landing.ts` 的 `COMMUNITY_SITES` 追加一条即可——官网([/landing](https://anvilwiki.pages.dev/landing) 与 [/zh/landing](https://anvilwiki.pages.dev/zh/landing))的「Built with AnvilWiki」区块会自动展示。
+提 PR 在 `src/config/landing.ts` 的 `COMMUNITY_SITES` 追加一条即可——官网([/landing](https://anvil.wiki/landing) 与 [/zh/landing](https://anvil.wiki/zh/landing))的「Built with AnvilWiki」区块会自动展示。
 
 ### 交流群 / 技术栈 / 许可
 
-微信扫码添加主理人好友,拉你进群交流讨论(部署问题、功能建议、游戏内容站经验都欢迎;[项目官网](https://anvilwiki.pages.dev/zh/landing)右下角也有同款悬浮扫码按钮):
+微信扫码添加主理人好友,拉你进群交流讨论(部署问题、功能建议、游戏内容站经验都欢迎;[项目官网](https://anvil.wiki/zh/landing)右下角也有同款悬浮扫码按钮):
 
 <p align="center">
   <img src="public/images/wechat-qr.jpg" width="200" alt="微信二维码——扫码添加好友进群交流" />
@@ -183,17 +183,17 @@ fork 后用 ZCode / Claude Code / Codex / Cursor 打开仓库,直接对话即可
 
 | I want to… | Go here |
 |---|---|
-| **Build a money-making game site from zero** | 📚 [Learning Manual](https://anvilwiki.pages.dev/landing/docs/learn) — every step a SOP with copy-paste AI prompts |
-| See the whole journey first | 🗺️ [Docs hub](https://anvilwiki.pages.dev/landing/docs) — a 10-job whole-picture checklist |
-| Customize deeply / contribute code | 🔧 [Development Manual](https://anvilwiki.pages.dev/landing/docs/dev) |
-| See what it looks like | 🎮 [Live demo](https://anvilwiki.pages.dev/) — a complete wiki for the fictional game "Anvil Quest" |
-| Compare Fandom / Wiki.js / alternatives | ⚖️ [Full comparison](https://anvilwiki.pages.dev/landing/comparison) |
+| **Build a money-making game site from zero** | 📚 [Learning Manual](https://anvil.wiki/landing/docs/learn) — every step a SOP with copy-paste AI prompts |
+| See the whole journey first | 🗺️ [Docs hub](https://anvil.wiki/landing/docs) — a 10-job whole-picture checklist |
+| Customize deeply / contribute code | 🔧 [Development Manual](https://anvil.wiki/landing/docs/dev) |
+| See what it looks like | 🎮 [Live demo](https://anvil.wiki/) — a complete wiki for the fictional game "Anvil Quest" |
+| Compare Fandom / Wiki.js / alternatives | ⚖️ [Full comparison](https://anvil.wiki/landing/comparison) |
 
 ### Quick Start (5 min)
 
 **What you'll have when this section is done**: your own wiki live on Cloudflare's free tier (it ships with demo content first — rebranding and demo removal come whenever you're ready).
 
-**Prerequisites**: [Node.js 22+](https://nodejs.org) and pnpm (no pnpm? run `npm install -g pnpm` — or let [the "Install the 6 Tools" lesson](https://anvilwiki.pages.dev/landing/docs/install-tools) walk you through all six tools).
+**Prerequisites**: [Node.js 22+](https://nodejs.org) and pnpm (no pnpm? run `npm install -g pnpm` — or let [the "Install the 6 Tools" lesson](https://anvil.wiki/landing/docs/install-tools) walk you through all six tools).
 
 ```bash
 # 1. Fork this repo (Fork button, top right), then clone YOUR fork (replace the username)
@@ -220,7 +220,7 @@ git push           # step 5 connects Cloudflare to the REMOTE repo — skip this
 
 **Prefer zero terminal?** There's a no-command path: open your fork's **Actions** tab → **Initialize AnvilWiki** → **Run workflow** (enter your domain) → merge the PR it opens → jump straight to step 5 above. Game name, theme color and more can be changed later with your AI assistant.
 
-**Complete beginner?** Don't start here — start with the [Learning Manual](https://anvilwiki.pages.dev/landing/docs/learn): the Pick & Validate stage picks your game, "Install the 6 Tools" walks you through every install with "what you'll see" on each step, and "Run Your Site" is where the site gets built. The handbook source lives in [`docs/handbook/`](docs/handbook/) and stays in your fork (the in-site docs center pages are auto-removed for forks — that's expected).
+**Complete beginner?** Don't start here — start with the [Learning Manual](https://anvil.wiki/landing/docs/learn): the Pick & Validate stage picks your game, "Install the 6 Tools" walks you through every install with "what you'll see" on each step, and "Run Your Site" is where the site gets built. The handbook source lives in [`docs/handbook/`](docs/handbook/) and stays in your fork (the in-site docs center pages are auto-removed for forks — that's expected).
 
 ### What is this?
 
@@ -228,7 +228,7 @@ AnvilWiki is an **open-source game wiki site template**: build a content site ar
 
 ### Key Features
 
-- 📚 **Two beginner manuals**: Learning (6 stages, 29 lessons + 3 appendices) + Development (9 lessons), bilingual, zero to revenue, every step a SOP with copy-paste AI prompts ([read online](https://anvilwiki.pages.dev/landing/docs))
+- 📚 **Two beginner manuals**: Learning (6 stages, 29 lessons + 3 appendices) + Development (9 lessons), bilingual, zero to revenue, every step a SOP with copy-paste AI prompts ([read online](https://anvil.wiki/landing/docs))
 - 🤖 **Talk to generate pages**: agent skills ship inside the repo (`.agent/skills/`) — say "write a boss guide from these notes" and get a build-check-passing page; batches go through a **PR-gated pipeline** — AI writes, 8 quality gates verify, you review and merge ([docs/content-pipeline.md](docs/content-pipeline.md))
 - 🧭 **Run N sites from one toolkit**: `anvilwiki-ops` (npx + MCP) lets your AI pull GSC/Cloudflare data, rank SEO actions, and track **AI referrals** from ChatGPT/Perplexity ([docs/multi-site.md](docs/multi-site.md))
 - 🧰 **Production trio**: `pnpm template-audit` scores how cleanly this site can be copied into the next game's, `pnpm bulk-new-posts` scaffolds a batch of inner pages from a keyword list, `pnpm gen-covers` auto-generates 1200×675 covers (CJK titles auto-fonted)
@@ -252,13 +252,13 @@ After forking, open the repo in ZCode / Claude Code / Codex / Cursor and just ta
 | `anvil-refresh` | Freshness audit → prioritized "what to update" list |
 | `anvil-adsense-audit` | AdSense pre-application audit (22-item policy checklist, template-solved items come with evidence) |
 
-The full prompt library (game selection, page generation, batch production, translation, SEO audits, keyword research) lives in the [Learning Manual](https://anvilwiki.pages.dev/landing/docs/learn); copy-paste ready.
+The full prompt library (game selection, page generation, batch production, translation, SEO audits, keyword research) lives in the [Learning Manual](https://anvil.wiki/landing/docs/learn); copy-paste ready.
 
 ### Where are the docs?
 
 | Entry | Contents |
 |---|---|
-| 📚 [In-site docs center](https://anvilwiki.pages.dev/landing/docs) | **Start here**: both manuals + the 10-job whole-picture checklist, bilingual |
+| 📚 [In-site docs center](https://anvil.wiki/landing/docs) | **Start here**: both manuals + the 10-job whole-picture checklist, bilingual |
 | 🗂️ [docs/README.md](docs/README.md) | Index of every reference doc in the repo (game selection / keywords / deployment / SEO / ads / content pipeline / multi-site…), organized by role and timing |
 | 📋 [requirements/](requirements/) | Pre-build prep templates: source-of-truth table + benchmark table |
 | 🏗️ [docs/PRD.md](docs/PRD.md) | The single source of truth for architecture decisions |
@@ -273,7 +273,7 @@ The full prompt library (game selection, page generation, batch production, tran
 | AI page generation | **Skills ship with the repo — talk to generate** | None | Build it yourself |
 | Entry barrier | **Guided zero-to-hero manuals** | Low but constrained | High |
 
-For the full decision guide — a data table of self-hosted wiki engines (Wiki.js, BookStack, MediaWiki, DokuWiki, Docmost) plus an honest "when NOT to pick AnvilWiki" section — see the [complete comparison](https://anvilwiki.pages.dev/landing/comparison).
+For the full decision guide — a data table of self-hosted wiki engines (Wiki.js, BookStack, MediaWiki, DokuWiki, Docmost) plus an honest "when NOT to pick AnvilWiki" section — see the [complete comparison](https://anvil.wiki/landing/comparison).
 
 ### FAQ
 
@@ -296,7 +296,7 @@ Real sites built with AnvilWiki (in submission order):
 | [Sephiria Builds](https://sephiriabuilds.xyz/) | Sephiria | Build database for the action roguelite Sephiria: patch-stamped weapon tier lists and evidence-graded build guides |
 | [Resonance Wiki](https://resonanceplaguetale.wiki/) | Resonance: A Plague Tale Legacy | Full chapter walkthrough, all collectible locations, trophy roadmap, puzzle solutions, and skill picks |
 
-Built a site? Open a PR appending an entry to `COMMUNITY_SITES` in `src/config/landing.ts` — it will show up in the "Built with AnvilWiki" section on the [landing page](https://anvilwiki.pages.dev/landing).
+Built a site? Open a PR appending an entry to `COMMUNITY_SITES` in `src/config/landing.ts` — it will show up in the "Built with AnvilWiki" section on the [landing page](https://anvil.wiki/landing).
 
 ### Community & License
 
@@ -304,7 +304,7 @@ MIT License — see [LICENSE](LICENSE).
 
 Credits: the opportunity-scoring framework in [docs/sourcing.md](docs/sourcing.md) (section 4) draws on the game-opportunity skill from [yan-labs/yan-skills](https://github.com/yan-labs/yan-skills) (MIT); the AdSense pre-application audit skill (`/anvil-adsense-audit`) is inspired by the audit framework of [yantoumu/adsense-site-auditor-skill](https://github.com/yantoumu/adsense-site-auditor-skill) (our checklist is a template-specific rewrite, not a copy); the video-to-guide workflow (`anvil-new-article` Step 0) draws on the pipeline of [kennyzir/7deer_skills](https://github.com/kennyzir/7deer_skills/tree/main/youtube-content-gen) (MIT, youtube-content-gen). Thanks to all three projects for open-sourcing their methodology.
 
-Questions, ideas, or want to chat about game content sites? Scan the WeChat QR code to join the discussion group (the [project landing page](https://anvilwiki.pages.dev/landing) has the same floating QR button in the bottom-right corner):
+Questions, ideas, or want to chat about game content sites? Scan the WeChat QR code to join the discussion group (the [project landing page](https://anvil.wiki/landing) has the same floating QR button in the bottom-right corner):
 
 <p align="center">
   <img src="public/images/wechat-qr.jpg" width="200" alt="WeChat QR code — scan to join the discussion group" />
