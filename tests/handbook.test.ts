@@ -125,16 +125,36 @@ describe('shortTitle: nav label derivation', () => {
 });
 
 describe('handbook search contract (Pagefind)', () => {
+  const src = (rel: string) => fs.readFileSync(path.resolve(ROOT, rel), 'utf8');
+
   it('HandbookChapter opts chapters into the search index', () => {
     // Pagefind's rule: once ANY page on the site marks a data-pagefind-body
     // (ArticlePage does), unmarked pages are excluded from the index
     // entirely. Losing this attribute would silently drop all 41 lessons ×
     // 2 locales out of site search while every gate stays green.
-    const src = fs.readFileSync(
-      path.resolve(ROOT, 'src/components/landing/HandbookChapter.astro'),
-      'utf8',
-    );
-    expect(src).toContain('data-pagefind-body');
+    expect(src('src/components/landing/HandbookChapter.astro')).toContain('data-pagefind-body');
+  });
+
+  it('landing content pages opt into the search index (community digest, comparison, landing home)', () => {
+    // 2026-09-13 全站搜索批:搜索入口从 docs 页扩到所有 landing 页,内容侧
+    // 同步进索引——社群精华页是用户点名的核心诉求(搜群聊精华要能命中)。
+    // These are page-level bodies; the floating WeChat QR widget stays
+    // unmarked so its card copy never becomes a result.
+    expect(src('src/components/landing/CommunityHighlights.astro')).toContain('data-pagefind-body');
+    expect(src('src/components/landing/ComparisonPage.astro')).toContain('data-pagefind-body');
+    for (const page of ['src/pages/landing.astro', 'src/pages/zh/landing.astro']) {
+      const html = src(page);
+      expect(html, `${page} marks its sections for Pagefind`).toContain('data-pagefind-body');
+      // QR float must sit outside the marked wrapper (never indexed).
+      expect(html.indexOf('data-pagefind-body')).toBeLessThan(html.indexOf('<Community'));
+    }
+  });
+
+  it('LandingLayout ships the search button by default (whole site is searchable)', () => {
+    const layout = src('src/components/landing/LandingLayout.astro');
+    expect(layout).toContain('search = true');
+    // Mobile menu search entry reuses the same dialog as the header trigger.
+    expect(layout).toContain('data-open-search');
   });
 });
 

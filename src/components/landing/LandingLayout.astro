@@ -37,9 +37,11 @@ interface Props {
   /** Extra JSON-LD objects appended after the default WebSite one. */
   extraJsonLd?: Record<string, unknown>[];
   /**
-   * Render the Pagefind search button in the header (docs center pages
-   * only — marketing landing pages stay search-free; results would be
-   * article/handbook noise there). Labels come from landing.ts `search`.
+   * Render the Pagefind search button in the header. On by default — the
+   * index spans the whole site (wiki articles + handbook + the landing
+   * pages themselves, incl. the community digest), so every landing page
+   * is a search entry point. Docs pages used to be the only opt-ins back
+   * when landing pages weren't indexed. Labels come from landing.ts `search`.
    */
   search?: boolean;
   /**
@@ -57,7 +59,7 @@ const {
   pageDescription,
   togglePath,
   extraJsonLd = [],
-  search = false,
+  search = true,
   wide = false,
 } = Astro.props;
 const t = landingContent[locale];
@@ -110,13 +112,14 @@ const description = pageDescription ?? t.description;
     })();
   </script>
 
-  {/* Announcement bar (optional — see landing.ts) */}
+  {/* Announcement bar (optional — see landing.ts); line-clamped so a long
+      entry can't stack 3+ rows under the sticky header on phones. */}
   {t.announcement && (
     <a
       href={t.announcement.href}
       class="block bg-nav/10 px-4 py-1.5 text-center text-xs font-medium text-nav transition hover:bg-nav/15"
     >
-      {t.announcement.text}
+      <span class="line-clamp-2">{t.announcement.text}</span>
     </a>
   )}
 
@@ -190,6 +193,65 @@ const description = pageDescription ?? t.description;
           <span>Demo</span>
         </a>
         <ThemeToggle />
+
+        {/* Mobile menu — native <details>, zero JS (same pattern as the wiki
+            SiteHeader). The sm+ nav links above are display:none below 640px,
+            so without this the community/GitHub/demo pages were unreachable
+            on phones. */}
+        <details class="relative sm:hidden">
+          <summary
+            class="inline-flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-md text-foreground transition hover:bg-muted"
+          >
+            <Icon name="lucide:menu" class="h-5 w-5" />
+          </summary>
+          <div class="absolute right-0 mt-2 w-56 overflow-hidden rounded-md border bg-card shadow-lg">
+            {search && (
+              <button
+                type="button"
+                data-open-search
+                class="flex w-full items-center gap-2 border-b border-border px-3 py-2.5 text-sm font-medium text-nav transition hover:bg-muted"
+              >
+                <Icon name="lucide:search" class="h-4 w-4" />
+                <span>{t.search.label}</span>
+              </button>
+            )}
+            <a
+              href={`${handbookPath(locale, '', true)}#learn`}
+              class="flex items-center gap-2 px-3 py-2 text-sm transition hover:bg-muted"
+            >
+              <Icon name="lucide:graduation-cap" class="h-4 w-4" />
+              <span>{t.handbook.manuals.learn.label}</span>
+            </a>
+            <a
+              href={`${handbookPath(locale, '', true)}#dev`}
+              class="flex items-center gap-2 px-3 py-2 text-sm transition hover:bg-muted"
+            >
+              <Icon name="lucide:wrench" class="h-4 w-4" />
+              <span>{t.handbook.manuals.dev.label}</span>
+            </a>
+            <a
+              href={locale === 'en' ? '/landing/community/' : '/zh/landing/community/'}
+              class="flex items-center gap-2 px-3 py-2 text-sm transition hover:bg-muted"
+            >
+              <Icon name="lucide:messages-square" class="h-4 w-4" />
+              <span>{t.communityHighlights.navLabel}</span>
+            </a>
+            <a
+              href="https://github.com/PNGTRID/AnvilWiki"
+              class="flex items-center gap-2 px-3 py-2 text-sm transition hover:bg-muted"
+            >
+              <Icon name="lucide:star" class="h-4 w-4" />
+              <span>GitHub</span>
+            </a>
+            <a
+              href="/"
+              class="flex items-center gap-2 border-t border-border px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted hover:text-nav"
+            >
+              <Icon name="lucide:external-link" class="h-4 w-4" />
+              <span>Demo</span>
+            </a>
+          </div>
+        </details>
       </div>
     </div>
   </header>
@@ -257,3 +319,15 @@ const description = pageDescription ?? t.description;
     </div>
   </footer>
 </BaseLayout>
+
+<script>
+  // Mobile-menu search entry → open the shared search dialog (SearchButton),
+  // then fold the menu back up (scoped to this menu, not page-wide details).
+  document.querySelectorAll('[data-open-search]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.getElementById('search-trigger')?.click();
+      const menu = btn.closest('details');
+      if (menu) menu.open = false;
+    });
+  });
+</script>

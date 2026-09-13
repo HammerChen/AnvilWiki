@@ -19,8 +19,11 @@ const { t } = Astro.props;
 
 <section class="section overflow-hidden">
   <div class="grid items-center gap-12 lg:grid-cols-2">
-    {/* Left: copy + CTAs */}
-    <div>
+    {/* Left: copy + CTAs — min-w-0 keeps the unbreakable install-command
+        <pre> (white-space:pre min-content = longest line) from stretching
+        this grid item past the viewport on mobile, which silently clipped
+        the CTAs off-screen. */}
+    <div class="min-w-0">
       <span
         class="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground"
       >

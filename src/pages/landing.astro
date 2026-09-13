@@ -36,14 +36,19 @@ const alternates = [
 ---
 
 <LandingLayout locale="en" alternates={alternates}>
-  <LandingHero t={t} />
-  <SocialProofBar t={t} />
-  <FeatureGrid t={t} />
-  <CommunitySites t={t} />
-  <CompareTable t={t} />
-  <Showcase t={t} />
-  <DocsEntry t={t} />
-  <DevGuide t={t} />
+  {/* Pagefind body: the marketing sections are searchable site-wide. The
+      floating WeChat QR widget stays OUTSIDE the marker so its card copy
+      never surfaces as a search result. */}
+  <div data-pagefind-body>
+    <LandingHero t={t} />
+    <SocialProofBar t={t} />
+    <FeatureGrid t={t} />
+    <CommunitySites t={t} />
+    <CompareTable t={t} />
+    <Showcase t={t} />
+    <DocsEntry t={t} />
+    <DevGuide t={t} />
+    <FinalCta t={t} />
+  </div>
   <Community t={t} />
-  <FinalCta t={t} />
 </LandingLayout>

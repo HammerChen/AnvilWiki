@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **landing 全站搜索：社群精华/对比页/落地页正文进 Pagefind 索引，搜索入口扩到全部 landing 页**——用户反馈「搜索只能搜手册，搜不到群聊精华」：社群精华页（`CommunityHighlights`）、对比页（`ComparisonPage`）、中英落地页正文（`landing.astro`/`zh/landing.astro` 九个营销区块）标记 `data-pagefind-body` 进索引，微信 QR 浮卡有意留在标记外（卡片文案永不成为搜索结果）；`LandingLayout` 的 `search` 开关默认 false→true——v2.14.0「营销 landing 不进搜索」的噪音隔离决策在当时 landing 页零索引内容的前提下成立，现在 landing 自身有了可搜内容（精华/对比/卖点），全站互搜才是预期；docs 页显式传参不变，共享文案 placeholder 改「Search AnvilWiki.../搜索 AnvilWiki…」（原「Search the docs.../搜索手册文档…」覆盖面已失真）；`tests/handbook.test.ts` Pagefind 契约扩 3 条钉住（三类页面标记在位/浮卡在标记外/布局默认开搜索+移动菜单搜索入口）。
+
+### Fixed
+
+- **landing 移动端适配四连修（手机 390×844 实测）**——① hero 文案列被终端安装命令 `<pre>`（`white-space:pre` 的 min-content=最长行）撑到 455px：grid 项缺 `min-w-0`，`section overflow-hidden` 把「Live Demo」CTA 裁出屏外，补 `min-w-0` 根治；② 微信 QR 浮卡手机端默认展开盖住约 77% 视口，改为桌面（sm+，≥640px）默认展开、手机默认收起走 pill 展开（panel 服务端即 `hidden`，无 JS 环境也不再糊脸，桌面自动展开由脚本接管的取舍已注释）；③ landing 头部 <640px 无任何导航入口（learn/dev/Highlights/GitHub/Demo 全是 `hidden sm:inline-flex`），补原生 `<details>` 移动菜单（wiki SiteHeader 同款零 JS 模式，含搜索入口联动同一 Pagefind 对话框）；④ 公告条手机折 3 行推顶内容，`line-clamp-2` 钳制。
+
 ### Changed
 
 - **demo 顶栏模板入口从裸锤子图标改为带文字标签**——demo 访客（尤其新手）把 header 右侧 icon-only 的锤子当成游戏内「锻造」功能（title 悬停提示触屏不可见），反向误导；现宽屏（lg+）显示「Built with AnvilWiki」文字标签、窄屏回落图标，移动端菜单入口文案统一同源。文案收进 `src/config/project.ts` 的 `landingLink` 常量（跟随 `zhLandingLink` 先例：demo 专属层走 config 不进 locale JSON，fork 随 `landingLinkEnabled` 翻转永不渲染），页脚锤子为站牌 logo 无歧义不动。

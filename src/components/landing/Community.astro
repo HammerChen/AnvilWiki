@@ -1,11 +1,12 @@
 ---
 /**
  * Community — floating WeChat QR widget pinned to the bottom-right of the
- * landing pages. The QR card is OPEN by default so visitors see it without
- * interacting; the brand-colored pill below it toggles the card (Esc /
- * outside click / X also closes). The QR image lives at
- * /images/wechat-qr.jpg (project asset, removed from forks together with
- * the rest of the landing page by apply-template).
+ * landing pages. The QR card is OPEN by default on desktop (sm+, ≥640px) so
+ * visitors see it without interacting; on phones it starts COLLAPSED (the
+ * 288px card covered ~77% of a 390px viewport on load) and the
+ * brand-colored pill below opens it (Esc / outside click / X also close).
+ * The QR image lives at /images/wechat-qr.jpg (project asset, removed from
+ * forks together with the rest of the landing page by apply-template).
  */
 import { Icon } from 'astro-icon/components';
 import { type LandingContent } from '~/config/landing';
@@ -24,6 +25,7 @@ const { t } = Astro.props;
     role="dialog"
     aria-modal="false"
     aria-label={t.community.title}
+    hidden
     class="absolute bottom-full right-0 mb-3 w-72 rounded-lg border border-border bg-card p-4 text-card-foreground shadow-xl"
   >
     <button
@@ -55,11 +57,11 @@ const { t } = Astro.props;
     </p>
   </div>
 
-  {/* Always-visible pill (toggles the card; card starts open) */}
+  {/* Always-visible pill (toggles the card; JS opens the card on desktop) */}
   <button
     type="button"
     data-qr-toggle
-    aria-expanded="true"
+    aria-expanded="false"
     aria-controls="community-qr-panel"
     class="btn-fab relative"
   >
@@ -80,6 +82,10 @@ const { t } = Astro.props;
       panel.hidden = !open;
       btn.setAttribute('aria-expanded', String(open));
     };
+    // Card ships hidden (no-JS stays collapsed); desktop auto-opens it.
+    // No-JS desktop losing the auto-open is the accepted tradeoff for
+    // phones not getting a viewport-sized card in the face.
+    if (!window.matchMedia('(max-width: 639px)').matches) setOpen(true);
     btn.addEventListener('click', () => setOpen(panel.hidden));
     closeBtn.addEventListener('click', () => {
       setOpen(false);
