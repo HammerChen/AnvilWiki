@@ -174,6 +174,10 @@ describe('handbook search contract (Pagefind)', () => {
     const pkg = JSON.parse(src('package.json')) as { scripts: Record<string, string> };
     expect(pkg.scripts.postbuild).toContain('node scripts/transpile-pagefind.mjs');
     expect(src('scripts/transpile-pagefind.mjs')).toContain("target: ['es2018']");
+    // Per-deploy cache fingerprint: the CF zone clamps browser max-age, so
+    // every HTML import of the UI bundle must carry a ?v=<hash> query or
+    // fixed bundles take hours to reach returning phones.
+    expect(src('scripts/transpile-pagefind.mjs')).toContain('pagefind-ui.js?v=');
   });
 });
 
