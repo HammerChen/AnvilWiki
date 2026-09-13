@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **landing 移动端适配四连修（手机 390×844 实测）**——① hero 文案列被终端安装命令 `<pre>`（`white-space:pre` 的 min-content=最长行）撑到 455px：grid 项缺 `min-w-0`，`section overflow-hidden` 把「Live Demo」CTA 裁出屏外，补 `min-w-0` 根治；② 微信 QR 浮卡手机端默认展开盖住约 77% 视口，改为桌面（sm+，≥640px）默认展开、手机默认收起走 pill 展开（panel 服务端即 `hidden`，无 JS 环境也不再糊脸，桌面自动展开由脚本接管的取舍已注释）；③ landing 头部 <640px 无任何导航入口（learn/dev/Highlights/GitHub/Demo 全是 `hidden sm:inline-flex`），补原生 `<details>` 移动菜单（wiki SiteHeader 同款零 JS 模式，含搜索入口联动同一 Pagefind 对话框）；④ 公告条手机折 3 行推顶内容，`line-clamp-2` 钳制。
+- **landing 移动端适配修复批（手机 390×844 实测，含用户回访反馈第二轮）**——① hero 文案列被终端安装命令 `<pre>`（`white-space:pre` 的 min-content=最长行）撑到 455px：grid 项缺 `min-w-0`，`section overflow-hidden` 把「Live Demo」CTA 裁出屏外，补 `min-w-0` 根治；② 微信 QR 浮卡手机端默认展开盖住约 77% 视口，改为桌面（sm+，≥640px）默认展开、手机默认收起走 pill 展开（panel 服务端即 `hidden`，无 JS 环境也不再糊脸，桌面自动展开由脚本接管的取舍已注释）；③ landing 头部 <640px 无任何导航入口（learn/dev/Highlights/GitHub/Demo 全是 `hidden sm:inline-flex`），补原生 `<details>` 移动菜单（wiki SiteHeader 同款零 JS 模式）；④ 公告条手机折 3 行推顶内容，`line-clamp-2` 钳制；⑤ 用户反馈「菜单按钮要左上角」：移动菜单从右组挪到品牌 logo 左侧（首元素），面板改左对齐弹出；⑥ 用户反馈「首页也要搜索功能」：移动端 field 搜索胶囊在 <sm 只剩 36px 小图标太隐性，头部下新增**全宽搜索条第二行**（sm:hidden，sticky 常驻，点开同一 Pagefind 对话框），header 行内的小图标入口移动端不再渲染（对话框仍常挂载）；头部移动端总高 56→104px，连带补偿全部粘性/锚点偏移——社群页 chips 条 `top-14`→`top-[6.5rem] sm:top-14`、`#daily`/`#daily-report` `scroll-mt-20`→`scroll-mt-28 sm:scroll-mt-20`、五个分区 `scroll-mt-28`→`scroll-mt-40 sm:scroll-mt-28`（chips 49px 也压在头上）、手册课正文标题 `prose-headings:scroll-mt-20`→`scroll-mt-28 lg:scroll-mt-20`。
 
 ### Changed
 

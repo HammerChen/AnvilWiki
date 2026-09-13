@@ -133,20 +133,83 @@ const description = pageDescription ?? t.description;
           : 'max-w-7xl px-4',
       ]}
     >
+      {/* Mobile menu — native <details>, zero JS (same pattern as the wiki
+          SiteHeader), pinned TOP-LEFT before the brand (user request). The
+          sm+ nav links below are display:none below 640px, so without this
+          the community/GitHub/demo pages were unreachable on phones. */}
+      <details class="relative sm:hidden">
+        <summary
+          class="inline-flex h-9 w-9 shrink-0 cursor-pointer list-none items-center justify-center rounded-md text-foreground transition hover:bg-muted"
+        >
+          <Icon name="lucide:menu" class="h-5 w-5" />
+        </summary>
+        <div class="absolute left-0 mt-2 w-56 overflow-hidden rounded-md border bg-card shadow-lg">
+          {search && (
+            <button
+              type="button"
+              data-open-search
+              class="flex w-full items-center gap-2 border-b border-border px-3 py-2.5 text-sm font-medium text-nav transition hover:bg-muted"
+            >
+              <Icon name="lucide:search" class="h-4 w-4" />
+              <span>{t.search.label}</span>
+            </button>
+          )}
+          <a
+            href={`${handbookPath(locale, '', true)}#learn`}
+            class="flex items-center gap-2 px-3 py-2 text-sm transition hover:bg-muted"
+          >
+            <Icon name="lucide:graduation-cap" class="h-4 w-4" />
+            <span>{t.handbook.manuals.learn.label}</span>
+          </a>
+          <a
+            href={`${handbookPath(locale, '', true)}#dev`}
+            class="flex items-center gap-2 px-3 py-2 text-sm transition hover:bg-muted"
+          >
+            <Icon name="lucide:wrench" class="h-4 w-4" />
+            <span>{t.handbook.manuals.dev.label}</span>
+          </a>
+          <a
+            href={locale === 'en' ? '/landing/community/' : '/zh/landing/community/'}
+            class="flex items-center gap-2 px-3 py-2 text-sm transition hover:bg-muted"
+          >
+            <Icon name="lucide:messages-square" class="h-4 w-4" />
+            <span>{t.communityHighlights.navLabel}</span>
+          </a>
+          <a
+            href="https://github.com/PNGTRID/AnvilWiki"
+            class="flex items-center gap-2 px-3 py-2 text-sm transition hover:bg-muted"
+          >
+            <Icon name="lucide:star" class="h-4 w-4" />
+            <span>GitHub</span>
+          </a>
+          <a
+            href="/"
+            class="flex items-center gap-2 border-t border-border px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted hover:text-nav"
+          >
+            <Icon name="lucide:external-link" class="h-4 w-4" />
+            <span>Demo</span>
+          </a>
+        </div>
+      </details>
       <a href={landingPath(locale)} class="flex shrink-0 items-center gap-2 font-bold text-foreground">
         <Icon name="lucide:hammer" class="h-6 w-6 text-nav" />
         <span>AnvilWiki</span>
       </a>
+      {/* Field pill is a small icon on mobile — redundant with the full-width
+          search bar row below the header row, so it only renders from sm+;
+          the dialog itself always stays mounted. */}
       {search && (
-        <SearchButton
-          variant="field"
-          labels={{
-            trigger: t.search.label,
-            placeholder: t.search.placeholder,
-            noResults: t.search.noResults,
-            close: t.search.close,
-          }}
-        />
+        <div class="hidden min-w-0 flex-1 sm:flex">
+          <SearchButton
+            variant="field"
+            labels={{
+              trigger: t.search.label,
+              placeholder: t.search.placeholder,
+              noResults: t.search.noResults,
+              close: t.search.close,
+            }}
+          />
+        </div>
       )}
       <div class="ml-auto flex items-center gap-3">
         <a
@@ -193,67 +256,34 @@ const description = pageDescription ?? t.description;
           <span>Demo</span>
         </a>
         <ThemeToggle />
-
-        {/* Mobile menu — native <details>, zero JS (same pattern as the wiki
-            SiteHeader). The sm+ nav links above are display:none below 640px,
-            so without this the community/GitHub/demo pages were unreachable
-            on phones. */}
-        <details class="relative sm:hidden">
-          <summary
-            class="inline-flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-md text-foreground transition hover:bg-muted"
-          >
-            <Icon name="lucide:menu" class="h-5 w-5" />
-          </summary>
-          <div class="absolute right-0 mt-2 w-56 overflow-hidden rounded-md border bg-card shadow-lg">
-            {search && (
-              <button
-                type="button"
-                data-open-search
-                class="flex w-full items-center gap-2 border-b border-border px-3 py-2.5 text-sm font-medium text-nav transition hover:bg-muted"
-              >
-                <Icon name="lucide:search" class="h-4 w-4" />
-                <span>{t.search.label}</span>
-              </button>
-            )}
-            <a
-              href={`${handbookPath(locale, '', true)}#learn`}
-              class="flex items-center gap-2 px-3 py-2 text-sm transition hover:bg-muted"
-            >
-              <Icon name="lucide:graduation-cap" class="h-4 w-4" />
-              <span>{t.handbook.manuals.learn.label}</span>
-            </a>
-            <a
-              href={`${handbookPath(locale, '', true)}#dev`}
-              class="flex items-center gap-2 px-3 py-2 text-sm transition hover:bg-muted"
-            >
-              <Icon name="lucide:wrench" class="h-4 w-4" />
-              <span>{t.handbook.manuals.dev.label}</span>
-            </a>
-            <a
-              href={locale === 'en' ? '/landing/community/' : '/zh/landing/community/'}
-              class="flex items-center gap-2 px-3 py-2 text-sm transition hover:bg-muted"
-            >
-              <Icon name="lucide:messages-square" class="h-4 w-4" />
-              <span>{t.communityHighlights.navLabel}</span>
-            </a>
-            <a
-              href="https://github.com/PNGTRID/AnvilWiki"
-              class="flex items-center gap-2 px-3 py-2 text-sm transition hover:bg-muted"
-            >
-              <Icon name="lucide:star" class="h-4 w-4" />
-              <span>GitHub</span>
-            </a>
-            <a
-              href="/"
-              class="flex items-center gap-2 border-t border-border px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted hover:text-nav"
-            >
-              <Icon name="lucide:external-link" class="h-4 w-4" />
-              <span>Demo</span>
-            </a>
-          </div>
-        </details>
       </div>
     </div>
+
+    {/* Mobile full-width search bar — second header row, <sm only. The field
+        pill in the row above collapses to a tiny easy-to-miss icon on phones
+        (user feedback: 首页也要搜索功能), so mobile gets an unmistakable bar.
+        Tapping it opens the same Pagefind dialog via data-open-search. Keep
+        the pb in sync with the sticky offsets that assume a 104px header
+        (h-14 + this row): CommunityHighlights chips use top-[6.5rem]. */}
+    {search && (
+      <div
+        class:list={[
+          'mx-auto pb-3 sm:hidden',
+          wide
+            ? 'max-w-[1600px] px-4 sm:px-6 lg:px-8 2xl:max-w-[1728px] 2xl:px-10'
+            : 'max-w-7xl px-4',
+        ]}
+      >
+        <button
+          type="button"
+          data-open-search
+          class="flex h-9 w-full items-center gap-2 rounded-md border border-border bg-muted/40 px-3 text-sm text-muted-foreground transition hover:border-nav/40 hover:text-nav"
+        >
+          <Icon name="lucide:search" class="h-4 w-4 shrink-0" />
+          <span class="truncate">{t.search.placeholder}</span>
+        </button>
+      </div>
+    )}
   </header>
 
   <main>

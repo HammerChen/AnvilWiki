@@ -150,8 +150,10 @@ const BODY = 'text-[15px] sm:text-base leading-[1.8] text-foreground/80';
     </div>
   </div>
 
-  <!-- B. Mobile section chips — sticky under the site header (lg:hidden) -->
-  <div class="lg:hidden sticky top-14 z-30 mt-8 border-b border-border bg-background/95 backdrop-blur">
+  <!-- B. Mobile section chips — sticky under the site header (lg:hidden).
+       Mobile header is 104px tall (h-14 + the full-width search bar row),
+       sm+ is h-14 — see LandingLayout; keep the two offsets in sync. -->
+  <div class="lg:hidden sticky top-[6.5rem] sm:top-14 z-30 mt-8 border-b border-border bg-background/95 backdrop-blur">
     <div class:list={[WRAP, 'flex gap-2 overflow-x-auto py-2']}>
       {
         visible.map((s) => (
@@ -170,7 +172,7 @@ const BODY = 'text-[15px] sm:text-base leading-[1.8] text-foreground/80';
   </div>
 
   <!-- C. Daily digest — full-bleed horizontal band, the freshness signal -->
-  <div id="daily" class="mt-8 scroll-mt-20 border-y border-border bg-muted/30 py-6">
+  <div id="daily" class="mt-8 scroll-mt-28 sm:scroll-mt-20 border-y border-border bg-muted/30 py-6">
     <div class:list={[WRAP]}>
       <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
         <h2 class="flex items-center gap-2 text-2xl font-bold tracking-tight text-foreground">
@@ -219,7 +221,7 @@ const BODY = 'text-[15px] sm:text-base leading-[1.8] text-foreground/80';
   <!-- D. Daily structured report — public subset; date select; slim default view -->
   {
     reports.length > 0 && (
-      <div id="daily-report" class:list={[WRAP, 'mt-8 scroll-mt-20']}>
+      <div id="daily-report" class:list={[WRAP, 'mt-8 scroll-mt-28 sm:scroll-mt-20']}>
         <div class="rounded-xl border border-border bg-card p-4 sm:p-5">
           <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
             <h2 class="flex items-center gap-2 text-2xl font-bold tracking-tight text-foreground">
@@ -506,7 +508,7 @@ const BODY = 'text-[15px] sm:text-base leading-[1.8] text-foreground/80';
             );
           };
           return (
-            <section id={s.id} class="scroll-mt-28 py-8 first:pt-0 lg:py-10">
+            <section id={s.id} class="scroll-mt-40 sm:scroll-mt-28 py-8 first:pt-0 lg:py-10">
               <header class="flex flex-wrap items-center gap-x-3 gap-y-1">
                 <h2 class="flex items-center gap-2 text-2xl font-bold tracking-tight text-foreground">
                   <Icon name={s.icon} class="h-5 w-5 shrink-0 text-nav" />
