@@ -19,6 +19,9 @@
 /images/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
-# Pagefind search index + UI is rebuilt per deploy — same un-hashed story.
+# Pagefind search index + UI are rebuilt per deploy, and the UI bundle is
+# CODE that must reach (old) webviews immediately after a fix — a day-long
+# cache here kept serving a broken bundle for up to 24h after a deploy.
+# Revalidate every time; etag 304s keep repeat visits cheap.
 /pagefind/*
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+  Cache-Control: public, max-age=0, must-revalidate

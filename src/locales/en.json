@@ -21,7 +21,8 @@
   },
   "search": {
     "placeholder": "Search the wiki...",
-    "noResults": "No matches found"
+    "noResults": "No matches found",
+    "loadError": "Search failed to load — refresh the page and try again."
   },
   "shared": {
     "lastUpdated": "Last updated",

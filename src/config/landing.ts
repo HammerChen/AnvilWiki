@@ -179,6 +179,7 @@ export interface LandingContent {
     placeholder: string;
     noResults: string;
     close: string;
+    loadError: string;
   };
   handbook: {
     hubTitle: string;
@@ -757,6 +758,7 @@ pnpm install && pnpm dev`,
     placeholder: 'Search AnvilWiki...',
     noResults: 'No matches found',
     close: 'Close',
+    loadError: 'Search failed to load — refresh the page and try again.',
   },
   handbook: {
     hubTitle: 'AnvilWiki Docs',
@@ -1236,6 +1238,7 @@ pnpm install && pnpm dev`,
     placeholder: '搜索 AnvilWiki…',
     noResults: '没有找到相关内容',
     close: '关闭',
+    loadError: '搜索加载失败，请刷新页面后重试。',
   },
   handbook: {
     hubTitle: 'AnvilWiki 文档中心',

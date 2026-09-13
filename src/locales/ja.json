@@ -21,7 +21,8 @@
   },
   "search": {
     "placeholder": "Wikiを検索...",
-    "noResults": "結果が見つかりません"
+    "noResults": "結果が見つかりません",
+    "loadError": "検索の読み込みに失敗しました。ページを更新して再試行してください。"
   },
   "shared": {
     "lastUpdated": "最終更新",

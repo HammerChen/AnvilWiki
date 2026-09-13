@@ -28,7 +28,13 @@ interface Props {
    */
   locale?: string;
   /** String overrides for non-wiki locales (see locale note above). */
-  labels?: { trigger?: string; placeholder?: string; noResults?: string; close?: string };
+  labels?: {
+    trigger?: string;
+    placeholder?: string;
+    noResults?: string;
+    close?: string;
+    loadError?: string;
+  };
   /**
    * 'icon' (default) = compact header icon button (wiki SiteHeader).
    * 'field' = prominent search pill for the docs-center header, placed
@@ -45,6 +51,7 @@ const btnLabel = labels?.trigger ?? nav.search ?? 'Search';
 const noResults = labels?.noResults ?? search.noResults ?? 'No matches found';
 const placeholder = labels?.placeholder ?? search.placeholder ?? 'Search...';
 const closeLabel = labels?.close ?? nav.close ?? 'Close';
+const loadError = labels?.loadError ?? search.loadError ?? 'Search failed to load — refresh and try again.';
 ---
 
 {/* Trigger button — icon variant matches the wiki SiteHeader look;
@@ -78,12 +85,15 @@ const closeLabel = labels?.close ?? nav.close ?? 'Close';
 {/* Command palette modal */}
 <dialog id="search-modal" aria-label={btnLabel}>
   <div class="search-shell">
-    {/* Pagefind mounts its UI inside this container */}
+    {/* Pagefind mounts its UI inside this container; if that ever fails
+        (very old kernel) the inline script writes the load-error text here
+        instead of leaving a mysteriously empty dialog. */}
     <div
       id="search-modal-inner"
       data-pagefind-ui
       data-no-results={noResults}
       data-placeholder={placeholder}
+      data-load-error={loadError}
     ></div>
 
     {/* Footer hint bar — keyboard shortcuts + branding */}
@@ -408,6 +418,16 @@ const closeLabel = labels?.close ?? nav.close ?? 'Close';
     opacity: 0.4 !important;
   }
 
+  /* Mount-failure message (written by the inline script when Pagefind can't
+     load — JS-created node, hence the global selector). */
+  :global(#search-modal-inner .pagefind-load-error) {
+    padding: 32px 24px;
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.6;
+    color: hsl(var(--muted-foreground));
+  }
+
   /* ------------------------------------------------------------------ */
   /* 3. Footer                                                          */
   /* ------------------------------------------------------------------ */
@@ -563,6 +583,16 @@ const closeLabel = labels?.close ?? nav.close ?? 'Close';
           }
         } catch (err) {
           console.warn('[search] Pagefind failed to load — run `pnpm build` first.', err);
+          /* Never leave a silently empty dialog: surface the failure. */
+          const inner = document.getElementById('search-modal-inner');
+          const msg = (inner && inner.getAttribute('data-load-error')) || 'Search failed to load — refresh and try again.';
+          if (inner) {
+            inner.innerHTML = '';
+            const p = document.createElement('p');
+            p.className = 'pagefind-load-error';
+            p.textContent = msg;
+            inner.appendChild(p);
+          }
         }
       } else {
         setTimeout(() => {
