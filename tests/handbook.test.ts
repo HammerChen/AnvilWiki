@@ -155,6 +155,14 @@ describe('handbook search contract (Pagefind)', () => {
     expect(layout).toContain('search = true');
     // Mobile menu search entry reuses the same dialog as the header trigger.
     expect(layout).toContain('data-open-search');
+    // 2026-09-13 移动端无反应修复:SearchButton 直接绑定 [data-open-search]
+    // (不再经由布局脚本的 .click() 代理),inline 脚本保持 ES2018 语法可被
+    // 老内核(微信 X5/旧 WKWebView)解析——?. 与 ?? 在不可转译的 inline 脚本
+    // 里是整段 SyntaxError,搜索全盘失效。锚在 SearchButton 侧,防回退。
+    const searchButton = src('src/components/header/SearchButton.astro');
+    const inlineScript = searchButton.match(/<script is:inline>([\s\S]*?)<\/script>/)?.[1] ?? '';
+    expect(inlineScript).toContain("querySelectorAll('[data-open-search]')");
+    expect(inlineScript).not.toMatch(/\?\?|\?\./);
   });
 });
 

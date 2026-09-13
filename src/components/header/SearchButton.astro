@@ -56,7 +56,7 @@ const closeLabel = labels?.close ?? nav.close ?? 'Close';
   title={btnLabel}
   class:list={[
     variant === 'field'
-      ? 'inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md border border-border bg-muted/40 text-muted-foreground transition hover:border-nav/40 hover:text-nav sm:w-auto sm:min-w-0 sm:flex-1 sm:justify-start sm:px-3 sm:max-w-xs'
+      ? 'hidden h-9 items-center justify-center gap-2 rounded-md border border-border bg-muted/40 text-muted-foreground transition hover:border-nav/40 hover:text-nav sm:inline-flex sm:w-auto sm:min-w-0 sm:flex-1 sm:justify-start sm:px-3 sm:max-w-xs'
       : 'inline-flex h-9 w-9 items-center justify-center rounded-md text-foreground transition hover:bg-muted',
   ]}
 >
@@ -112,6 +112,16 @@ const closeLabel = labels?.close ?? nav.close ?? 'Close';
   /* 1. Modal shell — the native <dialog>                               */
   /* ------------------------------------------------------------------ */
   #search-modal {
+    /* position:fixed + explicit insets keep the dialog a full overlay even in
+       browsers without <dialog>.showModal() (old in-app webviews), where an
+       open dialog would otherwise render in-flow inside the 56px header row —
+       invisible, i.e. "tapping search does nothing". */
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 300;
     width: min(640px, 92vw);
     max-width: 92vw;
     padding: 0;
@@ -451,18 +461,39 @@ const closeLabel = labels?.close ?? nav.close ?? 'Close';
 </style>
 
 <script is:inline>
+  /* Deliberately ES2018-only syntax (no optional chaining, no nullish
+     coalescing): this runs untranspiled in the HTML, and old in-app webviews
+     (WeChat X5, pre-15.4 iOS) would throw a SyntaxError and leave search
+     completely dead — "tapping search does nothing". Also binds
+     [data-open-search] buttons DIRECTLY (mobile search bar / menu entries)
+     instead of proxying through a click on the hidden #search-trigger. */
   (() => {
-    const trigger = document.getElementById('search-trigger');
     const modal = document.getElementById('search-modal');
-    if (!trigger || !modal) return;
+    if (!modal) return;
+    const trigger = document.getElementById('search-trigger');
 
     let pagefindLoaded = false;
+
+    const setBodyLock = (lock) => {
+      document.body.style.overflow = lock ? 'hidden' : '';
+    };
+    const closeModal = () => {
+      if (typeof modal.close === 'function') {
+        modal.close();
+      } else {
+        modal.removeAttribute('open');
+      }
+      setBodyLock(false);
+    };
 
     const openModal = async () => {
       if (typeof modal.showModal === 'function') {
         modal.showModal();
       } else {
+        /* No <dialog> support — the fixed-position CSS keeps the open
+           dialog a usable overlay even without showModal(). */
         modal.setAttribute('open', '');
+        setBodyLock(true);
       }
       if (!pagefindLoaded) {
         pagefindLoaded = true;
@@ -470,8 +501,10 @@ const closeLabel = labels?.close ?? nav.close ?? 'Close';
           await import('/pagefind/pagefind-ui.js');
           const PFUI = window.PagefindUI;
           const target = document.getElementById('search-modal-inner');
-          const noResults = target?.getAttribute('data-no-results') ?? 'No matches found';
-          const placeholder = target?.getAttribute('data-placeholder') ?? 'Search';
+          const noResults = target
+            ? target.getAttribute('data-no-results')
+            : 'No matches found';
+          const placeholder = target ? target.getAttribute('data-placeholder') : 'Search';
           if (target && typeof PFUI === 'function') {
             new PFUI({
               element: '#' + target.id,
@@ -480,23 +513,38 @@ const closeLabel = labels?.close ?? nav.close ?? 'Close';
               showEmptyFilters: false,
               // Pagefind maps dist/<dir>/index.html → "/<dir>/" — which is
               // exactly the site's URL shape (trailingSlash:'always'). Keep a
-              // defensive normalizer: root stays "/", pages keep their slash.
+              // defensive normalizer; skip URLs with a #fragment (sub-result
+              // anchors — appending "/" after the hash breaks the jump).
               processResult: (result) => {
-                if (result?.url && result.url !== '/' && !result.url.endsWith('/')) {
-                  result.url = result.url + '/';
+                const url = result && result.url;
+                if (
+                  url &&
+                  url !== '/' &&
+                  !url.endsWith('/') &&
+                  url.indexOf('#') === -1
+                ) {
+                  result.url = url + '/';
                 }
-                if (result?.meta?.url && result.meta.url !== '/' && !result.meta.url.endsWith('/')) {
-                  result.meta.url = result.meta.url + '/';
+                const meta = result && result.meta;
+                const metaUrl = meta && meta.url;
+                if (
+                  metaUrl &&
+                  metaUrl !== '/' &&
+                  !metaUrl.endsWith('/') &&
+                  metaUrl.indexOf('#') === -1
+                ) {
+                  result.meta.url = metaUrl + '/';
                 }
                 return result;
               },
               translations: {
-                placeholder,
-                zero_results: noResults,
+                placeholder: placeholder || 'Search',
+                zero_results: noResults || 'No matches found',
               },
             });
             setTimeout(() => {
-              target.querySelector('input')?.focus();
+              const input = modal.querySelector('input');
+              if (input) input.focus();
             }, 60);
           } else {
             console.warn('[search] PagefindUI not found on window after loading pagefind-ui.js');
@@ -506,12 +554,33 @@ const closeLabel = labels?.close ?? nav.close ?? 'Close';
         }
       } else {
         setTimeout(() => {
-          modal.querySelector('input')?.focus();
+          const input = modal.querySelector('input');
+          if (input) input.focus();
         }, 50);
       }
     };
 
-    trigger.addEventListener('click', openModal);
+    const bindTrigger = (el) => {
+      el.addEventListener('click', () => {
+        openModal();
+        // If the trigger lives inside a <details> menu, fold the menu back up.
+        const menu = el.closest('details');
+        if (menu) menu.open = false;
+      });
+    };
+    if (trigger) bindTrigger(trigger);
+    /* This inline script executes mid-parse (before the landing header's
+       second-row search bar exists in the DOM), so [data-open-search]
+       binding must wait for the full document. */
+    const bindOpenSearchButtons = () => {
+      const extra = document.querySelectorAll('[data-open-search]');
+      for (let i = 0; i < extra.length; i++) bindTrigger(extra[i]);
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bindOpenSearchButtons);
+    } else {
+      bindOpenSearchButtons();
+    }
 
     document.addEventListener('keydown', (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -523,7 +592,7 @@ const closeLabel = labels?.close ?? nav.close ?? 'Close';
     // Click outside the inner shell closes the modal (native dialog backdrop click).
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
-        modal.close();
+        closeModal();
       }
     });
 
@@ -531,16 +600,13 @@ const closeLabel = labels?.close ?? nav.close ?? 'Close';
     // :has() rule, for older browsers). Also prevent wheel events from
     // scrolling the background page when the results list reaches its
     // scroll boundary.
-    const setBodyLock = (lock) => {
-      document.body.style.overflow = lock ? 'hidden' : '';
-    };
     modal.addEventListener('toggle', (e) => {
       setBodyLock(e.newState === 'open');
     });
     // showModal/close don't always fire 'toggle' in every browser, so
     // also hook the open/close calls directly.
-    const origShow = modal.showModal?.bind(modal);
-    const origClose = modal.close?.bind(modal);
+    const origShow = typeof modal.showModal === 'function' ? modal.showModal.bind(modal) : null;
+    const origClose = typeof modal.close === 'function' ? modal.close.bind(modal) : null;
     if (origShow) modal.showModal = () => { origShow(); setBodyLock(true); };
     if (origClose) modal.close = (rv) => { origClose(rv); setBodyLock(false); };
 
@@ -550,9 +616,8 @@ const closeLabel = labels?.close ?? nav.close ?? 'Close';
     modal.addEventListener('wheel', (e) => {
       const scroller = modal.querySelector('.pagefind-ui__results-area');
       if (!scroller) return;
-      const { scrollTop, scrollHeight, clientHeight } = scroller;
-      const atTop = scrollTop === 0;
-      const atBottom = scrollTop + clientHeight >= scrollHeight;
+      const atTop = scroller.scrollTop === 0;
+      const atBottom = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight;
       const goingUp = e.deltaY < 0;
       const goingDown = e.deltaY > 0;
       if ((atTop && goingUp) || (atBottom && goingDown)) {

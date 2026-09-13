@@ -235,21 +235,22 @@ const description = pageDescription ?? t.description;
         <Icon name="lucide:hammer" class="h-6 w-6 text-nav" />
         <span>AnvilWiki</span>
       </a>
-      {/* Field pill is a small icon on mobile — redundant with the full-width
-          search bar row below the header row, so it only renders from sm+;
-          the dialog itself always stays mounted. */}
+      {/* Field pill renders only from sm+ (the full-width search bar row
+          replaces it on phones — see its trigger classes). The <dialog>
+          itself ALWAYS stays mounted here and must never sit inside a
+          display:none subtree: old webviews without <dialog>.showModal()
+          fall back to a non-modal open dialog, which cannot escape a
+          hidden ancestor the way the top layer does. */}
       {search && (
-        <div class="hidden min-w-0 flex-1 sm:flex">
-          <SearchButton
-            variant="field"
-            labels={{
-              trigger: t.search.label,
-              placeholder: t.search.placeholder,
-              noResults: t.search.noResults,
-              close: t.search.close,
-            }}
-          />
-        </div>
+        <SearchButton
+          variant="field"
+          labels={{
+            trigger: t.search.label,
+            placeholder: t.search.placeholder,
+            noResults: t.search.noResults,
+            close: t.search.close,
+          }}
+        />
       )}
       <div class="ml-auto flex items-center gap-3">
         <a
@@ -389,15 +390,3 @@ const description = pageDescription ?? t.description;
     </div>
   </footer>
 </BaseLayout>
-
-<script>
-  // Mobile-menu search entry → open the shared search dialog (SearchButton),
-  // then fold the menu back up (scoped to this menu, not page-wide details).
-  document.querySelectorAll('[data-open-search]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      document.getElementById('search-trigger')?.click();
-      const menu = btn.closest('details');
-      if (menu) menu.open = false;
-    });
-  });
-</script>

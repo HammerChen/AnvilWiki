@@ -79,6 +79,19 @@ const GRIDS: Record<string, string> = {
   feedback: 'grid gap-4 md:grid-cols-[repeat(auto-fill,minmax(460px,1fr))]',
 };
 
+/** Stable ASCII anchor for each digest item's heading — Pagefind search
+ * sub-results link the nearest heading WITH an id; without one, hits deep
+ * in this 1000+ item page land at the very top and can't be located. A
+ * content hash survives the daily newest-first prepends (index-based ids
+ * would drift); title edits simply move the anchor, same item text always
+ * maps to the same id. */
+const anchorId = (section: string, item: DigestItem) => {
+  const text = String(item.q ?? item.title ?? '');
+  let h = 5381;
+  for (let i = 0; i < text.length; i++) h = ((h * 33) ^ text.charCodeAt(i)) >>> 0;
+  return `hi-${section}-${h.toString(36)}`;
+};
+
 const reports = data.reports ?? [];
 /** Newest-N window for structured daily reports — keeps page weight
  * constant as automation appends one panel+option per day (same philosophy
@@ -423,7 +436,10 @@ const BODY = 'text-[15px] sm:text-base leading-[1.8] text-foreground/80';
               return (
                 <article class={`${CARD} relative`}>
                   <span class:list={['absolute right-4 top-4', dateBadge]}>{item.date}</span>
-                  <h3 class="pr-24 text-[17px] font-semibold leading-snug text-foreground sm:text-lg">
+                  <h3
+                    id={anchorId(s.id, item)}
+                    class="scroll-mt-40 sm:scroll-mt-28 pr-24 text-[17px] font-semibold leading-snug text-foreground sm:text-lg"
+                  >
                     {item.title}
                   </h3>
                   {item.attrib && (
@@ -444,7 +460,10 @@ const BODY = 'text-[15px] sm:text-base leading-[1.8] text-foreground/80';
               return (
                 <article class={`${CARD} relative border-l-2 border-l-nav/60`}>
                   <span class:list={['absolute right-4 top-4', dateBadge]}>{item.date}</span>
-                  <h3 class="pr-24 text-base font-semibold leading-snug text-foreground sm:text-[17px]">
+                  <h3
+                    id={anchorId(s.id, item)}
+                    class="scroll-mt-40 sm:scroll-mt-28 pr-24 text-base font-semibold leading-snug text-foreground sm:text-[17px]"
+                  >
                     {item.title}
                   </h3>
                   {item.attrib && (
@@ -464,7 +483,10 @@ const BODY = 'text-[15px] sm:text-base leading-[1.8] text-foreground/80';
             if (id === 'qa') {
               return (
                 <article class="border-b border-border py-3.5">
-                  <h3 class="text-base font-semibold leading-snug text-foreground sm:text-[17px]">
+                  <h3
+                    id={anchorId(s.id, item)}
+                    class="scroll-mt-40 sm:scroll-mt-28 text-base font-semibold leading-snug text-foreground sm:text-[17px]"
+                  >
                     <Icon name="lucide:help-circle" class="mr-1.5 inline-block h-4 w-4 text-nav" />
                     {item.q}
                     {item.attrib && (
@@ -482,7 +504,10 @@ const BODY = 'text-[15px] sm:text-base leading-[1.8] text-foreground/80';
                 <article class={CARD}>
                   <div class="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
                     <span class={dateBadge}>{item.date}</span>
-                    <h3 class="text-base font-semibold text-foreground">{item.title}</h3>
+                    <h3
+                      id={anchorId(s.id, item)}
+                      class="scroll-mt-40 sm:scroll-mt-28 text-base font-semibold text-foreground"
+                    >{item.title}</h3>
                     {item.status === 'open' ? (
                       <span class="rounded border border-nav/30 px-2 py-0.5 text-xs font-medium text-nav">
                         {c.openLabel}
@@ -501,7 +526,10 @@ const BODY = 'text-[15px] sm:text-base leading-[1.8] text-foreground/80';
               <article class="py-3">
                 <div class="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
                   <span class="shrink-0">{item.date}</span>
-                  <h3 class="text-[15px] font-medium text-foreground sm:text-base">{item.title}</h3>
+                  <h3
+                    id={anchorId(s.id, item)}
+                    class="scroll-mt-40 sm:scroll-mt-28 text-[15px] font-medium text-foreground sm:text-base"
+                  >{item.title}</h3>
                 </div>
                 <p class={`mt-1 line-clamp-2 ${BODY}`}>{item.detail}</p>
               </article>
