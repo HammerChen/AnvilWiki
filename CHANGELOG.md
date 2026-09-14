@@ -7,11 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.24.0] — 2026-09-14
+
 ### Fixed
 
-- **zh 落地层补中文隐私政策页 `/zh/landing/privacy/`**——上条 zh 同意横幅修复时隐私链接暂指英文法律页（wiki 层法律页正文按 PRD 保持英文），中文访客读不通；本条在 zh landing 层新增中文隐私政策页（正文忠实镜像 `LegalContent.astro` privacy-policy 英文版：GA consent 门控 / AdSense / Cloudflare / giscus / YouTube 披露一一对应），横幅链接随之切到 `/zh/landing/privacy/`。页面位于 `src/pages/zh/landing/`（LANDING_PATHS 目录内），fork 双通道（apply-template CLI + setup.yml）自动清理，en/ja 零变化。
+- **landing zh 同意横幅本地化 + 隐私链接 404 修复（GA4/广告开启前置）**——zh 是落地页专属语言（wiki UI JSON 只有 en/ja），BaseLayout 推导的同意横幅在 zh 页面拿的是英文兜底文案 + `/zh/privacy-policy/`（不存在的路由，404）。此前 GA/广告 env 为空、横幅根本不渲染，缺陷不可见；一旦填 `PUBLIC_GA_ID` 开启统计（或开广告）即现形。修复三处：BaseLayout 新增可选 `consent` 覆盖 prop（labels+隐私链接整组，并给 fallback 推导加真实 wiki locale 收敛——landing-only htmlLang 的隐私链接回落 defaultLocale，不再派生出死链）；`landing.ts` zh 块补中文文案（Cookie 标题/「本站为免费运营，使用 Cookie 进行流量统计与广告展示。」/同意/拒绝/隐私政策）；`LandingLayout` 一处下传即覆盖全部 zh 页面（落地页/comparison/community/docs 全走 LandingLayout）。en/ja 路径零变化（en 派生文案与覆盖等价故不填，ja wiki locale 原生走 JSON）。
+- **zh 落地层补中文隐私政策页 `/zh/landing/privacy/`**——上条修复时隐私链接暂指英文法律页（wiki 层法律页正文按 PRD 保持英文），中文访客读不通；本条在 zh landing 层新增中文隐私政策页（正文忠实镜像 `LegalContent.astro` privacy-policy 英文版：GA consent 门控 / AdSense / Cloudflare / giscus / YouTube 披露一一对应），横幅链接随之切到 `/zh/landing/privacy/`。页面位于 `src/pages/zh/landing/`（LANDING_PATHS 目录内），fork 双通道（apply-template CLI + setup.yml）自动清理，en/ja 零变化。
 
-- **landing zh 同意横幅本地化 + 隐私链接 404 修复（GA4/广告开启前置）**——zh 是落地页专属语言（wiki UI JSON 只有 en/ja），BaseLayout 推导的同意横幅在 zh 页面拿的是英文兜底文案 + `/zh/privacy-policy/`（不存在的路由，404）。此前 GA/广告 env 为空、横幅根本不渲染，缺陷不可见；一旦填 `PUBLIC_GA_ID` 开启统计（或开广告）即现形。修复三处：BaseLayout 新增可选 `consent` 覆盖 prop（labels+隐私链接整组，并给 fallback 推导加真实 wiki locale 收敛——landing-only htmlLang 的隐私链接回落 defaultLocale，不再派生出死链）；`landing.ts` zh 块补中文文案（Cookie 标题/「本站为免费运营，使用 Cookie 进行流量统计与广告展示。」/同意/拒绝/隐私政策——隐私链接暂指英文法律页 `/privacy-policy/`，站内无中文法律页）；`LandingLayout` 一处下传即覆盖全部 zh 页面（落地页/comparison/community/docs 全走 LandingLayout）。en/ja 路径零变化（en 派生文案与覆盖等价故不填，ja wiki locale 原生走 JSON）。
+### Changed
+
+- **demo 站 anvil.wiki 接入 GA4**——GA 媒体资源建于 PicBoil 账号（属性 554090475 / 网站数据流 15775651036），衡量 ID `G-X10CG7N6P6` 填入 `wrangler.toml` `[vars]`（该文件存在时是 CF Pages env 唯一真相源）。同意横幅门控实测：未点「同意」零加载（dataLayer 不存在、零请求），点「Accept」后 gtag 200 + `g/collect` page_view 204，GA 实时报告见活跃用户；zh 页同意持久化后回访不再弹横幅。fork 用户不受影响（apply-template/setup.yml 双通道仍写 `#PUBLIC_GA_ID = ""` 注释占位，demo 值不继承）。
 
 ## [2.23.0] — 2026-09-14
 
@@ -1078,7 +1083,8 @@ This release covers everything since v0.2.0: the full PRD roadmap (v1.1–v2.0) 
 - Docs: PRD (1600+ lines), deployment, apply-template (4-step guide), content-format, seo, ads, migration-from-nextjs
 - Build: 27 pages, typecheck 0 errors
 
-[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.23.0...HEAD
+[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.24.0...HEAD
+[2.24.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.23.0...v2.24.0
 [2.23.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.22.0...v2.23.0
 [2.22.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.21.0...v2.22.0
 [2.21.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.20.0...v2.21.0
