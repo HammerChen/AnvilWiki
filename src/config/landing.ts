@@ -870,14 +870,14 @@ const zh: LandingContent = {
   title: 'AnvilWiki — 开源游戏 Wiki 模板 + AI 内容工作流',
   // 同意横幅 — zh 不是 wiki locale（UI JSON 只有 en/ja），BaseLayout 的兜底是
   // 英文文案 + /zh/privacy-policy/（不存在，404）。经 LandingLayout 整组下传；
-  // 隐私链接暂指英文法律页（站内无中文法律页）。
+  // 隐私链接指向 zh 落地层自带的中文隐私政策页（src/pages/zh/landing/privacy.astro）。
   consent: {
     title: 'Cookie',
     text: '本站为免费运营，使用 Cookie 进行流量统计与广告展示。',
     accept: '同意',
     decline: '拒绝',
     privacyLabel: '隐私政策',
-    privacyHref: '/privacy-policy/',
+    privacyHref: '/zh/landing/privacy/',
   },
   description:
     '开源游戏 wiki 模板 + AI 原生内容工作流:选对游戏、和 AI 对话就能产页、codes 页自动保鲜。Lighthouse 4×100、Cloudflare 免费部署、广告收入 100% 归你。',
