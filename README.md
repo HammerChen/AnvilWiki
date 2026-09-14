@@ -11,7 +11,7 @@
 **[📖 中文文档](#-中文文档) · [English Documentation](#-english-documentation)**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Astro](https://img.shields.io/badge/Astro-5.x-FF5D01?logo=astro&logoColor=white)](https://astro.build)
+[![Astro](https://img.shields.io/badge/Astro-7.x-FF5D01?logo=astro&logoColor=white)](https://astro.build)
 [![Cloudflare Pages](https://img.shields.io/badge/Cloudflare-Pages-F38020?logo=cloudflare&logoColor=white)](https://pages.cloudflare.com)
 [![Release](https://img.shields.io/github/v/release/PNGTRID/AnvilWiki?label=Release&color=brightgreen)](https://github.com/PNGTRID/AnvilWiki/releases)
 [![CI](https://github.com/PNGTRID/AnvilWiki/actions/workflows/ci.yml/badge.svg)](https://github.com/PNGTRID/AnvilWiki/actions/workflows/ci.yml)
@@ -171,7 +171,7 @@ fork 后用 ZCode / Claude Code / Codex / Cursor 打开仓库,直接对话即可
   <img src="public/images/wechat-qr.jpg" width="200" alt="微信二维码——扫码添加好友进群交流" />
 </p>
 
-技术栈:Astro 5(静态输出)+ Tailwind CSS 3 + MDX 4 + astro-icon/lucide + Content Layer API(Zod)+ Pagefind 搜索 + pnpm 11 / Node 22。
+技术栈:Astro 7(静态输出)+ Tailwind CSS 3 + MDX 8 + astro-icon/lucide + Content Layer API(Zod)+ Pagefind 搜索 + pnpm 11 / Node 22。
 
 许可:**MIT**,见 [LICENSE](LICENSE)。
 
@@ -310,7 +310,7 @@ Questions, ideas, or want to chat about game content sites? Scan the WeChat QR c
   <img src="public/images/wechat-qr.jpg" width="200" alt="WeChat QR code — scan to join the discussion group" />
 </p>
 
-Tech stack: Astro 5 (static output) + Tailwind CSS 3 + MDX 4 + astro-icon/lucide + Content Layer API (Zod) + Pagefind search + pnpm 11 / Node 22.
+Tech stack: Astro 7 (static output) + Tailwind CSS 3 + MDX 8 + astro-icon/lucide + Content Layer API (Zod) + Pagefind search + pnpm 11 / Node 22.
 
 ---
 

@@ -11,7 +11,7 @@
  */
 
 /** Keep in sync with package.json "version" (used by the announcement bar). */
-export const PROJECT_VERSION = '2.22.0';
+export const PROJECT_VERSION = '2.23.0';
 
 export type LandingLocale = 'en' | 'zh';
 
@@ -345,7 +345,7 @@ const en: LandingContent = {
   description:
     'An open-source game wiki template with an AI-native content workflow: pick the right game, generate pages by talking to your AI tool, codes pages stay fresh on autopilot. Lighthouse 4×100, free on Cloudflare, 100% ad revenue yours.',
   announcement: {
-    text: `AnvilWiki template update log (v${PROJECT_VERSION}): security & old-engine hardening — dependency vulnerabilities cut from 27 to 15 via pnpm overrides (A-layer done), mobile search double-binding fixed, all inline scripts downgraded to ES2018 for legacy in-app browsers, and the Pagefind cache-busting fingerprint narrowed to URL slots. This bar tracks template releases — details & full changelog on GitHub Releases.`,
+    text: `AnvilWiki template update log (v${PROJECT_VERSION}): platform refresh — Astro 5→7 migration, every dependency security advisory cleared (audit findings 27→0), plus a deterministic-sort fix. Zero fork migration: merge upstream and pnpm install as usual. This bar tracks template releases — details & full changelog on GitHub Releases.`,
     href: RELEASES,
     dismissLabel: 'Dismiss announcement',
   },
@@ -859,7 +859,7 @@ const zh: LandingContent = {
   description:
     '开源游戏 wiki 模板 + AI 原生内容工作流:选对游戏、和 AI 对话就能产页、codes 页自动保鲜。Lighthouse 4×100、Cloudflare 免费部署、广告收入 100% 归你。',
   announcement: {
-    text: `AnvilWiki 模板更新日志（v${PROJECT_VERSION}）：安全与老内核加固批——依赖漏洞 pnpm overrides 清理（audit 27→15，A 层收官）、移动搜索双绑定修复、inline 脚本全仓 ES2018 收口、pagefind 缓存指纹注入收窄到 URL 位点。本条为模板发版通告，非站点故障；详情与完整变更见 GitHub Releases。`,
+    text: `AnvilWiki 模板更新日志（v${PROJECT_VERSION}）：平台升级——Astro 5→7 两跳迁移，依赖安全通告全部清零（audit 27→0），另修同日期文章的排序漂移。fork 常规 merge 零迁移，照常 pnpm install 即可。本条为模板发版通告，非站点故障；详情与完整变更见 GitHub Releases。`,
     href: RELEASES,
     dismissLabel: '关闭公告',
   },

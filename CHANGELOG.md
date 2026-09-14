@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.23.0] — 2026-09-14
+
+### Changed
+
+- **Astro 5.18.2→6.4.8→7.3.2 两跳迁移（@astrojs/mdx 4.3.14→8.0.1、astro-icon 1.1.5→1.2.0、@astrojs/check 0.9.4→0.9.10）**——官方 audit 的全部 astro 系通告（1 critical AVIF RCE + Host-header SSRF / slot-name XSS 2 high + moderate/low ×5）随迁移清零。**fork 常规 merge 零迁移**：frontmatter schema、内容 API、配置契约、命令面零变化；Content Layer 六条踩坑逐条重验仍成立；Rust 编译器严格化（模板全良构零报错）与 Sätteri Markdown 管线（本仓零 remark/rehype 插件）零迁移成本。视觉零漂移钉死三处：①`compressHTML` 显式 `true`——v7 默认改 `'jsx'` 会剥相邻 inline 元素间空白致单词粘连；②`vite.build.cssMinify: 'esbuild'`——Vite 8 默认 Lightning CSS 把 `@media (min-width:…)` 重写成区间语法 `width>=640px`，2023 年前内核（旧 X5、Safari <16.4）整条丢弃 = Tailwind 全部断点失效；③postbuild 对渲染期内联 scoped 样式做同样的区间语法降级（该路径绕过 cssMinify；契约测试钉住接线）。⚠️ 已知无害告警：`@astrojs/tailwind` 5.1.5 的 peer 尚未声明 astro 6/7，实测全功能存活（CSS 产物规则级对比一致），`pnpm install` 会提示 unmet peer，忽略即可。
+- **C 层依赖收官：`pnpm audit` 终局 27→0**——vitest ^4.1.10→^4.1.11（@vitest/mocker path traversal ×2 moderate）；esbuild low 随 Vite 8 自然达标；extract-zip ×2 high 随 astro 7 依赖树重排整体消失（A 层批因其上游补丁线 2.0.2 未发布判"不可修"，此处意外闭环）；`pnpm-workspace.yaml` overrides 六条回收留一条（fflate ^0.7.5——@iconify/tools 仍钉旧线；sharp/fast-uri/js-yaml/svgo×2 在 astro 7 树内原生过线），sharp 直接依赖 ^0.35.4 作显式地板。
+
+### Fixed
+
+- **同日期文章平局序根治**——demo 三文同日（08-31）时 astro 6 content layer 的基础迭代序变化洗牌了首页 Recent Updates 卡序（emberforged-armor-set ↔ forging-guide 互换实证）：排序对 `date` 平局的次序此前依赖 getCollection 内部序，跨版本不稳定。共享比较器 `newestFirst` 加 entry id 字典序 tie-break 并导出，`getEntriesByCategory` / `getRecentEntries` / `getEntriesByTag` / `rss.xml` / `llms.txt` 五处 date 排序统一收口；content-utils 增平局复现测试。
+
 ## [2.22.0] — 2026-09-14
 
 ### Fixed
@@ -1061,7 +1072,8 @@ This release covers everything since v0.2.0: the full PRD roadmap (v1.1–v2.0) 
 - Docs: PRD (1600+ lines), deployment, apply-template (4-step guide), content-format, seo, ads, migration-from-nextjs
 - Build: 27 pages, typecheck 0 errors
 
-[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.22.0...HEAD
+[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.23.0...HEAD
+[2.23.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.22.0...v2.23.0
 [2.22.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.21.0...v2.22.0
 [2.21.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.20.0...v2.21.0
 [2.20.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.19.0...v2.20.0

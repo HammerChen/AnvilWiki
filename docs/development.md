@@ -103,7 +103,7 @@ Minor = 新功能(默认关闭/向后兼容);Patch = 修复;Major = breaking(需
 - 不测 .astro 组件(构建 + check-* 已覆盖)
 - 新增纯函数 → 同步加测试;修 bug → 先加复现测试再修
 
-## 6. 已知踩坑速查(完整版见 AGENTS.md「Astro 5 Content Layer Gotchas」)
+## 6. 已知踩坑速查(完整版见 AGENTS.md「Astro Content Layer Gotchas」)
 
 | 坑 | 规则 |
 |---|---|
