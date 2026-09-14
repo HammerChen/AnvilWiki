@@ -27,12 +27,19 @@ interface Props {
   height: number;
   /** Set to `false` to hide the "Advertisement" label (labels default on). */
   label?: boolean;
+  /**
+   * Hide below md (fixed-size creatives clip inside a narrower iframe —
+   * a 728 creative in a ~375px viewport shows ~47% and an inner scrollbar).
+   * Pair a hideOnMobile banner with the responsive native-banner, which
+   * fills any width. Same pattern as StickyBanner's `hidden md:block`.
+   */
+  hideOnMobile?: boolean;
 }
 
 import { getUi } from '~/i18n/ui';
 import { isLocale } from '~/i18n/routing';
 
-const { name, width, height, label = true } = Astro.props;
+const { name, width, height, label = true, hideOnMobile = false } = Astro.props;
 const envKey = `PUBLIC_ADSTERRA_SLOT_${name.replace(/-/g, '_').toUpperCase()}`;
 const show = !!import.meta.env[envKey];
 const current = Astro.currentLocale;
@@ -44,7 +51,12 @@ const adLabel = sharedStrings.adLabel ?? 'Advertisement';
 ---
 {
   show && (
-    <div class="my-8 flex flex-col items-center justify-center">
+    <div
+      class:list={[
+        'my-8 flex-col items-center justify-center',
+        hideOnMobile ? 'hidden md:flex' : 'flex',
+      ]}
+    >
       {label && (
         <span class="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">{adLabel}</span>
       )}

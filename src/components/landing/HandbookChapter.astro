@@ -9,6 +9,7 @@
  */
 import { Icon } from 'astro-icon/components';
 import TableOfContents from '~/components/article/TableOfContents.astro';
+import AdsterraSlot from '~/components/ads/AdsterraSlot.astro';
 import { type LandingContent } from '~/config/landing';
 import HandbookNav from '~/components/landing/HandbookNav.astro';
 import {
@@ -118,6 +119,10 @@ const updated = chapter.data.updated?.toLocaleDateString(locale === 'zh' ? 'zh-C
         <slot />
       </div>
 
+      {/* End-of-chapter ads — banner after the prose (desktop; fixed 728
+          creatives clip on phones), responsive native after prev/next. */}
+      <AdsterraSlot name="incontent-728x90" width={728} height={90} hideOnMobile />
+
       <!-- Chapter footer: prev / next within the same manual + edit link -->
       <footer data-pagefind-ignore class="mt-12 border-t border-border pt-6">
         <div class="grid gap-3 sm:grid-cols-2">
@@ -169,6 +174,9 @@ const updated = chapter.data.updated?.toLocaleDateString(locale === 'zh' ? 'zh-C
           </a>
         </div>
       </footer>
+
+      {/* Responsive native — fills any width, so it also covers mobile */}
+      <AdsterraSlot name="native-banner" width={700} height={240} />
     </article>
 
     {/* Right: on-page TOC (sticky) */}
