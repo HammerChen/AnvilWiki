@@ -180,11 +180,14 @@ describe('demo asset inventories stay in sync with setup.yml (drift has shipped 
   test('every demo file is listed in the "Clear demo content" rm list — and nothing else', () => {
     const yml = readFileSync(join(repoRoot, '.github/workflows/setup.yml'), 'utf8');
     const listed = new Set(yml.match(/[\w-]+\.(?:png|html)/g) || []);
+    // DEMO_PUBLIC_FILES entries may carry a public/ subdirectory (ads/*.html);
+    // the yml regex captures basenames, so compare basename to basename.
+    const basename = (f: string) => f.split('/').pop()!;
     const demo = new Set([
       ...DEMO_COVERS,
       ...DEMO_GALLERY_IMAGES,
       ...DEMO_ARTICLE_IMAGES,
-      ...DEMO_PUBLIC_FILES,
+      ...DEMO_PUBLIC_FILES.map(basename),
     ]);
     for (const name of demo) {
       expect(listed.has(name), `${name} missing from setup.yml rm list`).toBe(true);

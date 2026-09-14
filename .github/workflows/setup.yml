@@ -142,7 +142,13 @@ jobs:
                 src/assets/covers/en-guides-forging-guide.png \
                 src/assets/covers/en-items-emberforged-armor-set.png \
                 src/assets/covers/en-items-forging-materials-guide.png \
-                public/google8362d9398114b66b.html
+                public/google8362d9398114b66b.html \
+                public/ads/sticky-320x50.html \
+                public/ads/sidebar-300x250.html \
+                public/ads/sidebar-160x300.html \
+                public/ads/sidebar-160x600.html \
+                public/ads/incontent-728x90.html \
+                public/ads/native-banner.html
           python3 - <<'EOF'
           import re
           p = 'src/config/authors.ts'

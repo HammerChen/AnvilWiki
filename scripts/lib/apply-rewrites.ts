@@ -397,6 +397,14 @@ PUBLIC_CF_BEACON_TOKEN = ""
 #PUBLIC_ADSENSE_SLOT_STICKY = ""
 #PUBLIC_ADSENSE_SLOT_SIDEBAR = ""
 #PUBLIC_ADSENSE_SLOT_INCONTENT = ""
+# Adsterra — for each slot you enable, also create public/ads/<name>.html with
+# the snippet from the Adsterra dashboard (pattern: docs/ads.md 「广告位怎么挂」).
+#PUBLIC_ADSTERRA_SLOT_SIDEBAR_300X250 = ""
+#PUBLIC_ADSTERRA_SLOT_INCONTENT_728X90 = ""
+#PUBLIC_ADSTERRA_SLOT_NATIVE_BANNER = ""
+#PUBLIC_ADSTERRA_SLOT_STICKY_320X50 = ""
+#PUBLIC_ADSTERRA_SLOT_SIDEBAR_160X300 = ""
+#PUBLIC_ADSTERRA_SLOT_SIDEBAR_160X600 = ""
 #PUBLIC_GA_ID = ""
 #PUBLIC_GSC_VERIFICATION = ""`;
   // Anchor [vars] at LINE START (the demo file's intro comment contains the
@@ -473,6 +481,16 @@ export const DEMO_ARTICLE_IMAGES = [
  */
 export const DEMO_PUBLIC_FILES = [
   'google8362d9398114b66b.html',
+  // Demo Adsterra unit pages (public/ads/<name>.html) — the demo's ad-unit
+  // keys are config, not template content; a fork follows docs/ads.md and
+  // pastes its own snippets. Keep in sync with setup.yml — pinned by
+  // tests/apply-template.test.ts.
+  'ads/sticky-320x50.html',
+  'ads/sidebar-300x250.html',
+  'ads/sidebar-160x300.html',
+  'ads/sidebar-160x600.html',
+  'ads/incontent-728x90.html',
+  'ads/native-banner.html',
 ];
 
 /** Locale JSONs the demo itself ships — auto-deletable ONLY while still demo content. */

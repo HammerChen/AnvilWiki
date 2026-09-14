@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Adsterra 广告接入（demo anvil.wiki 已上线）**——注册 Adsterra publisher（anvil.wiki 过审，站点 ID 6052774），6 个广告单元全建（Banner 300×250 / 728×90 / 320×50 / 160×300 / 160×600 + Native Banner，未勾 Popunder/Social Bar/Smartlink——与 AdSense 共存红线+体验取舍）。接入按 docs/ads.md 「独立文件 + iframe 隔离」权威模式：新组件 `AdsterraSlot.astro`（env 门控 `PUBLIC_ADSTERRA_SLOT_<NAME>`，空=不渲染，与 AdSense 槽同契约；iframe sandbox 四权限、绝不加 `allow-top-navigation` 防创意劫持），demo 挂 2 位起步（文章页 `incontent-728x90` + 文末 `native-banner`，18 文章页 ×2），`public/ads/*.html` 六个单元页就绪（320×50/160×300/160×600 为待挂备件——320×50 移动 sticky 是模板有意排除项，StickyBanner 注释载明 bounce 理由，挂载权留给站长）。fork 安全：`public/ads/*.html` 六文件入 `DEMO_PUBLIC_FILES` 双通道清理（setup.yml rm 清单同步，apply-template.test.ts 契约测试改 basename 归一对比），`rewriteWranglerVars` 模板块补 6 条注释态 Adsterra 变量（fork 用户的 [vars] 整段重写本就抹掉 demo 值），`.env.example` 补全变量说明，法律页（LegalContent 英文版+zh 中文隐私页）广告合作伙伴披露补 Adsterra。八门禁绿（test 231，check-links 11515 全通，build 带 Adsterra 变量实测 iframe 落地 dist）。
+
 ## [2.25.0] — 2026-09-14
 
 全项目三维代码审查（正确性/可维护性/安全性）修复批：29 项发现全修（2 高 + 13 中 + 14 低），五路并行深审 ~2 万行后逐条复核落地。新增 3 个测试套件（`routing-flags` / `landing-paths` / `home-ui`），套件清单 17→20，test 188→231。
