@@ -183,6 +183,12 @@ describe('handbook search contract (Pagefind)', () => {
     // import.meta.url.match),`?` 在正则里是量词,注入后该正则对任何 URL
     // 永远失配——当前 esbuild shim 使其惰性,收窄防未来构建形态变化踩雷。
     expect(src('scripts/transpile-pagefind.mjs')).toContain('(?=`)');
+    // 2026-09-14 astro 7 迁移:Vite 8 默认 CSS 压缩器(Lightning CSS)会把
+    // `@media (min-width:…)` 重写成区间语法(`width>=640px`),2023 年前的内核
+    // (旧 X5、Safari <16.4)整条丢弃 = Tailwind 全部断点失效;构建管线钉住
+    // esbuild 压缩 + postbuild 对渲染期内联样式(不吃 cssMinify)降级收口。
+    expect(src('astro.config.ts')).toContain("cssMinify: 'esbuild'");
+    expect(src('scripts/transpile-pagefind.mjs')).toContain('min-$1:');
   });
 
   it('every is:inline script in src stays ES2018-parseable (old-webview syntax gate)', () => {

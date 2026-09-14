@@ -1,16 +1,11 @@
 allowBuilds:
   esbuild: true
   sharp: true
-# Dependency-security floors (2026-09-14 A-tier batch, docs/roadmap.md 依赖漏洞分层清理):
-# force build-time transitive deps past their advisory patch lines. Scoped
-# svgo selectors keep both majors in-tree on their own patched lines.
-# extract-zip (×2 high via @iconify/tools) is NOT overridable: its advisory
-# patch line 2.0.2 has no published release on any registry (latest 2.0.1) —
-# revisit when upstream ships.
+# Dependency-security floor (2026-09-14 B/C-tier migration batch, issue #37):
+# the A-tier batch pinned six transitive deps via overrides; the Astro 7
+# upgrade resolved sharp/fast-uri/js-yaml/svgo natively past their advisory
+# patch lines (and dropped extract-zip from the tree entirely), so those
+# pins are reclaimed. fflate is the one remaining floor: @iconify/tools
+# (astro-icon's SVG pipeline) still requires <0.7.5 upstream.
 overrides:
-  sharp: ^0.35.4
-  fast-uri: ^3.1.6
   fflate: ^0.7.5
-  js-yaml: ^4.3.2
-  svgo@^3.0.0: ^3.3.5
-  svgo@^4.0.0: ^4.1.0

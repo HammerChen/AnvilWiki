@@ -206,6 +206,11 @@ function alternatesFor(pagePath: string): Array<{ lang: string; url: string }> |
 export default defineConfig({
   site: process.env.SITE_URL || 'https://anvil.wiki',
   output: 'static',
+  // Astro 7 flipped the default from true to 'jsx', which strips whitespace
+  // between adjacent inline elements ("word" + "word" can render joined).
+  // Pin the Astro 5/6 behavior so this migration never reflows a page —
+  // fork users merge the upgrade with zero visual diff by contract.
+  compressHTML: true,
   // Cloudflare Pages serves directory builds at /path/ — with 'never' every
   // canonical/sitemap/internal link said /path, so each page 308'd once and
   // Google's self-described signals were all off by a hop (three-site
@@ -268,6 +273,17 @@ export default defineConfig({
       alias: {
         '~': '/src',
       },
+    },
+    build: {
+      // Astro 7 (Vite 8) defaults CSS minification to Lightning CSS, which
+      // re-serializes `@media (min-width: …)` into range syntax
+      // (`width>=640px`) — syntax pre-2023 kernels (old X5, Safari <16.4)
+      // drop entirely, so every Tailwind breakpoint would collapse on the
+      // browsers this template explicitly supports (v2.21.0 hardening).
+      // esbuild minifies tight and preserves the query syntax verbatim.
+      // Scoped styles inlined at render time bypass this option; the
+      // postbuild script lowers any range syntax that path still emits.
+      cssMinify: 'esbuild',
     },
   },
 });

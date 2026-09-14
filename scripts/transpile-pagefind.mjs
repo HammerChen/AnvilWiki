@@ -12,6 +12,11 @@
  *    after every deploy; a content-hash query on the UI import (HTML), the
  *    entry/worker references (pagefind.js) makes each deploy take effect
  *    immediately. Import specifiers, wasm and fragment assets are untouched.
+ * 3. Lower range-syntax media queries (`width>=640px`) back to `min-width:`.
+ *    Astro 7's scoped-style serializer emits range syntax in inline HTML
+ *    styles regardless of cssMinify/inlineStylesheet config; pre-2023
+ *    kernels (old X5, Safari <16.4) drop the whole rule at parse time.
+ *    min-/max-width form is syntax-equivalent and universally supported.
  */
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -68,16 +73,48 @@ const walkHtml = async (d) => {
   }
   return entries;
 };
+
+// 4. Range-syntax media query lowering (applies to HTML *and* built CSS so
+// the guard holds no matter which pipeline a stylesheet went through).
+const lowerRangeMedia = (s) =>
+  s.replace(/@media\s*\(([^()]*)\)/g, (media, cond) => {
+    if (!/(width|height)\s*(>=|<=)/.test(cond)) return media;
+    const lowered = cond
+      .replace(/\b(width|height)\s*>=\s*/g, 'min-$1:')
+      .replace(/\b(width|height)\s*<=\s*/g, 'max-$1:');
+    return `@media(${lowered})`;
+  });
+
 const htmlPages = await walkHtml(dist);
 let bustHtml = 0;
+let loweredMedia = 0;
 for (const path of htmlPages) {
   const source = await readFile(path, 'utf8');
-  if (!source.includes('/pagefind/pagefind-ui.js')) continue;
-  await writeFile(path, source.replaceAll('/pagefind/pagefind-ui.js', `/pagefind/pagefind-ui.js?v=${v}`));
-  bustHtml++;
+  let next = source;
+  if (next.includes('/pagefind/pagefind-ui.js')) {
+    next = next.replaceAll('/pagefind/pagefind-ui.js', `/pagefind/pagefind-ui.js?v=${v}`);
+    bustHtml++;
+  }
+  const after = lowerRangeMedia(next);
+  if (after !== next) {
+    next = after;
+    loweredMedia++;
+  }
+  if (next !== source) await writeFile(path, next);
+}
+for (const file of await readdir(join(dist, '_astro'))) {
+  if (!file.endsWith('.css')) continue;
+  const path = join(dist, '_astro', file);
+  const source = await readFile(path, 'utf8');
+  const next = lowerRangeMedia(source);
+  if (next !== source) {
+    await writeFile(path, next);
+    loweredMedia++;
+  }
 }
 
 console.log(
   `[transpile-pagefind] lowered ${lowered}/${files.length} bundles to ES2018; ` +
-    `cache-bust v=${v} applied to ${bustHtml} pages`,
+    `cache-bust v=${v} applied to ${bustHtml} pages; ` +
+    `range-media lowered in ${loweredMedia} files`,
 );
