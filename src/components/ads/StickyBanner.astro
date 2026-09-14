@@ -63,7 +63,7 @@ const closeAd = sharedStrings.closeAd ?? 'Close ad';
     let dismissed = false;
     try {
       dismissed = localStorage.getItem('sticky-dismissed') === '1';
-    } catch {
+    } catch (e) {
       /* storage unavailable */
     }
     if (dismissed) {
@@ -73,7 +73,7 @@ const closeAd = sharedStrings.closeAd ?? 'Close ad';
     btn.addEventListener('click', () => {
       try {
         localStorage.setItem('sticky-dismissed', '1');
-      } catch {
+      } catch (e) {
         /* storage unavailable */
       }
       banner.remove();

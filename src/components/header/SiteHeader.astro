@@ -165,14 +165,3 @@ const samePagePathFor = (loc: Locale) => {
     </div>
   </div>
 </header>
-
-<script>
-  // Mobile menu search entry → open the shared search dialog (SearchButton).
-  document.querySelectorAll('[data-open-search]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      (document.getElementById('search-trigger') as HTMLButtonElement | null)?.click();
-      // Close the mobile menu afterwards.
-      document.querySelectorAll('details[open]').forEach((d) => (d as HTMLDetailsElement).open = false);
-    });
-  });
-</script>

@@ -106,7 +106,7 @@ const description = pageDescription ?? t.description;
           const lang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
           if (lang.startsWith('zh')) location.replace('/zh/landing');
         }
-      } catch {
+      } catch (e) {
         /* storage unavailable — keep the current page */
       }
     })();
@@ -139,27 +139,34 @@ const description = pageDescription ?? t.description;
     </div>
   )}
   <script is:inline>
+    /* ES2018 only — no optional chaining, no nullish coalescing, no optional
+       catch binding: this runs untranspiled in the HTML and old in-app
+       webviews (WeChat X5, pre-13.4 Safari) parse it — a SyntaxError here
+       kills announcement dismissal. */
     (() => {
       const bar = document.getElementById('announcement-bar');
       if (!bar) return;
       let dismissedFor = '';
       try {
         dismissedFor = localStorage.getItem('landing-announcement-dismissed') || '';
-      } catch {
+      } catch (e) {
         /* storage unavailable — dismiss still works, just not remembered */
       }
       if (dismissedFor && dismissedFor === bar.getAttribute('data-announce-text')) {
         bar.remove();
         return;
       }
-      document.getElementById('dismiss-announcement')?.addEventListener('click', () => {
-        try {
-          localStorage.setItem('landing-announcement-dismissed', bar.getAttribute('data-announce-text') || '');
-        } catch {
-          /* storage unavailable */
-        }
-        bar.remove();
-      });
+      const dismissBtn = document.getElementById('dismiss-announcement');
+      if (dismissBtn) {
+        dismissBtn.addEventListener('click', () => {
+          try {
+            localStorage.setItem('landing-announcement-dismissed', bar.getAttribute('data-announce-text') || '');
+          } catch (e) {
+            /* storage unavailable */
+          }
+          bar.remove();
+        });
+      }
     })();
   </script>
 

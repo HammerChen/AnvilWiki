@@ -44,9 +44,12 @@ const { title, description, items = [] } = Astro.props;
 
 <script is:inline>
   // Sync aria-expanded on FAQ summaries when details toggle.
+  // ES2018 only — untranspiled inline script, parsed by old webviews.
   document.querySelectorAll('[data-faq-group] details').forEach((d) => {
-    const sync = () =>
-      d.querySelector('summary')?.setAttribute('aria-expanded', d.open ? 'true' : 'false');
+    const sync = () => {
+      const summary = d.querySelector('summary');
+      if (summary) summary.setAttribute('aria-expanded', d.open ? 'true' : 'false');
+    };
     sync();
     d.addEventListener('toggle', sync);
   });

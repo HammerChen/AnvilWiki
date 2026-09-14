@@ -520,6 +520,10 @@ const loadError = labels?.loadError ?? search.loadError ?? 'Search failed to loa
     };
 
     const openModal = async () => {
+      /* showModal() throws InvalidStateError on an already-open dialog, and
+         multiple entry points (trigger, [data-open-search]) can fire for one
+         tap — stay idempotent instead of relying on every caller binding once. */
+      if (modal.open) return;
       if (typeof modal.showModal === 'function') {
         modal.showModal();
       } else {

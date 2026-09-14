@@ -41,8 +41,15 @@ for (const file of files) {
 // 2. Per-deploy version query (hash of the lowered UI bundle).
 const ui = await readFile(join(dir, 'pagefind-ui.js'), 'utf8');
 const v = createHash('sha256').update(ui).digest('hex').slice(0, 10);
+/* Only template-literal URL constructions are versioned: in the shipped
+   bundles every fetch/import site ends with the filename right before a
+   closing backtick, while regex literals (`/^(.*\/)pagefind.js.*$/` — the
+   basePath derivation) and prose strings ("cached pagefind.js file") do not.
+   A blanket replace would inject `?v=` into those too; inside a regex `?`
+   is a quantifier, permanently breaking the match (verified against the
+   1.5.2 bundles: 8 backtick sites versioned, 3 regex + 2 prose untouched). */
 const versioned = (s) =>
-  s.replace(/pagefind-entry\.json|pagefind-worker\.js|pagefind\.js/g, (m) => `${m}?v=${v}`);
+  s.replace(/(pagefind-entry\.json|pagefind-worker\.js|pagefind\.js)(?=`)/g, (m) => `${m}?v=${v}`);
 
 for (const file of files) {
   const path = join(dir, file);

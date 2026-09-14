@@ -48,9 +48,11 @@ const toggleTheme = sharedStrings.toggleTheme ?? 'Cycle theme (light / dark / AM
 </style>
 
 <script is:inline>
+  /* ES2018 only — untranspiled inline script, parsed by old webviews. */
   (() => {
     const btn = document.getElementById('theme-toggle');
-    btn?.addEventListener('click', () => {
+    if (!btn) return;
+    btn.addEventListener('click', () => {
       const html = document.documentElement;
       const current = html.classList.contains('black')
         ? 'black'
@@ -62,7 +64,7 @@ const toggleTheme = sharedStrings.toggleTheme ?? 'Cycle theme (light / dark / AM
       html.classList.toggle('black', next === 'black');
       try {
         localStorage.setItem('theme', next);
-      } catch {
+      } catch (e) {
         /* storage unavailable — session-only theme */
       }
     });

@@ -274,7 +274,7 @@ const privacyLabel = footerStrings.privacyPolicy ?? 'Privacy Policy';
         let stored = null;
         try {
           stored = localStorage.getItem('theme');
-        } catch {
+        } catch (e) {
           /* storage unavailable */
         }
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;

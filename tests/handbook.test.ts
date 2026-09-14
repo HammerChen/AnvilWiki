@@ -178,6 +178,42 @@ describe('handbook search contract (Pagefind)', () => {
     // every HTML import of the UI bundle must carry a ?v=<hash> query or
     // fixed bundles take hours to reach returning phones.
     expect(src('scripts/transpile-pagefind.mjs')).toContain('pagefind-ui.js?v=');
+    // 2026-09-14 修复:指纹替换只允许命中模板字面量 URL(文件名后随反引号)。
+    // 全局盲替换会把 ?v= 注进 bundle 内部的正则字面量(basePath 派生用的
+    // import.meta.url.match),`?` 在正则里是量词,注入后该正则对任何 URL
+    // 永远失配——当前 esbuild shim 使其惰性,收窄防未来构建形态变化踩雷。
+    expect(src('scripts/transpile-pagefind.mjs')).toContain('(?=`)');
+  });
+
+  it('every is:inline script in src stays ES2018-parseable (old-webview syntax gate)', () => {
+    // 2026-09-14 修复批:上一条只锚了 SearchButton 单文件,同日的公告关闭
+    // 脚本带着可选链落进产物,微信 X5/pre-13.4 Safari 上整段 SyntaxError,
+    // 公告 × 直接失灵——门禁缺的不是纪律而是覆盖面。升级为全仓扫描:任何
+    // is:inline 脚本体内不得出现可选链 / 空值合并 / 可选 catch 绑定。
+    // 处理型 <script>(Vite 打包转译)不受此约束。
+    const walk = (dir: string): string[] =>
+      fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+        const p = path.join(dir, e.name);
+        return e.isDirectory() ? walk(p) : e.name.endsWith('.astro') ? [p] : [];
+      });
+    const offenders: string[] = [];
+    for (const file of walk(path.resolve(ROOT, 'src'))) {
+      const content = fs.readFileSync(file, 'utf8');
+      const re = /<script[^>]*is:inline[^>]*>([\s\S]*?)<\/script>/g;
+      let m: RegExpExecArray | null;
+      let n = 0;
+      while ((m = re.exec(content))) {
+        n += 1;
+        const hits: string[] = [];
+        if (/\?\./.test(m[1])) hits.push('optional chaining');
+        if (/\?\?/.test(m[1])) hits.push('nullish coalescing');
+        if (/catch\s*\{/.test(m[1])) hits.push('optional catch binding');
+        if (hits.length) {
+          offenders.push(`${path.relative(ROOT, file)} [script #${n}]: ${hits.join(', ')}`);
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
   });
 });
 

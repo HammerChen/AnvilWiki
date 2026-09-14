@@ -25,7 +25,7 @@ export default [
     },
     plugins: { '@typescript-eslint': eslint },
     rules: {
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', caughtErrors: 'none' }],
       '@typescript-eslint/no-explicit-any': 'off',
       'no-undef': 'off',
     },
@@ -38,9 +38,19 @@ export default [
       sourceType: 'module',
     },
     rules: {
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', caughtErrors: 'none' }],
     },
   },
   // Astro files
   ...astro.configs.recommended,
+  {
+    // Inline scripts carry `catch (e)` bindings on purpose: the optional catch
+    // binding (`catch {}`) is ES2019 and a SyntaxError on old webviews, while
+    // the binding itself is always unused. Same for TS/JS blocks above.
+    files: ['**/*.astro'],
+    plugins: { '@typescript-eslint': eslint },
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', caughtErrors: 'none' }],
+    },
+  },
 ];
