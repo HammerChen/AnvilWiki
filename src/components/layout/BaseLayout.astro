@@ -55,6 +55,20 @@ interface Props {
    * the site.name is the demo game, not the project itself).
    */
   titleSuffix?: string;
+  /**
+   * Full override of the consent-banner strings + privacy link. The marketing
+   * landing passes this for `zh`: landing-only htmlLangs have no wiki locale
+   * JSON (labels would fall back to English) and no localized legal page
+   * (the derived /zh/privacy-policy/ would 404).
+   */
+  consent?: {
+    title: string;
+    text: string;
+    accept: string;
+    decline: string;
+    privacyLabel: string;
+    privacyHref: string;
+  };
 }
 
 const {
@@ -72,6 +86,7 @@ const {
   articlePublished,
   articleModified,
   contentLocale,
+  consent,
 } = Astro.props;
 
 // Language of the main content (falls back to the UI locale).
@@ -113,19 +128,27 @@ const cfBeaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN as string | undefin
 const gscVerification = import.meta.env.PUBLIC_GSC_VERIFICATION as string | undefined;
 const adsenseClient = import.meta.env.PUBLIC_ADSENSE_CLIENT as string | undefined;
 
-// Consent banner labels (locale JSON `shared.*`; hardcoded fallbacks for a
-// locale whose JSON hasn't been translated yet).
+// Consent banner labels: wiki locales derive them from the locale JSON
+// (hardcoded English fallbacks for a locale whose JSON hasn't been translated
+// yet); landing-only htmlLangs (zh) pass a full override via LandingLayout.
 const sharedStrings = getUi(locale).shared as unknown as Record<string, any>;
-const consentLabels = {
-  title: sharedStrings.consentTitle ?? 'Cookies',
-  text: sharedStrings.consentText ?? 'We use cookies for analytics and ads.',
-  accept: sharedStrings.accept ?? 'Accept',
-  decline: sharedStrings.decline ?? 'Decline',
-};
+const consentLabels = consent
+  ? { title: consent.title, text: consent.text, accept: consent.accept, decline: consent.decline }
+  : {
+      title: sharedStrings.consentTitle ?? 'Cookies',
+      text: sharedStrings.consentText ?? 'We use cookies for analytics and ads.',
+      accept: sharedStrings.accept ?? 'Accept',
+      decline: sharedStrings.decline ?? 'Decline',
+    };
 // Consent banner links to the localized privacy policy (informed consent).
+// The link must point at a page that EXISTS — landing-only htmlLangs like zh
+// have no legal page, so clamp the fallback to a real wiki locale.
+const consentLocale = (locales as readonly string[]).includes(locale) ? locale : defaultLocale;
 const footerStrings = (getUi(locale).footer ?? {}) as unknown as Record<string, string>;
-const privacyHref = locale === defaultLocale ? '/privacy-policy/' : `/${locale}/privacy-policy/`;
-const privacyLabel = footerStrings.privacyPolicy ?? 'Privacy Policy';
+const privacyHref =
+  consent?.privacyHref ??
+  (consentLocale === defaultLocale ? '/privacy-policy/' : `/${consentLocale}/privacy-policy/`);
+const privacyLabel = consent?.privacyLabel ?? footerStrings.privacyPolicy ?? 'Privacy Policy';
 ---
 
 <!doctype html>

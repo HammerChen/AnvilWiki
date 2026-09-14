@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **landing zh 同意横幅本地化 + 隐私链接 404 修复（GA4/广告开启前置）**——zh 是落地页专属语言（wiki UI JSON 只有 en/ja），BaseLayout 推导的同意横幅在 zh 页面拿的是英文兜底文案 + `/zh/privacy-policy/`（不存在的路由，404）。此前 GA/广告 env 为空、横幅根本不渲染，缺陷不可见；一旦填 `PUBLIC_GA_ID` 开启统计（或开广告）即现形。修复三处：BaseLayout 新增可选 `consent` 覆盖 prop（labels+隐私链接整组，并给 fallback 推导加真实 wiki locale 收敛——landing-only htmlLang 的隐私链接回落 defaultLocale，不再派生出死链）；`landing.ts` zh 块补中文文案（Cookie 标题/「本站为免费运营，使用 Cookie 进行流量统计与广告展示。」/同意/拒绝/隐私政策——隐私链接暂指英文法律页 `/privacy-policy/`，站内无中文法律页）；`LandingLayout` 一处下传即覆盖全部 zh 页面（落地页/comparison/community/docs 全走 LandingLayout）。en/ja 路径零变化（en 派生文案与覆盖等价故不填，ja wiki locale 原生走 JSON）。
+
 ## [2.23.0] — 2026-09-14
 
 ### Changed
