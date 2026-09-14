@@ -612,7 +612,7 @@ pnpm install && pnpm dev`,
       primaryLabel: 'View the demo',
       primaryHref: '/',
       secondaryLabel: 'Get started',
-      secondaryHref: '/landing#docs',
+      secondaryHref: '/landing/#docs',
     },
   },
   communityHighlights: {
@@ -1109,7 +1109,7 @@ pnpm install && pnpm dev`,
       primaryLabel: '查看 Demo',
       primaryHref: '/',
       secondaryLabel: '快速开始',
-      secondaryHref: '/zh/landing#docs',
+      secondaryHref: '/zh/landing/#docs',
     },
   },
   communityHighlights: {
@@ -1359,4 +1359,11 @@ pnpm install && pnpm dev`,
 export const landingContent: Record<LandingLocale, LandingContent> = { en, zh };
 
 /** Landing-page routes per locale (for language switching + hreflang). */
-export const landingPath = (locale: LandingLocale) => (locale === 'en' ? '/landing' : `/zh/landing`);
+/**
+ * Landing root URL for a landing locale. trailingSlash:'always' — every
+ * internal link must end "/" or each visit 308s once (see lib/url.ts).
+ * Consumed by LandingLayout for the logo href and the language-switcher
+ * fallback, so the slash lives here rather than at the call sites.
+ */
+export const landingPath = (locale: LandingLocale) =>
+  locale === 'en' ? '/landing/' : `/zh/landing/`;

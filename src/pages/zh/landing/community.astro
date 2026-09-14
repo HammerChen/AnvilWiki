@@ -13,8 +13,8 @@ import { siteUrl } from '~/config/site';
 
 const t = landingContent.zh;
 const alternates = [
-  { hreflang: 'en', href: `${siteUrl}/landing/community` },
-  { hreflang: 'zh', href: `${siteUrl}/zh/landing/community` },
+  { hreflang: 'en', href: `${siteUrl}/landing/community/` },
+  { hreflang: 'zh', href: `${siteUrl}/zh/landing/community/` },
 ];
 ---
 
@@ -23,7 +23,7 @@ const alternates = [
   alternates={alternates}
   pageTitle={t.communityHighlights.title}
   pageDescription={t.communityHighlights.subtitle}
-  togglePath="/landing/community"
+  togglePath="/landing/community/"
   wide
 >
   <CommunityHighlights t={t} />

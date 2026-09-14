@@ -29,7 +29,7 @@ import { NAVIGATION_CONFIG } from '~/config/navigation';
 import { siteUrl } from '~/config/site';
 import { type Locale } from '~/i18n/routing';
 import { getUi } from '~/i18n/ui';
-import { getRelatedEntries, getEntriesByCategory, isPossiblyOutdated, parseEntryId, slugifyTag, type WikiEntry, type ResolvedEntry } from '~/lib/content';
+import { getRelatedEntries, getEntriesByCategory, isPossiblyOutdated, parseEntryId, slugifyTag, estimateReadMinutes, type WikiEntry, type ResolvedEntry } from '~/lib/content';
 import LazyYouTube from '~/components/video/LazyYouTube.astro';
 import SponsorCard from '~/components/article/SponsorCard.astro';
 import { articleJsonLd, breadcrumbJsonLd, pageTitle, videoObjectJsonLd, imageObjectJsonLd, faqPageJsonLd } from '~/lib/seo';
@@ -77,12 +77,15 @@ const codesFaqItems =
   entry.data.codes && entry.data.codes.length > 0
     ? ((shared.codesFaq as Array<{ question: string; answer: string }>) ?? [])
     : [];
-const codesFaqTitle = shared.codesFaqTitle ?? 'Codes FAQ';
+// Both keys exist in every locale JSON (en + ja; getUi deep-merges en under
+// partial translations), so no hardcoded English fallback — a renamed key
+// must surface, not silently degrade to English.
+const codesFaqTitle = shared.codesFaqTitle;
 // Per-article FAQ (frontmatter `faq`, any page type). Merged with the codes
 // FAQ into ONE FAQPage JSON-LD entity — Google allows one per page.
 const articleFaqItems = (entry.data.faq ?? []) as Array<{ question: string; answer: string }>;
 const faqJsonLdItems = [...codesFaqItems, ...articleFaqItems];
-const faqTitle = shared.faqTitle ?? 'FAQ';
+const faqTitle = shared.faqTitle;
 
 // Videos inlined in the MDX body (via <Video id="..."/>) skip the bottom
 // fallback — the ID appearing in the raw body is the inline marker. Videos
@@ -99,11 +102,8 @@ const outdated = isPossiblyOutdated(category, entry.data.lastModified, entry.dat
 
 // Reading time estimate: ~200 wpm for space-separated languages,
 // ~400 chars/min for CJK (no spaces). Author-facing, purely informational.
-const CJK_LOCALES: readonly string[] = ['ja', 'zh', 'ko'];
-const bodyText = entry.body ?? '';
-const readMinutes = CJK_LOCALES.includes(servedLocale)
-  ? Math.max(1, Math.ceil(bodyText.replace(/\s+/g, '').length / 400))
-  : Math.max(1, Math.ceil(bodyText.trim().split(/\s+/).filter(Boolean).length / 200));
+// Pure function lives in lib/content-utils so the math is unit-testable.
+const readMinutes = estimateReadMinutes(entry.body ?? '', servedLocale);
 
 // Prev/next within the same category (newest-first list → newer = idx-1).
 // Built from the SERVED locale's list so fallback pages (whose entry lives in

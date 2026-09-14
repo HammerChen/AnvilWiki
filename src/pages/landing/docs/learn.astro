@@ -14,8 +14,8 @@ const t = landingContent.en;
 const chapters = chaptersForLocale(await getCollection('handbook'), 'en');
 
 const alternates = [
-  { hreflang: 'en', href: `${siteUrl}/landing/docs/learn` },
-  { hreflang: 'zh', href: `${siteUrl}/zh/landing/docs/learn` },
+  { hreflang: 'en', href: `${siteUrl}/landing/docs/learn/` },
+  { hreflang: 'zh', href: `${siteUrl}/zh/landing/docs/learn/` },
 ];
 ---
 
@@ -24,7 +24,7 @@ const alternates = [
   alternates={alternates}
   pageTitle={`${t.handbook.manuals.learn.label} | AnvilWiki Docs`}
   pageDescription={t.handbook.manuals.learn.description}
-  togglePath="/zh/landing/docs/learn"
+  togglePath="/zh/landing/docs/learn/"
   search
 >
   <HandbookManualList manual="learn" chapters={chapters} locale="en" t={t} />

@@ -20,6 +20,96 @@ export function slugify(s: string): string {
 }
 
 
+// ---------------------------------------------------------------------------
+// Locale codes — hyphen locales (zh-tw, pt-br) are VALID input, but the value
+// is injected into generated TypeScript, where a bare `zh-tw:` parses as
+// subtraction and `import zh-tw` is an illegal identifier. Every injection
+// site must go through localeKey / localeIdent below.
+// ---------------------------------------------------------------------------
+
+/**
+ * A locale code apply-template accepts: lowercase, letter-first, hyphen-
+ * separated subtags of 2-8 alphanumerics (`en`, `zh-tw`, `pt-br`). slugify()
+ * keeps hyphens, so these are expected input; the shape constraint exists so
+ * the generated routing.ts / ui.ts always parse.
+ */
+export const LOCALE_CODE_RE = /^[a-z][a-z0-9]*(?:-[a-z0-9]{2,8})*$/;
+
+export function isLocaleCode(s: string): boolean {
+  return LOCALE_CODE_RE.test(s);
+}
+
+/**
+ * `zh-tw` → `zhTw` — a legal TS identifier for `import` bindings (the file
+ * path keeps the real hyphenated name).
+ */
+export function localeIdent(locale: string): string {
+  return locale
+    .split('-')
+    .map((part, i) => (i === 0 ? part : part.charAt(0).toUpperCase() + part.slice(1)))
+    .join('');
+}
+
+/**
+ * Object key for a locale in generated TS: bare when the code is already a
+ * legal identifier (`en:` — byte-identical to the pre-hyphen output, so
+ * re-runs and diffs stay stable), double-quoted only when necessary
+ * (`"zh-tw":`).
+ */
+export function localeKey(locale: string): string {
+  return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(locale) ? locale : JSON.stringify(locale);
+}
+
+/** English-default labels for the LOCALE_LABELS block in routing.ts. */
+export const KNOWN_LOCALE_LABELS: Record<string, string> = {
+  en: 'English',
+  ja: '日本語',
+  zh: '中文',
+  ko: '한국어',
+  es: 'Español',
+  pt: 'Português',
+  ru: 'Русский',
+  fr: 'Français',
+  de: 'Deutsch',
+};
+
+/** Escape a string for a single-quoted TS literal (backslash first). */
+export const tsEscape = (s: string) => s.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
+/**
+ * The LOCALE_LABELS entry lines for routing.ts (no braces — the caller wraps
+ * them). Hyphen keys are quoted; labels fall back to the raw locale code.
+ */
+export function buildLocaleLabels(
+  locales: string[],
+  known: Record<string, string> = KNOWN_LOCALE_LABELS,
+): string {
+  return locales.map((l) => `  ${localeKey(l)}: '${tsEscape(known[l] ?? l)}'`).join(',\n');
+}
+
+/**
+ * The `import <ident> from '~/locales/<locale>.json';` lines for ui.ts.
+ * Bindings are camelCase identifiers (zh-tw → zhTw); the path keeps the real
+ * hyphenated file name.
+ */
+export function buildUiImports(locales: string[]): string {
+  return locales.map((l) => `import ${localeIdent(l)} from '~/locales/${l}.json';`).join('\n');
+}
+
+/** The `messages` map entry lines for ui.ts. */
+export function buildUiMessagesEntries(locales: string[]): string {
+  return locales.map((l) => `  ${localeKey(l)}: ${localeIdent(l)} as Record<string, unknown>,`).join('\n');
+}
+
+/**
+ * One-or-more locale-JSON import lines in ui.ts. The PATH side must accept
+ * hyphens (zh-tw.json) — with `\w+` only, a re-run over a previously-
+ * rewritten file matches nothing and fails with ❌. The binding side stays
+ * `\w+` because generated bindings are camelCase identifiers (localeIdent).
+ */
+export const UI_IMPORT_BLOCK_RE = /(?:import \w+ from '~\/locales\/[\w-]+\.json';\n)+/;
+
+
 export interface SkinInput {
   gameName: string;
   shortName: string;

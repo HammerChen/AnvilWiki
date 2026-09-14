@@ -13,8 +13,8 @@ const t = landingContent.zh;
 const chapters = chaptersForLocale(await getCollection('handbook'), 'zh');
 
 const alternates = [
-  { hreflang: 'en', href: `${siteUrl}/landing/docs/dev` },
-  { hreflang: 'zh', href: `${siteUrl}/zh/landing/docs/dev` },
+  { hreflang: 'en', href: `${siteUrl}/landing/docs/dev/` },
+  { hreflang: 'zh', href: `${siteUrl}/zh/landing/docs/dev/` },
 ];
 ---
 
@@ -23,7 +23,7 @@ const alternates = [
   alternates={alternates}
   pageTitle={`${t.handbook.manuals.dev.label} | AnvilWiki 文档`}
   pageDescription={t.handbook.manuals.dev.description}
-  togglePath="/landing/docs/dev"
+  togglePath="/landing/docs/dev/"
   search
 >
   <HandbookManualList manual="dev" chapters={chapters} locale="zh" t={t} />
