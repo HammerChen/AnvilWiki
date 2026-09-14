@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.22.0] — 2026-09-14
+
 ### Fixed
 
 - **A 层依赖漏洞清理(pnpm overrides,issue #37 / roadmap「依赖漏洞分层清理」提案)**——`pnpm-workspace.yaml` 新增 overrides,把构建期传递依赖钉过官方 advisory 补丁线:sharp ^0.35.4（libheif/libvips ×2 high）、fast-uri ^3.1.6（×4 high）、js-yaml ^4.3.2（high）、fflate ^0.7.5（moderate）、svgo 3.x→^3.3.5 与 4.x→^4.1.0（**范围限定双条**，树中 3.3.4+4.0.2 双大版本并存，各归各的补丁线而非一刀切 4.x 炸消费方 API）——`pnpm audit` **27→15**（high 13→4、moderate 10→7）。🚨 pnpm 11 的 overrides 必须写在 `pnpm-workspace.yaml`：package.json 的 `pnpm.overrides` 字段被 v11 无声忽略（install 报 "Already up to date" 不重解析）；extract-zip（×2 high，@iconify/tools 传递）的 advisory 补丁线 2.0.2 **在任何 registry 都未发布**（最新 2.0.1），override 不可满足，留待上游发版后跟进。sharp 0.34.5/0.35.3→0.35.4 原生模块小版本跳：gen-assets 实测产物与旧版字节级一致 + 八门禁全绿。剩余 15 条全在 B/C 层：astro 系（critical AVIF RCE + SSRF/XSS 2 high，随既有 5→7 迁移清）、extract-zip ×2（上游未发布）、vitest ×2 moderate + esbuild low（C 层独立小项）。
@@ -1059,7 +1061,8 @@ This release covers everything since v0.2.0: the full PRD roadmap (v1.1–v2.0) 
 - Docs: PRD (1600+ lines), deployment, apply-template (4-step guide), content-format, seo, ads, migration-from-nextjs
 - Build: 27 pages, typecheck 0 errors
 
-[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.21.0...HEAD
+[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.22.0...HEAD
+[2.22.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.21.0...v2.22.0
 [2.21.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.20.0...v2.21.0
 [2.20.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.19.0...v2.20.0
 [2.19.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.18.1...v2.19.0
