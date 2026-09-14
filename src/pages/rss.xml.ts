@@ -13,6 +13,7 @@ import type { APIRoute } from 'astro';
 import { site, siteUrl } from '~/config/site';
 import { getCollection } from 'astro:content';
 import { parseEntryId } from '~/lib/content';
+import { newestFirst } from '~/lib/content-utils';
 import { defaultLocale } from '~/i18n/routing';
 import { detailPath } from '~/lib/url';
 
@@ -24,7 +25,7 @@ export const GET: APIRoute = async (context) => {
       // Only default-locale, published articles (no noindex, no drafts).
       return parsed?.locale === defaultLocale && !e.data.noindex && !e.data.draft;
     })
-    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+    .sort(newestFirst)
     .slice(0, 50);
 
   return rss({

@@ -18,7 +18,7 @@
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import { defaultLocale, type Locale } from './routing';
 import { slugifyTag } from '~/lib/url';
-import { selectRelatedEntries } from '~/lib/content-utils';
+import { selectRelatedEntries, newestFirst } from '~/lib/content-utils';
 
 export type WikiEntry = CollectionEntry<'wiki'>;
 
@@ -87,7 +87,7 @@ export async function getEntriesByCategory(category: string, locale: Locale): Pr
       const parsed = parseEntryId(e.id);
       return isPublished(e) && parsed?.locale === locale && parsed.category === category;
     })
-    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime()); // newest first
+    .sort(newestFirst); // newest first, id tie-break (see content-utils)
 }
 
 /**
@@ -133,7 +133,7 @@ export async function getRecentEntries(locale: Locale, limit = 6): Promise<WikiE
   const all = await getCollection('wiki');
   return all
     .filter((e) => isPublished(e) && parseEntryId(e.id)?.locale === locale)
-    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+    .sort(newestFirst)
     .slice(0, limit);
 }
 
@@ -195,7 +195,7 @@ export async function getEntriesByTag(tagSlug: string, locale: Locale): Promise<
       if (parsed?.locale !== locale) return false;
       return e.data.tags.some((t: string) => slugifyTag(t) === tagSlug);
     })
-    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+    .sort(newestFirst);
 }
 
 /**

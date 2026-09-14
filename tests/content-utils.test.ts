@@ -113,4 +113,23 @@ describe('selectRelatedEntries', () => {
     const rel = selectRelatedEntries([pool[1]], current, 3);
     expect(rel.map((e) => e.id)).toEqual(['en/codes/z.mdx']);
   });
+
+  it('equal dates tie-break on entry id — ordering is load-order independent', () => {
+    // Astro 5→6 changed the content layer's base iteration order, which
+    // shuffled same-date articles on the homepage "Recent Updates" grid.
+    // newestFirst must pin ties deterministically regardless of pool order.
+    const mkPool = () => [
+      mk('en/items/armor.mdx', ['fire'], 'items', '2026-08-31'),
+      mk('en/guides/forging.mdx', ['fire'], 'guides', '2026-08-31'),
+    ];
+    expect(selectRelatedEntries(mkPool(), current, 2).map((e) => e.id)).toEqual([
+      'en/guides/forging.mdx',
+      'en/items/armor.mdx',
+    ]);
+    // Reversed input order → identical output (the actual regression shape).
+    expect(selectRelatedEntries([...mkPool()].reverse(), current, 2).map((e) => e.id)).toEqual([
+      'en/guides/forging.mdx',
+      'en/items/armor.mdx',
+    ]);
+  });
 });

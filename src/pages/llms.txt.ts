@@ -18,6 +18,7 @@ import { getCollection } from 'astro:content';
 import { parseEntryId } from '~/lib/content';
 import { defaultLocale } from '~/i18n/routing';
 import { detailPath } from '~/lib/url';
+import { newestFirst } from '~/lib/content-utils';
 import { chaptersForLocale, handbookPath, parseHandbookId, sortChapters } from '~/lib/handbook';
 
 export const GET: APIRoute = async () => {
@@ -27,7 +28,7 @@ export const GET: APIRoute = async () => {
       const parsed = parseEntryId(e.id);
       return parsed?.locale === defaultLocale && !e.data.noindex && !e.data.draft;
     })
-    .sort((a, b) => a.data.category.localeCompare(b.data.category));
+    .sort((a, b) => a.data.category.localeCompare(b.data.category) || newestFirst(a, b));
 
   const lines: string[] = [
     `# ${site.name}`,

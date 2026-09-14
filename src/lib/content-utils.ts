@@ -54,6 +54,16 @@ export interface RelatedLike {
 }
 
 /**
+ * Newest-first comparator with a deterministic tie-break. Articles sharing a
+ * `date` used to surface in whatever order the content layer happened to
+ * load them — which silently changed between Astro 5 and 6 and reordered the
+ * homepage "Recent Updates" grid. Tie-break on entry id makes every
+ * date-sorted listing stable across Astro versions and builds.
+ */
+export const newestFirst = (a: RelatedLike, b: RelatedLike): number =>
+  b.data.date.getTime() - a.data.date.getTime() || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+
+/**
  * Related-article selection with a three-tier fallback:
  *   1. shared tags (strongest signal, newest first);
  *   2. same category, filling up to `limit`;
@@ -69,7 +79,6 @@ export function selectRelatedEntries<T extends RelatedLike>(
 ): T[] {
   const chosen: T[] = [];
   const chosenIds = new Set<string>([current.id]);
-  const newestFirst = (a: RelatedLike, b: RelatedLike) => b.data.date.getTime() - a.data.date.getTime();
 
   const take = (candidates: T[]) => {
     for (const entry of candidates) {

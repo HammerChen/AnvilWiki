@@ -60,14 +60,14 @@
     "refresh-audit": "tsx scripts/refresh-audit.ts"
   },
   "dependencies": {
-    "@astrojs/mdx": "^4.3.14",
+    "@astrojs/mdx": "^6.0.3",
     "@astrojs/rss": "^4.0.11",
     "@astrojs/sitemap": "^3.2.1",
-    "astro": "^5.6.1",
+    "astro": "^6.4.8",
     "astro-icon": "^1.1.5"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.4",
+    "@astrojs/check": "^0.9.10",
     "@astrojs/tailwind": "^5.1.4",
     "@iconify-json/lucide": "^1.2.123",
     "@resvg/resvg-js": "^2.6.2",
