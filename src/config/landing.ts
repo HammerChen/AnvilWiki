@@ -11,7 +11,7 @@
  */
 
 /** Keep in sync with package.json "version" (used by the announcement bar). */
-export const PROJECT_VERSION = '2.25.0';
+export const PROJECT_VERSION = '2.25.1';
 
 export type LandingLocale = 'en' | 'zh';
 
@@ -357,7 +357,7 @@ const en: LandingContent = {
   description:
     'An open-source game wiki template with an AI-native content workflow: pick the right game, generate pages by talking to your AI tool, codes pages stay fresh on autopilot. Lighthouse 4×100, free on Cloudflare, 100% ad revenue yours.',
   announcement: {
-    text: `AnvilWiki template update log (v${PROJECT_VERSION}): full 3-dimension code review landed — 29 findings fixed: apply-template now supports hyphen locales (zh-tw, pt-br), CSV parsing tolerates Excel's BOM, landing-layer SEO links all carry trailing slashes, CI/npm publishing hardened (ops releases now need owner approval), anvil-ops 1.0.2. Zero fork migration: merge upstream and pnpm install as usual. This bar tracks template releases — details & full changelog on GitHub Releases.`,
+    text: `AnvilWiki template update log (v${PROJECT_VERSION}): "Clear demo content" is now content-aware — re-running apply-template deletes only demo-authored articles and keeps anything you wrote (with a warning). Zero fork migration: merge upstream and pnpm install as usual. This bar tracks template releases — details & full changelog on GitHub Releases.`,
     href: RELEASES,
     dismissLabel: 'Dismiss announcement',
   },
@@ -882,7 +882,7 @@ const zh: LandingContent = {
   description:
     '开源游戏 wiki 模板 + AI 原生内容工作流:选对游戏、和 AI 对话就能产页、codes 页自动保鲜。Lighthouse 4×100、Cloudflare 免费部署、广告收入 100% 归你。',
   announcement: {
-    text: `AnvilWiki 模板更新日志（v${PROJECT_VERSION}）：全项目三维代码审查落地——29 项发现全修：apply-template 支持连字符 locale（zh-tw/pt-br）、CSV 解析兼容 Excel BOM、landing 层 SEO 链接收口尾斜杠、CI/npm 发布加固（ops 发版自此需 owner 审批）、anvil-ops 1.0.2。fork 常规 merge 零迁移，照常 pnpm install 即可。本条为模板发版通告，非站点故障；详情与完整变更见 GitHub Releases。`,
+    text: `AnvilWiki 模板更新日志（v${PROJECT_VERSION}）：「清除 demo 内容」重跑内容感知化——apply-template 重跑只删 demo 文章，你自己写的文章自动保留并逐个警告。fork 常规 merge 零迁移，照常 pnpm install 即可。本条为模板发版通告，非站点故障；详情与完整变更见 GitHub Releases。`,
     href: RELEASES,
     dismissLabel: '关闭公告',
   },

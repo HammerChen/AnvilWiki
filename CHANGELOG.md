@@ -9,7 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Adsterra 广告接入（demo anvil.wiki 已上线）**——注册 Adsterra publisher（anvil.wiki 过审，站点 ID 6052774），6 个广告单元全建（Banner 300×250 / 728×90 / 320×50 / 160×300 / 160×600 + Native Banner，未勾 Popunder/Social Bar/Smartlink——与 AdSense 共存红线+体验取舍）。接入按 docs/ads.md 「独立文件 + iframe 隔离」权威模式：新组件 `AdsterraSlot.astro`（env 门控 `PUBLIC_ADSTERRA_SLOT_<NAME>`，空=不渲染，与 AdSense 槽同契约；iframe sandbox 四权限、绝不加 `allow-top-navigation` 防创意劫持；`hideOnMobile` 选项——固定尺寸创意在窄屏 iframe 内被裁切，移动端只出响应式 Native）。demo 挂载：wiki 文章页（`incontent-728x90` + 文末 `native-banner`，18 页）+ **手册课页**（HandbookChapter：正文后 728×90、文末 Native、目录下粘性 160×300、≥1700px 视口左右页边固定 160×600 竖幅——左右页边空槽只在超宽屏存在，fixed 恒在视野=竖幅的全部价值，断点以下隐藏永不重叠内容/不触发横向滚动条；目录+广告包进同一 `sticky top-20` 容器，防自由滚动的兄弟节点滑到已钉住的 TOC 卡下面）+ **主落地页 en/zh**（FeatureGrid 后 728×90 桌面位 + FinalCta 前 Native）+ **社群精华/对比页 en/zh**（内容顶部 728×90 桌面位 + 底部 Native）+ **文档中心三目录页 en/zh**（hub/learn/dev 仅底部 Native，纯导航页保持克制；隐私政策页有意不挂——法律/信任页放广告伤信任）；`public/ads/*.html` 六个单元页就绪（320×50 为待挂备件——移动 sticky 是模板有意排除项，StickyBanner 注释载明 bounce 理由，挂载权留给站长）。fork 安全：`public/ads/*.html` 六文件入 `DEMO_PUBLIC_FILES` 双通道清理（setup.yml rm 清单同步，apply-template.test.ts 契约测试改 basename 归一对比），`rewriteWranglerVars` 模板块补 6 条注释态 Adsterra 变量（fork 用户的 [vars] 整段重写本就抹掉 demo 值），`.env.example` 补全变量说明，法律页（LegalContent 英文版+zh 中文隐私页）广告合作伙伴披露补 Adsterra。八门禁绿（test 231，check-links 11515 全通，build 带 Adsterra 变量实测 iframe 落地 dist）。
+- **Adsterra 广告接入（demo anvil.wiki 已上线）**——注册 Adsterra publisher（anvil.wiki 过审，站点 ID 6052774），6 个广告单元全建（Banner 300×250 / 728×90 / 320×50 / 160×300 / 160×600 + Native Banner，未勾 Popunder/Social Bar/Smartlink——与 AdSense 共存红线+体验取舍）。接入按 docs/ads.md 「独立文件 + iframe 隔离」权威模式：新组件 `AdsterraSlot.astro`（env 门控 `PUBLIC_ADSTERRA_SLOT_<NAME>`，空=不渲染，与 AdSense 槽同契约；iframe sandbox 四权限、绝不加 `allow-top-navigation` 防创意劫持；`hideOnMobile` 选项——固定尺寸创意在窄屏 iframe 内被裁切，移动端只出响应式 Native）。demo 挂载：wiki 文章页（`incontent-728x90` + 文末 `native-banner`，18 页）+ **手册课页**（HandbookChapter：正文后 728×90、文末 Native、目录下粘性 160×300、≥1700px 视口左右页边固定 160×600 竖幅——左右页边空槽只在超宽屏存在，fixed 恒在视野=竖幅的全部价值，断点以下隐藏永不重叠内容/不触发横向滚动条；目录+广告包进同一 `sticky top-20` 容器，防自由滚动的兄弟节点滑到已钉住的 TOC 卡下面）+ **主落地页 en/zh**（FeatureGrid 后 728×90 桌面位 + FinalCta 前 Native）+ **社群精华/对比页 en/zh**（内容顶部 728×90 桌面位 + 底部 Native）+ **文档中心三目录页 en/zh**（hub/learn/dev 仅底部 Native，纯导航页保持克制；隐私政策页有意不挂——法律/信任页放广告伤信任）；`public/ads/*.html` 六个单元页就绪（320×50 为待挂备件——移动 sticky 是模板有意排除项，StickyBanner 注释载明 bounce 理由，挂载权留给站长）。fork 安全：`public/ads/*.html` 六文件入 `DEMO_PUBLIC_FILES` 双通道清理（setup.yml rm 清单同步，apply-template.test.ts 契约测试改 basename 归一对比），`rewriteWranglerVars` 模板块补 6 条注释态 Adsterra 变量（fork 用户的 [vars] 整段重写本就抹掉 demo 值），`.env.example` 补全变量说明，法律页（LegalContent 英文版+zh 中文隐私页）广告合作伙伴披露补 Adsterra；**fork 纯净性 E2E 钉死**（落地层挂载随 LANDING_PATHS 整目录删除本就自动消失；test:e2e 新增三道断言：fork 初始化后 `public/ads/*.html` 六文件必须不存在、wrangler.toml 不得含未注释的 demo Adsterra key、fork 构建 dist 必须零广告 iframe——广告泄漏自此 CI 变红）。八门禁绿（test 231，check-links 11515 全通，build 带 Adsterra 变量实测 iframe 落地 dist）。
+
+## [2.25.1] — 2026-09-15
+
+### Changed
+
+- **apply-template/setup.yml 重跑内容感知化——「Clear demo content」只删 demo 文章，用户文章保留并警告**——v2.25.0 先把删除口径诚实化（提示明示重跑会删光含用户文章），本版把行为本身收口：与 locale JSON 的 `isDemoLocaleContent` 同规则同哲学，`classifyWikiArticles`/`isDemoArticleContent` 纯函数下沉 `scripts/lib/apply-rewrites.ts`（内容标记 `DEMO_GAME_NAMES = ['Anvil Quest']`——正文提到 demo 游戏即 demo 内容；demo 路径文件被改写成用户游戏、上轮脚手架、用户自写文章一概**保留并逐个警告**）。**有意不做文件路径清单**——清单会在模板作者新增 demo 文章或 fork 用户加文时失真/误红，内容标记恰是换皮必然替换的身份。新 `scripts/clear-demo-content.ts` 给 setup.yml 零终端通道单源复用（tsx 走共享 lib，绝不自带判定副本），workflow 的 `find -name '*.mdx' -delete` 全量删除根除（步骤移到 install 后 build 前：tsx 需 node_modules，且 build 必须验证清空后的树）；CLI 提示语同步如实化（`clearDemoAssets` 拆到调用点独立计数，dry-run 口径改 "Would remove"）；E2E 新断言（用户文章重跑存活 + demo 残留被清 + 保留警告可见）+4 条新测试（marker 漂移守卫扫真实 demo 文章/判定 content-only 可翻转/win32 rel 不影响判定/setup.yml 新契约三钉），test 231→235；docs/apply-template.md 删除清单行同步。
 
 ## [2.25.0] — 2026-09-14
 
@@ -1120,7 +1126,8 @@ This release covers everything since v0.2.0: the full PRD roadmap (v1.1–v2.0) 
 - Docs: PRD (1600+ lines), deployment, apply-template (4-step guide), content-format, seo, ads, migration-from-nextjs
 - Build: 27 pages, typecheck 0 errors
 
-[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.25.0...HEAD
+[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.25.1...HEAD
+[2.25.1]: https://github.com/PNGTRID/AnvilWiki/compare/v2.25.0...v2.25.1
 [2.25.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.24.0...v2.25.0
 [2.24.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.23.0...v2.24.0
 [2.23.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.22.0...v2.23.0
