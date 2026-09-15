@@ -516,7 +516,7 @@ export function rewriteLocaleJson(
  * Known demo env VALUES that must never survive a rewrite even though the
  * key now carries user data: the demo Giscus config (would point a fork's
  * comments at PNGTRID/AnvilWiki Discussions), both demo SITE_URL hosts, the
- * demo Adsterra unit keys (five live + the commented spare), and the demo
+ * demo Adsterra unit keys (all six, incl. the 320x50 anchor), and the demo
  * GA4 measurement ID. Exported for tests (a drift guard parses the shipped
  * wrangler.toml against this list).
  */

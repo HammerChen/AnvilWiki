@@ -151,6 +151,7 @@ Google 的[广告投放位置政策](https://support.google.com/adsense/answer/1
 - **为什么绝不加 `allow-top-navigation`**:移动端部分创意会试图带着你的整个页面跳走(劫持),这个权限一给就拦不住。劫持的教训同样适用于回报方向:把用户体验砸了,排名迟早还回来
 - **诚实的边界(必读)**:`allow-scripts` + `allow-same-origin` 同开(素材渲染的硬前提,见上条)时,这个 sandbox **不是对抗恶意创意的硬安全边界**——同源素材的脚本可触达父页面 DOM,理论上能绕过沙箱,省略 `allow-top-navigation` 只是导航摩擦而非防线;真隔离要把广告挂到独立源(独立域名)。接受同源挂载的理由:素材由 Adsterra 平台侧投放与审核、贴哪段代码由你自己控制、零成本部署且 fork 可整体清理。若你要挂**不可信来源**的广告代码,请按不可信第三方评估,别套用本节
 - **同意门控(与 AdSense 同门)**:模板的 `AdsterraSlot` 组件在同意横幅激活时(`PUBLIC_GA_ID` 或 `PUBLIC_ADSENSE_CLIENT` 任一非空,即横幅自身的渲染条件)不直接加载 iframe——先挂一个无 `src` 的空框(`data-src` 存真实地址),访客已同意(localStorage 里有 CookieConsent 写入的 `accepted`)或当场点下「同意」(组件派发 `aw:consent-accepted` 事件)后才换成 `src` 开始加载;拒绝或未选择就永不加载,与 GA/AdSense 等 `__awLoadTrackers` 的门控承诺一致。横幅未激活(两个 env 都空,开箱状态)则维持直接加载。注意:上面手写 iframe 的挂法**没有**这层门控,在意合规请把广告位交给 `AdsterraSlot` 组件挂(文章/手册/落地页成对出现的 728×90 + Native 已收敛为 `AdsterraSlotPair`,同意门控由内部 `AdsterraSlot` 自动继承)
+- **移动端 320×50 底部锚位(v2.28.0)**:文章页挂 `MobileAnchorAd`(env `PUBLIC_ADSTERRA_SLOT_STICKY_320X50`),三件套保证不砸阅读体验——①可一键关闭且记忆(localStorage,先例 StickyBanner);②`position: fixed` 零 CLS,显示时给正文加移动端底部内边距,文末内容永不被盖;③与同意门控同门(拒绝/未选连空条都不出)。**顶部粘性仍是有意排除项**(StickyBanner 注释:顶部 320×50 吃掉首屏 ~16%,弹跳驱动)——底部锚位是内容从条上方滚过,阅读流不被打断,这是两者的本质区别
 
 全站生效格式(Popunder / Social Bar 类)是另一条路:这类型才需要把脚本粘进 `src/components/layout/BaseLayout.astro` 的 `<head>`——但**挂 AdSense 的站禁用 Popunder**(见上节红线),Social Bar 流量起来前也别碰,所以正常路径用不到它。
 

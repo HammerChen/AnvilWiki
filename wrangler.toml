@@ -61,14 +61,14 @@ PUBLIC_CF_BEACON_TOKEN = ""
 # public/ads/<name>.html holding the unit's snippet (docs/ads.md 「广告位怎么挂」).
 # 160x300 = 手册页目录下粘性位+右侧页边; 160x600 = 手册页左右页边竖幅(≥1700px 视口);
 # sidebar-300x250 已建未挂载(唯一挂载点 WikiSidebar 在文章页恒 compact 不渲染广告,与
-# AdSense SidebarAd 同门,挂载权留给站长); sticky-320x50 同为备件(移动 sticky 是模板
-# 有意排除项,StickyBanner 注释载明理由)。
+# AdSense SidebarAd 同门,挂载权留给站长); sticky-320x50 = 文章页移动端底部锚位
+# (MobileAnchorAd,可一键关闭/零 CLS/同意后才加载;顶部 sticky 仍排除,StickyBanner 注释)。
 PUBLIC_ADSTERRA_SLOT_SIDEBAR_300X250 = "72f65aae2e14988904cffe17cfe697e2"
 PUBLIC_ADSTERRA_SLOT_INCONTENT_728X90 = "e0dce7760389a360cba34b93333ea2d0"
 PUBLIC_ADSTERRA_SLOT_NATIVE_BANNER = "8fabf9ea9ed2d89cba2ff9888f939c26"
 PUBLIC_ADSTERRA_SLOT_SIDEBAR_160X300 = "89fabda9f10bc13544cae84f0211d77c"
 PUBLIC_ADSTERRA_SLOT_SIDEBAR_160X600 = "fba4ed072bed8749c56ebcf099b30f0e"
-#PUBLIC_ADSTERRA_SLOT_STICKY_320X50 = "e2ad36227bacdad94a4bfe6a9a6d3dac"
+PUBLIC_ADSTERRA_SLOT_STICKY_320X50 = "e2ad36227bacdad94a4bfe6a9a6d3dac"
 # Google Analytics (consent-gated — loads only after the visitor accepts)
 PUBLIC_GA_ID = "G-X10CG7N6P6"
 # Google Search Console verification meta token

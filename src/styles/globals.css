@@ -161,6 +161,7 @@
   #reading-progress,
   #cookie-consent,
   #sticky-banner,
+  #mobile-anchor-ad,
   [data-helpful-root],
   [data-share-root] {
     display: none !important;
