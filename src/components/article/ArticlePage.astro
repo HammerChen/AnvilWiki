@@ -54,7 +54,7 @@ const { locale, resolved, alternates = [], availableLocales } = Astro.props;
 const { entry, servedLocale, isFallback } = resolved;
 const ui = getUi(locale);
 const nav = ui.nav as Record<string, string>;
-const shared = ui.shared as unknown as Record<string, any>;
+const shared = ui.shared;
 const overview = (ui.overview as Record<string, { overviewTitle: string }>)[entry.data.category];
 const navItem = NAVIGATION_CONFIG.find((n) => n.key === entry.data.category);
 
@@ -76,7 +76,7 @@ const related = await getRelatedEntries(entry, servedLocale, 3);
 // content violates Google's structured-data policy).
 const codesFaqItems =
   entry.data.codes && entry.data.codes.length > 0
-    ? ((shared.codesFaq as Array<{ question: string; answer: string }>) ?? [])
+    ? (shared.codesFaq ?? [])
     : [];
 // Both keys exist in every locale JSON (en + ja; getUi deep-merges en under
 // partial translations), so no hardcoded English fallback — a renamed key
@@ -247,9 +247,9 @@ const jsonLd = [
           <ShareButton
             title={entry.data.title}
             labels={{
-              share: (shared.share as string) ?? 'Share',
-              copyLink: (shared.copyLink as string) ?? 'Copy link',
-              copied: (shared.copied as string) ?? 'Copied!',
+              share: shared.share ?? 'Share',
+              copyLink: shared.copyLink ?? 'Copy link',
+              copied: shared.copied ?? 'Copied!',
             }}
           />
         </span>
@@ -296,7 +296,7 @@ const jsonLd = [
     {entry.data.boss && (
       <BossStatCard
         boss={entry.data.boss}
-        labels={(shared.bossCard as Record<string, string>) ?? {}}
+        labels={shared.bossCard ?? {}}
       />
     )}
 
@@ -305,7 +305,7 @@ const jsonLd = [
       <CodesTable
         codes={entry.data.codes}
         copiedText={shared.copied}
-        labels={(shared.codesTable as Record<string, string>) ?? { active: 'Active Codes', expired: 'Expired Codes', reward: 'Reward', expires: 'Expires' }}
+        labels={shared.codesTable ?? { active: 'Active Codes', expired: 'Expired Codes', reward: 'Reward', expires: 'Expires' }}
       />
     )}
 
@@ -379,7 +379,7 @@ const jsonLd = [
     )}
 
     {/* Gallery — thumbnail grid + native dialog lightbox (renders nothing when empty) */}
-    <ArticleGallery items={entry.data.gallery} heading={shared.gallery} labels={(shared.galleryLabels as Record<string, string>) ?? {}} />
+    <ArticleGallery items={entry.data.gallery} heading={shared.gallery} labels={shared.galleryLabels ?? {}} />
 
     {/* Tags */}
     {

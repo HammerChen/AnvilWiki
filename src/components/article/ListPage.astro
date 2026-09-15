@@ -24,7 +24,7 @@ interface Props {
 const { locale, category, alternates = [] } = Astro.props;
 const ui = getUi(locale);
 const nav = ui.nav as Record<string, string>;
-const shared = ui.shared as unknown as Record<string, any>;
+const shared = ui.shared;
 const overview = (
   ui.overview as Record<string, { overviewTitle: string; overviewDescription: string }>
 )[category];

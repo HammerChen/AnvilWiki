@@ -18,11 +18,11 @@ interface Props {
 }
 const { locale, alternates = [] } = Astro.props;
 const ui = getUi(locale);
-const nav = ui.nav as Record<string, string>;
-const shared = ui.shared as unknown as Record<string, any>;
+const nav = ui.nav;
+const shared = ui.shared;
 
-const title = shared.allTags as string;
-const description = shared.tagsIndexDescription as string;
+const title = shared.allTags;
+const description = shared.tagsIndexDescription;
 
 const tags = await getTagsWithCounts(locale);
 

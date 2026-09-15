@@ -34,7 +34,7 @@ interface Props {
 }
 const { locale, availableLocales, ...rest } = Astro.props;
 const currentPath = Astro.url.pathname;
-const shared = getUi(locale).shared as unknown as Record<string, any>;
+const shared = getUi(locale).shared;
 ---
 
 <BaseLayout locale={locale} {...rest}>

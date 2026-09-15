@@ -10,7 +10,7 @@
  * same way against `home.faq`. A key rename now fails CI here AND at
  * typecheck (getUi returns `typeof en`) instead of at a user's screen.
  */
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
@@ -117,5 +117,47 @@ describe('/faq pages ↔ en.json home.faq contract', () => {
     expect(jaFaq.title).toBeTypeOf('string');
     expect(jaFaq.title.length).toBeGreaterThan(0);
     expect(Array.isArray(jaFaq.items)).toBe(true);
+  });
+});
+
+describe('src/ type-escape hatch ban', () => {
+  /**
+   * Every UI JSON surface is typed end-to-end (getUi returns `typeof en`;
+   * dynamic-key loops use `keyof typeof` narrowing), so the double-hop cast
+   * that used to paper over key drift has no legitimate remaining use. This
+   * is the same "ban the pattern, not the symptom" move as the is:inline
+   * ES2018 syntax gate: reintroducing `as unknown as` fails here instead of
+   * re-hiding a key rename until a user's screen goes blank.
+   */
+  test('no double-hop casts anywhere in src/ (zero tolerance, comments stripped)', () => {
+    const offenders: string[] = [];
+    let scanned = 0;
+    const scan = (dir: string) => {
+      for (const e of readdirSync(dir, { withFileTypes: true })) {
+        const p = join(dir, e.name);
+        if (e.isDirectory()) {
+          scan(p);
+          continue;
+        }
+        if (!/\.(astro|ts)$/.test(e.name)) continue;
+        scanned += 1;
+        // Same comment-stripping as the /faq scan above: a doc block may
+        // legitimately discuss the pattern without committing it.
+        const codeOnly = readFileSync(p, 'utf8')
+          .replace(/\/\*[\s\S]*?\*\//g, '')
+          .replace(/^\s*\/\/.*$/gm, '');
+        if (codeOnly.includes('as unknown as')) offenders.push(p.replace(root, ''));
+      }
+    };
+    scan(join(root, 'src'));
+    // Guard against silent regex/file-walk rot: src/ has ~60 .astro/.ts
+    // files; if the walk stops seeing them the ban reads as vacuously green.
+    expect(scanned).toBeGreaterThan(40);
+    expect(
+      offenders,
+      `double-hop casts reintroduced in:\n${offenders.join('\n')}\n` +
+        `Use the structured JSON types (getUi → typeof en / SharedUi) or ` +
+        `'keyof typeof' narrowing instead.`,
+    ).toEqual([]);
   });
 });

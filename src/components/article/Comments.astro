@@ -45,7 +45,7 @@ const GISCUS_LANG: Record<string, string> = { en: 'en', ja: 'ja' };
 const lang = GISCUS_LANG[locale] ?? 'en';
 
 const ui = getUi(locale);
-const shared = ui.shared as unknown as Record<string, string>;
+const shared = ui.shared;
 const heading = shared.commentsHeading ?? 'Comments';
 ---
 {enabled && (

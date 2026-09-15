@@ -131,7 +131,7 @@ const adsenseClient = import.meta.env.PUBLIC_ADSENSE_CLIENT as string | undefine
 // Consent banner labels: wiki locales derive them from the locale JSON
 // (hardcoded English fallbacks for a locale whose JSON hasn't been translated
 // yet); landing-only htmlLangs (zh) pass a full override via LandingLayout.
-const sharedStrings = getUi(locale).shared as unknown as Record<string, any>;
+const sharedStrings = getUi(locale).shared;
 const consentLabels = consent
   ? { title: consent.title, text: consent.text, accept: consent.accept, decline: consent.decline }
   : {
@@ -144,7 +144,7 @@ const consentLabels = consent
 // The link must point at a page that EXISTS — landing-only htmlLangs like zh
 // have no legal page, so clamp the fallback to a real wiki locale.
 const consentLocale = (locales as readonly string[]).includes(locale) ? locale : defaultLocale;
-const footerStrings = (getUi(locale).footer ?? {}) as unknown as Record<string, string>;
+const footerStrings = getUi(locale).footer;
 const privacyHref =
   consent?.privacyHref ??
   (consentLocale === defaultLocale ? '/privacy-policy/' : `/${consentLocale}/privacy-policy/`);

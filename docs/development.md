@@ -103,7 +103,17 @@ Minor = 新功能(默认关闭/向后兼容);Patch = 修复;Major = breaking(需
 - 不测 .astro 组件(构建 + check-* 已覆盖)
 - 新增纯函数 → 同步加测试;修 bug → 先加复现测试再修
 
-## 6. 已知踩坑速查(完整版见 AGENTS.md「Astro Content Layer Gotchas」)
+## 6. 复杂度预算
+
+新能力动手前先回答一个问题:**它属于哪一层**?核心模板(全站行为)/ 可选插件(默认关闭,env/config 门控)/ 运维工具(`tools/anvil-ops`,独立包)/ 文档 SOP(docs/ 或手册)。答案不是「核心模板」就不要往主运行时加代码——模板的价值在 fork 用户拿到手的每一行都必要。
+
+已钉死的机制约束:
+
+- **UI JSON 零双跳断言**:所有 `shared`/`home`/`nav` 文案走 `getUi` 的结构化类型(`typeof en`、`SharedUi`、`HomeUi`),拼错键 typecheck 即红;`as unknown as` 全仓零容忍(home-ui 契约测试扫描 src/,注释也算);动态键访问(如 `footer[key]`)用 `keyof typeof` 收窄数据源,不用断言糊。
+- **核心文件体积敏感清单**(2026-09-15 基线,来源:群友「誓言」外部代码审查):`src/config/landing.ts` 58KB / `scripts/apply-template.ts` 41KB / `scripts/lib/apply-rewrites.ts` 30KB / `CommunityHighlights.astro` 29KB / `SearchButton.astro` 23KB / `ArticlePage.astro` 23KB / `BaseLayout.astro` 14KB。这些文件新增功能优先**组件化拆分**(按职责拆出子组件/子模块)而非追加;三者的大拆分已进 [roadmap 候选池](roadmap.md)。
+- **构建零 warning 是常态**:新 warning(如 astro-icon 目录缺失、content 层 Entry not found)出现即清因,不积累「习惯了黄条」的钝化。
+
+## 7. 已知踩坑速查(完整版见 AGENTS.md「Astro Content Layer Gotchas」)
 
 | 坑 | 规则 |
 |---|---|

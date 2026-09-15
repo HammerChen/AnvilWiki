@@ -14,20 +14,20 @@ interface Props {
 }
 const { locale } = Astro.props;
 const ui = getUi(locale);
-const footer = ui.footer as Record<string, string>;
+const footer = ui.footer;
 // Reuse the shared labels (recentTitle / allTags exist in every locale) —
 // /recent and /tags used to be orphan pages with zero internal inbound links.
-const shared = ui.shared as unknown as Record<string, string>;
+const shared = ui.shared;
 
-const socials = [
+const socials = ([
   { key: 'playGame', href: site.social.official, icon: 'lucide:external-link' },
   { key: 'officialDiscord', href: site.social.discord, icon: 'lucide:message-circle' },
   { key: 'officialYoutube', href: site.social.youtube, icon: 'lucide:youtube' },
   { key: 'officialTwitter', href: site.social.twitter, icon: 'lucide:twitter' },
   { key: 'officialReddit', href: site.social.reddit, icon: 'lucide:globe' },
-].filter((s) => s.href);
+] satisfies Array<{ key: keyof typeof footer; href: string | undefined; icon: string }>).filter((s) => s.href);
 
-const legalLinks = ['about', 'faq', 'privacyPolicy', 'termsOfService', 'copyright', 'contact'];
+const legalLinks: Array<keyof typeof footer> = ['about', 'faq', 'privacyPolicy', 'termsOfService', 'copyright', 'contact'];
 ---
 
 <footer class="mt-16 border-t border-border bg-muted/30">

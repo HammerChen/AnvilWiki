@@ -34,7 +34,7 @@ const items = pickSuggestions(affiliates, category);
 if (items.length === 0) return null;
 
 const ui = getUi(locale);
-const shared = ui.shared as unknown as Record<string, string>;
+const shared = ui.shared;
 ---
 
 <div class="not-prose mt-8 space-y-4">

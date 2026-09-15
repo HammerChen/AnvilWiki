@@ -27,7 +27,7 @@ const sponsorImage = import.meta.env.PUBLIC_SPONSOR_IMAGE_URL;
 if (!sponsorUrl) return null;
 
 const ui = getUi(locale);
-const shared = ui.shared as unknown as Record<string, any>;
+const shared = ui.shared;
 ---
 
 <aside class="mt-10 rounded-lg border border-border bg-card p-6">

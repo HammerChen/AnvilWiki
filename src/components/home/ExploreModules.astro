@@ -44,7 +44,7 @@ interface Props {
   locale: Locale;
 }
 const { modules, locale } = Astro.props;
-const sharedStrings = getUi(locale).shared as unknown as Record<string, any>;
+const sharedStrings = getUi(locale).shared;
 const viewAll = sharedStrings.viewAll ?? 'View all';
 ---
 

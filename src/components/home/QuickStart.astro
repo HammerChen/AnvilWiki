@@ -30,7 +30,7 @@ interface Props {
   cards?: StartCard[];
 }
 const { locale, badge = 'Start Here', title = 'Quick Start', cards = [] } = Astro.props;
-const sharedStrings = getUi(locale).shared as unknown as Record<string, any>;
+const sharedStrings = getUi(locale).shared;
 const open = sharedStrings.open ?? 'Open';
 ---
 {cards.length > 0 && (

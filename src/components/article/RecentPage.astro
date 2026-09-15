@@ -20,11 +20,11 @@ interface Props {
 }
 const { locale, alternates = [] } = Astro.props;
 const ui = getUi(locale);
-const nav = ui.nav as Record<string, string>;
-const shared = ui.shared as unknown as Record<string, any>;
+const nav = ui.nav;
+const shared = ui.shared;
 
-const title = shared.recentTitle as string;
-const description = shared.recentDescription as string;
+const title = shared.recentTitle;
+const description = shared.recentDescription;
 
 const entries = await getRecentEntries(locale, 200);
 
