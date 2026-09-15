@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.28.0] — 2026-09-15
+
+### Added
+
+- **文章页移动端 Adsterra 320×50 底部锚位(用户拍板「挂,但别影响阅读」)**：新组件 `MobileAnchorAd`（env `PUBLIC_ADSTERRA_SLOT_STICKY_320X50`,wrangler.toml 同名 key 转正）,底部 fixed 锚条三件套保证阅读体验——**可关闭且记忆**（localStorage,先例 StickyBanner;存储被禁降级为可关不记忆）/**零 CLS**（fixed 定位,reveal 时给 body 加移动端媒体查询底部内边距,文末内容永不被盖,桌面不继承）/**同意门控**（与 AdsterraSlot 的 data-src 机制同门,拒绝/未选连空条都不出,wrapper 等同一信号才显示）;仅文章页挂载（AffiliateSuggestion 后）,列表/手册/落地页不挂;env 空 = 全组件零渲染（Astro 会把 <style> 提升出条件块,故用 build 期常量门控原始 style,防零广告 fork 带死规则）;iOS safe-area 适配 + print 隐藏清单补 `#mobile-anchor-ad`。**决策记录**：顶部 sticky 仍是有意排除项（StickyBanner 注释：吃首屏 ~16%,弹跳驱动）,底部锚位是内容从条上方滚过的不同动物——翻案入档 StickyBanner/wrangler/ads.md 三处;fork 重写模板 `WRANGLER_VARS_TEMPLATE` 早已含该键（commented）、`DEMO_VAR_VALUES` 早已含该值,apply-rewrites 零改动仅注释措辞;验证：带 demo env 本地构建断言（仅文章页渲染/consent 延迟/dismiss/padding CSS）+ 无 env 构建零渲染 + 八门禁与 E2E 全绿。
+
+### Changed
+
+- **致谢链接补挂**：誓言提供 GitHub 主页（lyglzhl）,五处署名升链接（README 中英 Credits 段/docs README 致谢节/landing footer credits en+zh 的 href 渲染为链接/roadmap 候选池来源标注）。
+
 ## [2.27.1] — 2026-09-15
 
 ### Changed
@@ -1159,7 +1169,8 @@ This release covers everything since v0.2.0: the full PRD roadmap (v1.1–v2.0) 
 - Docs: PRD (1600+ lines), deployment, apply-template (4-step guide), content-format, seo, ads, migration-from-nextjs
 - Build: 27 pages, typecheck 0 errors
 
-[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.27.1...HEAD
+[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.28.0...HEAD
+[2.28.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.27.1...v2.28.0
 [2.27.1]: https://github.com/PNGTRID/AnvilWiki/compare/v2.27.0...v2.27.1
 [2.27.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.26.1...v2.27.0
 [2.26.1]: https://github.com/PNGTRID/AnvilWiki/compare/v2.26.0...v2.26.1
