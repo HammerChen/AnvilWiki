@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.27.0] — 2026-09-15
+
+### Fixed
+
+- **Fallback 页 SEO 信号收敛（群友「誓言」外部代码审查报告 P1,2026-09-15 当日核实属实,决策记录 docs/superpowers/specs/2026-09-15-fallback-seo-noindex.md）**：非默认语言缺翻译的文章此前生成 fallback URL（英文内容渲染在 /ja/… 上,demo 站 7 个：en 9 篇 − ja 真实覆盖 2 篇）同时 self-canonical + 在 sitemap + `lang="en"` + hreflang 仅 en——Google 看到两套 self-canonical 的重复英文信号（hreflang 半边早已对齐,canonical/sitemap 半边是真实缺口）。修法取 noindex + 移出 sitemap（与 v2.4.0 空列表页先例同模式；否决 canonical 指向英文源方案——需给 BaseLayout 加 canonical 覆盖新机制且对 Google 效果等价）：新增 `src/lib/fallback-paths.ts` 纯函数（**零 import**——astro.config.ts 在 config-time 加载它时 vite `~` 别名尚不存在）从 coverage（`"cat/slug"` → 真实拥有 MDX 的 locale 集合）推导全部 fallback URL 并入 sitemap `noindexPaths`（删除旧「仅 en-noindex 文章 fs.existsSync 补排 fallback」分支,新规则是其超集）+ `ArticlePage` 的 `noindex={entry.data.noindex || isFallback}`（LocaleLayout `...rest` 透传链路零新增,渲染 `noindex, nofollow`）；**fallback URL 人类直达可达性不变**（PRD §9.3,社交分享直链永不断）,翻译落地后 `isFallback` 翻转 false 页面自动恢复索引（自愈）；Pagefind 1.5.2 尊重 noindex,7 条重复英文条目顺带退出站内搜索索引（改善）；rss.xml/llms.txt 零改动（只按真实 MDX entry 生成）；PRD §9.3 + AGENTS i18n Fallback Rules 同步；test 259→264（fallbackDetailPaths 单测：en-only 出路径/双语不出/ja-only 不出/嵌套+CJK raw 路径/顺序确定 + astro.config·ArticlePage 两条 wiring 契约）；dist 实测 7 个 fallback 页全部 noindex、2 个真实 ja 翻译页保持索引、en canonical 页零变化、sitemap 仅剩真实 ja 文章 URL。
+
+### Changed
+
+- **构建警告清零（同报告 P3）**：① astro-icon「Failed to load icons from src/icons」——全站图标均走 `lucide:` 前缀但 `icon()` 裸调用仍会加载本地 `src/icons` 目录（不存在即 warn 一条）,新建空目录 + `.gitkeep` 消音（importDirectory 只收 `.svg`,零配置零行为变化）；② 「Entry … was not found.」——astro 的 `getEntry` 对缺失 id 返回 undefined 同时必 warn 一条,每个 fallback 页构建各贡献一条（缺翻译先 miss 再回退 en）,`getEntryWithFallback` 改 `getCollection` 建 id map 匹配（strip `.mdx` 后缀,同文件 4 个 helper 同款先例）,同一查找语义、零告警,构建日志恢复「黄条即异常」的信号质量。
+- **致谢（社区贡献首例个人署名）**：群友「誓言」（英文署名 Shiyan）提交的外部代码审查报告（2026-09-15,总评 8.5/10,全部发现经逐条核实属实）是本批 P1 修复与 roadmap 两条复杂度候选项的直接来源——落位五处：README 中英 Credits 段、docs/README 致谢节、landing footer credits（en+zh；`credits.href` 可选化 + LandingLayout 无链接条目渲染纯文本,个人署名首例）、roadmap 候选池来源标注（先例:外部扫描 issue #37）、AGENTS Status；P2 大文件复杂度治理（ArticlePage/BaseLayout/apply-template 三拆）与类型逃生口收敛（17 处 `as unknown as Record<string, any>`）按小批惯例进 roadmap 候选池,不与本批混做。
+
 ## [2.26.1] — 2026-09-15
 
 ### Security
@@ -1142,7 +1153,8 @@ This release covers everything since v0.2.0: the full PRD roadmap (v1.1–v2.0) 
 - Docs: PRD (1600+ lines), deployment, apply-template (4-step guide), content-format, seo, ads, migration-from-nextjs
 - Build: 27 pages, typecheck 0 errors
 
-[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.26.1...HEAD
+[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.27.0...HEAD
+[2.27.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.26.1...v2.27.0
 [2.26.1]: https://github.com/PNGTRID/AnvilWiki/compare/v2.26.0...v2.26.1
 [2.26.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.25.1...v2.26.0
 [2.25.1]: https://github.com/PNGTRID/AnvilWiki/compare/v2.25.0...v2.25.1

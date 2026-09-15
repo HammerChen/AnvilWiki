@@ -914,6 +914,8 @@ export async function getEntriesByCategory(contentType: string, locale: Locale) 
 }
 ```
 
+**fallback 页的 SEO 信号（v2.27.0 起）**：fallback URL（英文内容渲染在 `/ja/…` 上）对人类保持直达可达，但对搜索引擎不可见——页面渲染 `noindex, nofollow`（`ArticlePage` 的 `noindex={entry.data.noindex || isFallback}`），sitemap 同步排除（`astro.config.ts` 经 `lib/fallback-paths.ts` 从 coverage 推导全部 fallback URL）。若不收敛，Google 会看到两个 self-canonical 且都被 sitemap 提交的重复英文 URL。翻译落地后 `isFallback` 翻转为 `false`，页面自动恢复索引，无需人工清理。取舍（noindex 而非 canonical 指向英文源）与验证证据见 `docs/superpowers/specs/2026-09-15-fallback-seo-noindex.md`。
+
 ### 9.4 UI 文案 fallback
 
 ```typescript
@@ -1633,4 +1635,5 @@ PUBLIC_GA_ID=
 | 2026-09-15 | v2.25.1 | apply-template/setup.yml 重跑内容感知化：「Clear demo content」只删 demo 文章（内容标记 DEMO_GAME_NAMES=['Anvil Quest']，与 locale JSON 保护同规则同哲学），用户文章/脚手架/改写过的 demo 路径文件自动保留并逐个警告；有意不做文件路径清单（模板作者加 demo 文或 fork 用户加文都会失真）；新 scripts/clear-demo-content.ts 给 setup.yml 单源复用，find -name '*.mdx' -delete 全量删除根除（步骤移到 install 后 build 前）；E2E 新断言（用户文章重跑存活+demo 残留被清+警告可见）+4 条新测试 test 231→235；详见 CHANGELOG [2.25.1] |
 | 2026-09-15 | v2.26.0 | Adsterra 广告接入：新组件 AdsterraSlot.astro（env 门控 PUBLIC_ADSTERRA_SLOT_<NAME> 空=不渲染与 AdSense 槽同契约；独立文件+iframe sandbox 四权限隔离、省略 allow-top-navigation；诚实边界=allow-same-origin+allow-scripts 下非对抗恶意创意硬边界，真隔离需独立源，docstring/docs/ads.md 载明；hideOnMobile 移动端只出响应式 Native）；demo 挂载 wiki 文章页/手册课页 4 位/主落地页/社群精华/对比页/文档目录页（隐私页有意不挂）；fork 安全=public/ads/*.html 六文件入 DEMO_PUBLIC_FILES 双通道清理+rewriteWranglerVars 注释态变量+fork 纯净性 E2E 三道断言（六 html 删净/无未注释 demo key/dist 零广告 iframe）；sidebar-300x250 已建未挂载如实标注；法律页英+zh 广告披露补 Adsterra；详见 CHANGELOG [2.26.0] |
 | 2026-09-15 | v2.26.1 | 全项目三维代码审查第二轮修复批：2 高+9 中+约 30 低全修——setup.yml [vars] 重写正则行首锚定（零终端通道产出非法 TOML 根治，行为级契约测试钉死）；anvil-ops submit 私钥安全网三层防御（文件名镜像/内容扫描/.env 路径比对）；AdsterraSlot 补齐同意门控（与 GA/AdSense 同门，data-src 延迟加载，拒绝/未选永不加载）；slugifyTag 混合标签折叠碰撞走 raw；apply-template 重跑 value-aware 保留用户 [vars]（DEMO_VAR_VALUES 漂移守卫）；GSC 整请求 30s 超时；template-audit 清单 import 单源；E2E 死断言修复等；test 235→259、ops 134→162、ops 1.0.3；详见 CHANGELOG [2.26.1] |
+| 2026-09-15 | v2.27.0 | 社区审查修复批（群友「誓言」外部代码审查报告 P1+P3）：fallback 页 SEO 信号收敛——英文 fallback 页渲染 noindex,nofollow 并从 sitemap 排除（lib/fallback-paths.ts 纯函数+astro.config 接线+ArticlePage isFallback 叠加,人类可达性不变,翻译落地自愈,决策记录 docs/superpowers/specs/2026-09-15-fallback-seo-noindex.md）；构建警告清零（astro-icon 空目录+getEntryWithFallback 改 getCollection 建 map）；致谢「誓言」五处落位（README 中英/docs README/landing footer credits href 可选化/CHANGELOG/roadmap 来源标注）；P2 复杂度治理与类型逃生口收敛进 roadmap 候选池；test 259→264；详见 CHANGELOG [2.27.0] |
 > **✅ v1.0 已交付**：demo 站 [anvil.wiki](https://anvil.wiki/) 已上线，Lighthouse 全 100。后续按 [§14.2 迭代方向](#142-v10-后的迭代方向) 推进 v1.3+ 功能。

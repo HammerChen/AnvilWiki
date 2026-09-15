@@ -175,7 +175,7 @@ fork 后用 ZCode / Claude Code / Codex / Cursor 打开仓库,直接对话即可
 
 许可:**MIT**,见 [LICENSE](LICENSE)。
 
-致谢:选品判决框架([docs/sourcing.md](docs/sourcing.md) 第四节)参考了 [yan-labs/yan-skills](https://github.com/yan-labs/yan-skills)(MIT)的 game-opportunity 技能;AdSense 申请前审计技能(`/anvil-adsense-audit`)的审计框架受 [yantoumu/adsense-site-auditor-skill](https://github.com/yantoumu/adsense-site-auditor-skill) 启发(清单为模板特化重写,未复制其文本);视频转攻略工作流(`anvil-new-article` Step 0)的管线设计参考 [kennyzir/7deer_skills](https://github.com/kennyzir/7deer_skills/tree/main/youtube-content-gen)(MIT)的 youtube-content-gen 技能。感谢三个项目把方法论开源出来。
+致谢:选品判决框架([docs/sourcing.md](docs/sourcing.md) 第四节)参考了 [yan-labs/yan-skills](https://github.com/yan-labs/yan-skills)(MIT)的 game-opportunity 技能;AdSense 申请前审计技能(`/anvil-adsense-audit`)的审计框架受 [yantoumu/adsense-site-auditor-skill](https://github.com/yantoumu/adsense-site-auditor-skill) 启发(清单为模板特化重写,未复制其文本);视频转攻略工作流(`anvil-new-article` Step 0)的管线设计参考 [kennyzir/7deer_skills](https://github.com/kennyzir/7deer_skills/tree/main/youtube-content-gen)(MIT)的 youtube-content-gen 技能。感谢三个项目把方法论开源出来;也感谢群友「誓言」——其 2026-09-15 的外部代码审查报告是 v2.27.0 fallback 页 SEO 收敛修复与 roadmap 复杂度候选项的直接来源。
 
 ---
 
@@ -302,7 +302,7 @@ Built a site? Open a PR appending an entry to `COMMUNITY_SITES` in `src/config/l
 
 MIT License — see [LICENSE](LICENSE).
 
-Credits: the opportunity-scoring framework in [docs/sourcing.md](docs/sourcing.md) (section 4) draws on the game-opportunity skill from [yan-labs/yan-skills](https://github.com/yan-labs/yan-skills) (MIT); the AdSense pre-application audit skill (`/anvil-adsense-audit`) is inspired by the audit framework of [yantoumu/adsense-site-auditor-skill](https://github.com/yantoumu/adsense-site-auditor-skill) (our checklist is a template-specific rewrite, not a copy); the video-to-guide workflow (`anvil-new-article` Step 0) draws on the pipeline of [kennyzir/7deer_skills](https://github.com/kennyzir/7deer_skills/tree/main/youtube-content-gen) (MIT, youtube-content-gen). Thanks to all three projects for open-sourcing their methodology.
+Credits: the opportunity-scoring framework in [docs/sourcing.md](docs/sourcing.md) (section 4) draws on the game-opportunity skill from [yan-labs/yan-skills](https://github.com/yan-labs/yan-skills) (MIT); the AdSense pre-application audit skill (`/anvil-adsense-audit`) is inspired by the audit framework of [yantoumu/adsense-site-auditor-skill](https://github.com/yantoumu/adsense-site-auditor-skill) (our checklist is a template-specific rewrite, not a copy); the video-to-guide workflow (`anvil-new-article` Step 0) draws on the pipeline of [kennyzir/7deer_skills](https://github.com/kennyzir/7deer_skills/tree/main/youtube-content-gen) (MIT, youtube-content-gen). Thanks to all three projects for open-sourcing their methodology — and to Shiyan (誓言, a community reviewer) whose external code review report (2026-09-15) directly drove the v2.27.0 fallback-SEO fix and the roadmap complexity candidates.
 
 Questions, ideas, or want to chat about game content sites? Scan the WeChat QR code to join the discussion group (the [project landing page](https://anvil.wiki/landing) has the same floating QR button in the bottom-right corner):
 

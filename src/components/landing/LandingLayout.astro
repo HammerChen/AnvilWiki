@@ -396,7 +396,11 @@ const description = pageDescription ?? t.description;
         {t.footer.credits.map((credit, i) => (
           <>
             {i > 0 && <span> · </span>}
-            <a href={credit.href} class="transition hover:text-nav" rel="noopener">{credit.name}</a>
+            {credit.href ? (
+              <a href={credit.href} class="transition hover:text-nav" rel="noopener">{credit.name}</a>
+            ) : (
+              <span>{credit.name}</span>
+            )}
             <span> — {credit.note}</span>
           </>
         ))}
