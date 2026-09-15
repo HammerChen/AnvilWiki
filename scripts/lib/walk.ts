@@ -47,3 +47,27 @@ export function walkFiles(root: string, opts: WalkOptions = {}): string[] {
   })(root);
   return out;
 }
+
+/**
+ * All directories under `root` (root itself excluded), PRE-ORDER: every
+ * directory always precedes its entire subtree, with the same per-directory
+ * name sort as walkFiles. Reverse() the result to prune emptied directories
+ * deepest-first (children before their parents, so a chain of emptied dirs
+ * collapses in one pass). A missing root returns [].
+ */
+export function walkDirs(root: string): string[] {
+  const out: string[] = [];
+  (function walk(dir: string) {
+    if (!fs.existsSync(dir)) return;
+    const entries = fs
+      .readdirSync(dir, { withFileTypes: true })
+      .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        out.push(path.join(dir, entry.name));
+        walk(path.join(dir, entry.name));
+      }
+    }
+  })(root);
+  return out;
+}

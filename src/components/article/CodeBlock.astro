@@ -12,8 +12,7 @@
  *
  * Pure vanilla JS (clipboard API), supports multiple instances per page.
  */
-import { getUi } from '~/i18n/ui';
-import { isLocale } from '~/i18n/routing';
+import { currentSharedStrings } from '~/lib/shared-ui';
 
 interface Props {
   /** The code itself — the whole string is the copy target. */
@@ -27,11 +26,7 @@ interface Props {
 }
 // Locale defaults come from Astro.currentLocale so MDX-authored instances
 // (which can't receive page props) still localize on translated pages.
-const current = Astro.currentLocale;
-const pageShared =
-  current && isLocale(current)
-    ? ((getUi(current).shared ?? {}) as unknown as Record<string, string>)
-    : {};
+const pageShared = currentSharedStrings(Astro.currentLocale);
 const {
   code,
   label,

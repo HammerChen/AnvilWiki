@@ -14,8 +14,10 @@
 # reviewer = repo owner, configured repo-side). This is load-bearing, not
 # ceremony: branch protection does NOT cover tags, so without the environment
 # anyone with write access could tag an arbitrary commit and publish it with
-# valid OIDC provenance. The workflow itself adds a second layer — the tagged
-# commit must be an ancestor of main (see the guard steps below).
+# valid OIDC provenance. The workflow itself adds a second layer — the
+# published commit must be an ancestor of main on BOTH trigger paths: a tag
+# push proves the tagged commit sits on main, and a workflow_dispatch proves
+# the checked-out branch head does (see the guard steps below).
 
 name: Release anvilwiki-ops
 
@@ -64,16 +66,17 @@ jobs:
             exit 1
           fi
 
-      # Tag↔main guard: branch protection does not cover tags, so the only
-      # thing standing between a write-access user and npm is this check —
-      # the tagged commit must actually sit on main (i.e. code that went
-      # through review/CI), not an arbitrary side commit.
-      - name: Verify tagged commit is on main
-        if: ${{ github.ref_type == 'tag' }}
+      # Main-ancestry guard: branch protection does not cover tags, and a
+      # workflow_dispatch skips every tag-conditional step — so this check is
+      # deliberately UNCONDITIONAL and runs on both trigger paths: a tag push
+      # proves the tagged commit sits on main; a dispatch proves the checked-
+      # out branch head ($GITHUB_SHA) does. Either way, only code that went
+      # through review/CI can reach npm.
+      - name: Verify published commit is on main
         working-directory: .
         run: |
           if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
-            echo "::error::tag $GITHUB_REF_NAME points at $GITHUB_SHA, which is not on main — refusing to publish unreviewed code"
+            echo "::error::ref $GITHUB_REF_NAME ($GITHUB_SHA) is not on main — refusing to publish unreviewed code"
             exit 1
           fi
 

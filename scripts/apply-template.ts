@@ -37,6 +37,8 @@ import { todayIso } from './lib/today';
 import { hexToHsl as hexToHslPure, hslToHex } from '~/lib/covers';
 import * as path from 'node:path';
 import { createLinePrompt, type LinePrompt } from './lib/prompt';
+import { containsControlChar } from './lib/delimited';
+import { walkDirs, walkFiles } from './lib/walk';
 import {
   DEMO_ARTICLE_IMAGES,
   DEMO_COVERS,
@@ -49,7 +51,10 @@ import {
   buildUiMessagesEntries,
   classifyWikiArticles,
   isDemoLocaleContent,
+  isDemoSiteTsIdentity,
   isLocaleCode,
+  parseSiteTsIdentity,
+  rerunPromptDefaults,
   rewriteLocaleJson,
   rewriteSiteTs as rewriteSiteTsBlock,
   rewriteWranglerVars,
@@ -69,12 +74,32 @@ const KEEP_LANDING = ARGS.includes('--keep-landing');
 // scripted runs. The file is a JSON array of raw answers, one per prompt, in
 // the exact order the CLI asks them ("" = press enter, i.e. the default).
 // Walks the SAME ask/askBool code path — only the answer source changes.
+// Parsed inside main() (loadScriptedAnswers), not at module load: a missing
+// or malformed file must surface as the CLI's friendly ❌ + guidance instead
+// of an unhandled top-level stack trace.
 const answersIdx = ARGS.indexOf('--answers');
 const ANSWERS_FILE =
   answersIdx >= 0 ? ARGS[answersIdx + 1] : ARGS.find((a) => a.startsWith('--answers='))?.split('=').slice(1).join('=');
 let scripted: string[] | null = null;
-if (ANSWERS_FILE) {
-  const parsed: unknown = JSON.parse(fs.readFileSync(path.resolve(ROOT, ANSWERS_FILE), 'utf8'));
+
+/**
+ * Load the --answers file into the module-level `scripted` queue. Called at
+ * the very start of main(), before any prompt or file write.
+ */
+function loadScriptedAnswers(): void {
+  if (!ANSWERS_FILE) return;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(fs.readFileSync(path.resolve(ROOT, ANSWERS_FILE), 'utf8'));
+  } catch (err) {
+    console.error(
+      `❌ Could not read the --answers file "${ANSWERS_FILE}": ${err instanceof Error ? err.message : err}`,
+    );
+    console.error(
+      '   Expected a JSON file holding an ARRAY OF STRINGS — one entry per prompt, in order ("" = press enter).',
+    );
+    process.exit(1);
+  }
   if (!Array.isArray(parsed) || parsed.some((a) => typeof a !== 'string')) {
     console.error('❌ --answers file must be a JSON array of strings (one per prompt, in order).');
     process.exit(1);
@@ -111,12 +136,35 @@ function warnOnLeftoverAnswers(): void {
 
 const REL = (p: string) => path.relative(ROOT, p);
 const read = (p: string) => fs.readFileSync(path.resolve(ROOT, p), 'utf8');
+
+/**
+ * Atomic write: same-directory temp file + rename. A process killed mid-write
+ * (Ctrl-C, CI timeout) leaves a `.<name>.tmp` breadcrumb, never a truncated
+ * site.ts / wrangler.toml / locale JSON — same pattern sync-codes.ts uses for
+ * MDX pages. rename within one directory is atomic on POSIX and Windows.
+ */
+function writeAtomic(target: string, content: string): void {
+  const abs = path.resolve(ROOT, target);
+  const tmp = path.join(path.dirname(abs), `.${path.basename(abs)}.tmp`);
+  try {
+    fs.writeFileSync(tmp, content, 'utf8');
+    fs.renameSync(tmp, abs);
+  } catch (err) {
+    try {
+      fs.rmSync(tmp, { force: true });
+    } catch {
+      // best-effort cleanup — the original error matters more
+    }
+    throw err;
+  }
+}
+
 const write = (p: string, content: string) => {
   if (DRY_RUN) {
     console.log(`   ${dim('~')} would write ${REL(p)}`);
     return;
   }
-  fs.writeFileSync(path.resolve(ROOT, p), content, 'utf8');
+  writeAtomic(p, content);
 };
 
 /** #rgb/#rrggbb → HSL with the CLI's friendly validation over the shared lib helper. */
@@ -144,7 +192,18 @@ async function ask(rl: LinePrompt, question: string, fallback?: string): Promise
   const answer = scripted
     ? takeScriptedAnswer(question)
     : (await rl.ask(question + suffix)).trim();
-  return answer || (fallback ?? '');
+  const value = answer || (fallback ?? '');
+  // Newline/control characters cannot be written into site.ts / wrangler.toml
+  // string literals without corrupting them. Interactive TTY input can't carry
+  // them (line-based), but a --answers JSON entry can — reject at the intake
+  // with the offending question named, before anything is written.
+  if (containsControlChar(value)) {
+    console.error(
+      `❌ The answer for "${question}" contains a newline/control character — not valid in generated config files. Remove it and re-run.`,
+    );
+    process.exit(1);
+  }
+  return value;
 }
 
 async function askBool(rl: LinePrompt, question: string, fallback = false): Promise<boolean> {
@@ -322,21 +381,10 @@ function rewriteManifest(input: SkinInput): string {
  * Count every .mdx/.md article under src/content/wiki/ (all locales). Shown
  * before the "Clear demo content?" question: on a re-run this number is the
  * user's OWN article count, not the demo's — the prompt must not pretend
- * otherwise.
+ * otherwise. Full recursion via the shared walker (lib/walk.ts).
  */
 function countWikiArticles(): number {
-  const base = path.resolve(ROOT, 'src/content/wiki');
-  if (!fs.existsSync(base)) return 0;
-  let count = 0;
-  const walk = (dir: string) => {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const p = path.join(dir, entry.name);
-      if (entry.isDirectory()) walk(p);
-      else if (entry.name.endsWith('.mdx') || entry.name.endsWith('.md')) count++;
-    }
-  };
-  walk(base);
-  return count;
+  return walkFiles(path.resolve(ROOT, 'src/content/wiki'), { exts: ['.mdx', '.md'] }).length;
 }
 
 /**
@@ -346,39 +394,34 @@ function countWikiArticles(): number {
  * the forker's own articles, rewrites of demo-path files, and a previous
  * run's scaffolds — is kept and reported. A re-run must never destroy user
  * work (v2.25.0 made the prompt honest; this makes the behavior match it).
+ * Files come from the shared walker (full recursion + stable sort), so the
+ * kept-warning order is deterministic (lexicographic by path) across
+ * platforms — clear-demo-content.ts (the setup.yml channel) walks the same
+ * way, so both channels report identically.
  */
 function clearDemoContent(categories: { key: string }[]): { removed: number; kept: string[] } {
   const base = path.resolve(ROOT, 'src/content/wiki');
   if (!fs.existsSync(base)) return { removed: 0, kept: [] };
   const chosen = new Set(categories.map((c) => c.key));
-  const entries: { rel: string; src: string }[] = [];
-  const catDirs: string[] = [];
-  for (const localeDir of fs.readdirSync(base)) {
-    const localePath = path.join(base, localeDir);
-    if (!fs.statSync(localePath).isDirectory()) continue;
-    for (const catDir of fs.readdirSync(localePath)) {
-      const catPath = path.join(localePath, catDir);
-      if (!fs.statSync(catPath).isDirectory()) continue;
-      catDirs.push(catPath);
-      for (const file of fs.readdirSync(catPath)) {
-        if (!file.endsWith('.mdx') && !file.endsWith('.md')) continue;
-        entries.push({
-          rel: `${localeDir}/${catDir}/${file}`,
-          src: fs.readFileSync(path.join(catPath, file), 'utf8'),
-        });
-      }
-    }
-  }
+  const entries = walkFiles(base, { exts: ['.mdx', '.md'] }).map((p) => ({
+    rel: path.relative(base, p).split(path.sep).join('/'),
+    src: fs.readFileSync(p, 'utf8'),
+  }));
   const { demo, kept } = classifyWikiArticles(entries);
   if (!DRY_RUN) {
     for (const file of demo) fs.unlinkSync(path.join(base, file.rel));
-    // Prune category dirs that are now empty AND not chosen — a leftover
-    // empty dir is an unreachable category (template-audit flags it) and
-    // invites creating articles for a nav that doesn't link it. Dirs holding
-    // kept (user) files are never empty, so they survive untouched.
-    for (const catPath of catDirs) {
-      if (!chosen.has(path.basename(catPath)) && fs.readdirSync(catPath).length === 0) {
-        fs.rmdirSync(catPath);
+    // Prune directories that are now empty AND not chosen — a leftover empty
+    // dir is an unreachable category (template-audit flags it) and invites
+    // creating articles for a nav that doesn't link it. Dirs holding kept
+    // (user) files are never empty, so they survive untouched. Deepest-first
+    // (reversed pre-order), and only BELOW locale level: locale dirs belong
+    // to the locale loop (a freshly chosen locale is created empty and must
+    // survive until its first article lands).
+    for (const dir of walkDirs(base).reverse()) {
+      const depth = path.relative(base, dir).split(path.sep).length;
+      if (depth < 2) continue;
+      if (!chosen.has(path.basename(dir)) && fs.readdirSync(dir).length === 0) {
+        fs.rmdirSync(dir);
       }
     }
   }
@@ -448,7 +491,7 @@ function scaffoldContent(categories: { key: string }[]): number {
     if (!DRY_RUN) fs.mkdirSync(dir, { recursive: true });
     const file = path.join(dir, 'getting-started.mdx');
     if (!DRY_RUN && !fs.existsSync(file)) {
-      fs.writeFileSync(
+      writeAtomic(
         file,
         `---
 title: "Getting Started with ${titleCase(key)} Guide"
@@ -464,7 +507,6 @@ Replace this scaffold with your article. Remember: no H1 in the body (it is
 rendered from the frontmatter title), and start each section with a direct
 40-60 word answer for AI search engines.
 `,
-        'utf8',
       );
       created++;
     }
@@ -521,7 +563,7 @@ function removeLandingPage(): number {
     const src = read('src/config/project.ts');
     const flipped = src.replace('landingLinkEnabled = true', 'landingLinkEnabled = false');
     if (flipped !== src) {
-      if (!DRY_RUN) fs.writeFileSync(projectPath, flipped, 'utf8');
+      if (!DRY_RUN) writeAtomic(projectPath, flipped);
       removed++;
     }
   }
@@ -537,37 +579,57 @@ async function main() {
     `\n🎨 AnvilWiki apply-template CLI — base config (metadata, theme, nav, locales)${DRY_RUN ? ' [DRY RUN]' : ''}\n`,
   );
 
+  loadScriptedAnswers();
+
   const rl = createLinePrompt();
 
   // --- Collect inputs -----------------------------------------------------
+  // Re-run = confirm current (S12): when src/config/site.ts already carries a
+  // NON-demo identity, every text prompt defaults to the value site.ts holds
+  // right now, so an enter-through re-run rewrites the site to exactly what it
+  // already is instead of silently skinning it back to the demo. A first run
+  // (still demo, or site.ts unreadable) keeps the demo-flavored defaults.
+  const identity = fs.existsSync(path.resolve(ROOT, 'src/config/site.ts'))
+    ? parseSiteTsIdentity(read('src/config/site.ts'))
+    : null;
+  const rerunDefaults =
+    identity !== null && !isDemoSiteTsIdentity(identity) ? rerunPromptDefaults(identity) : null;
+  if (rerunDefaults !== null && identity !== null) {
+    console.log(`♻️  Re-run detected — src/config/site.ts already carries "${identity.name}".`);
+    console.log('   Prompt defaults below are your CURRENT values (enter = keep), not demo placeholders.\n');
+  }
+  const d = rerunDefaults;
+
   console.log('━'.repeat(60));
   console.log('Game identity');
   console.log('━'.repeat(60));
-  const gameName = await ask(rl, 'Full game name', 'Anvil Quest');
+  const gameName = await ask(rl, 'Full game name', d ? d.gameName : 'Anvil Quest');
   // Collapse whitespace runs first: split(' ') on a double-spaced name yields
   // empty words whose w[0] is undefined — the default spelled "UNDE Wiki".
-  const shortNameDefault =
-    gameName
-      .trim()
-      .split(/\s+/)
-      .map((w) => w[0] ?? '')
-      .join('')
-      .slice(0, 4)
-      .toUpperCase() + ' Wiki';
+  // (Skipped on a re-run: the current shortName is the default there.)
+  const shortNameDefault = d
+    ? d.shortName
+    : gameName
+        .trim()
+        .split(/\s+/)
+        .map((w) => w[0] ?? '')
+        .join('')
+        .slice(0, 4)
+        .toUpperCase() + ' Wiki';
   const shortName = await ask(rl, 'Short name (PWA / mobile)', shortNameDefault);
-  const domain = await ask(rl, 'Domain (no protocol)', 'anvilwiki.pages.dev');
-  const tagline = await ask(rl, 'Hero tagline', `Your home for everything ${gameName}`);
+  const domain = await ask(rl, 'Domain (no protocol)', d ? d.domain : 'anvilwiki.pages.dev');
+  const tagline = await ask(rl, 'Hero tagline', d ? d.tagline : `Your home for everything ${gameName}`);
   const description = await ask(
     rl,
     'Site description (SEO, 40-165 chars)',
-    `Complete ${gameName} wiki with guides, codes, tier lists, and tips. Every page carries a last-verified date.`,
+    d ? d.description : `Complete ${gameName} wiki with guides, codes, tier lists, and tips. Every page carries a last-verified date.`,
   );
   const legalNotice = await ask(
     rl,
     'Legal / copyright notice',
-    `${gameName} Wiki is a fan-made community site. Not affiliated with or endorsed by the game developer.`,
+    d ? d.legalNotice : `${gameName} Wiki is a fan-made community site. Not affiliated with or endorsed by the game developer.`,
   );
-  const officialUrl = await ask(rl, 'Official game URL', 'https://example.com');
+  const officialUrl = await ask(rl, 'Official game URL', d ? d.officialUrl : 'https://example.com');
 
   console.log('\n' + '━'.repeat(60));
   console.log('Theme color');
@@ -579,10 +641,10 @@ async function main() {
   console.log('\n' + '━'.repeat(60));
   console.log('Game metadata');
   console.log('━'.repeat(60));
-  const platform = await ask(rl, 'Platform', 'Roblox');
-  const developer = await ask(rl, 'Developer / studio', 'Forge Studios');
-  const genre = await ask(rl, 'Genre', 'Fantasy RPG');
-  const releaseDate = await ask(rl, 'Release date (ISO, optional)', '');
+  const platform = await ask(rl, 'Platform', d ? d.platform : 'Roblox');
+  const developer = await ask(rl, 'Developer / studio', d ? d.developer : 'Forge Studios');
+  const genre = await ask(rl, 'Genre', d ? d.genre : 'Fantasy RPG');
+  const releaseDate = await ask(rl, 'Release date (ISO, optional)', d ? d.releaseDate : '');
 
   console.log('\n' + '━'.repeat(60));
   console.log('Locales (comma-separated, first = default)');
@@ -747,12 +809,15 @@ async function main() {
   write('src/i18n/ui.ts', rewriteUiTs(skinInput));
   console.log('   ✅ src/i18n/ui.ts');
 
+  // Copyright year comes from the shared local-date helper — the pure rewrite
+  // layer takes it as a parameter (no hidden wall-clock reads at night-run hours).
+  const copyrightYear = Number(todayIso().slice(0, 4));
   for (const locale of uniqueLocales) {
     const localePath = `src/locales/${locale}.json`;
     const existing = fs.existsSync(path.resolve(ROOT, localePath))
       ? read(localePath)
       : undefined;
-    write(localePath, rewriteLocaleJson(skinInput, locale, existing));
+    write(localePath, rewriteLocaleJson(skinInput, locale, copyrightYear, existing));
     if (!DRY_RUN) {
       // Ensure content dir exists for this locale.
       fs.mkdirSync(path.resolve(ROOT, 'src/content/wiki', locale), { recursive: true });

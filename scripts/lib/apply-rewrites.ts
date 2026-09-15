@@ -9,6 +9,8 @@
  * locale check. No fs/path access — callers own all IO.
  */
 
+import { stripControlChars } from './delimited';
+
 
 export function slugify(s: string): string {
   return s
@@ -73,8 +75,16 @@ export const KNOWN_LOCALE_LABELS: Record<string, string> = {
   de: 'Deutsch',
 };
 
-/** Escape a string for a single-quoted TS literal (backslash first). */
-export const tsEscape = (s: string) => s.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+/**
+ * Escape a string for a single-quoted TS literal (backslash first).
+ * Newline/control characters are STRIPPED as defense-in-depth: the CLI's ask()
+ * layer rejects answers carrying them, but a direct lib caller must not be
+ * able to inject a raw newline into generated TS either.
+ */
+export const tsEscape = (s: string) =>
+  stripControlChars(s)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'");
 
 /**
  * The LOCALE_LABELS entry lines for routing.ts (no braces — the caller wraps
@@ -297,7 +307,126 @@ export function rewriteSiteTs(src: string, input: SkinInput): string | null {
 }
 
 
-export function rewriteLocaleJson(input: SkinInput, _locale: string, existing?: string): string {
+// ---------------------------------------------------------------------------
+// Re-run identity detection (S12): a re-run must default prompts to the
+// CURRENT site.ts values, not the demo placeholders — pressing enter through
+// every prompt has to mean "confirm what is already there", never "silently
+// re-skin the site back to the demo".
+// ---------------------------------------------------------------------------
+
+/** The demo domains a fork must rebrand away from (site.ts `domain` + SITE_URL). */
+export const DEMO_DOMAINS = ['anvil.wiki', 'anvilwiki.pages.dev'];
+
+export interface SiteTsIdentity {
+  name: string;
+  shortName: string;
+  description: string;
+  domain: string;
+  tagline: string;
+  legalNotice: string;
+  officialUrl: string;
+  gameName: string;
+  platform: string;
+  developer: string;
+  genre: string;
+  releaseDate: string;
+}
+
+/** Undo tsEscape's two escapes (`\\` → `\`, `\'` → `'`). */
+const tsUnescape = (s: string) => s.replace(/\\(['\\])/g, '$1');
+
+/** A single-quoted TS literal on its own line (`  field: 'value',`). */
+const tsField = (field: string) =>
+  new RegExp(`^\\s*${field}:\\s*'((?:\\\\.|[^'\\\\])*)'`, 'm');
+
+/**
+ * Read the CURRENT identity back out of src/config/site.ts, with the same
+ * anchors rewriteSiteTs writes (regex only — importing the TS module would
+ * drag astro:content into a plain-node CLI). `game.name` is anchored to its
+ * `game: {` block so the interface declaration above it can never match.
+ * Returns null when a core field cannot be found — the caller falls back to
+ * first-run defaults rather than guessing a half-read identity.
+ */
+export function parseSiteTsIdentity(src: string): SiteTsIdentity | null {
+  const pick = (re: RegExp) => re.exec(src)?.[1];
+  const raw = {
+    name: pick(tsField('name')),
+    shortName: pick(tsField('shortName')),
+    description: pick(tsField('description')),
+    domain: pick(tsField('domain')),
+    tagline: pick(tsField('tagline')),
+    legalNotice: pick(tsField('legalNotice')),
+    officialUrl: pick(/official:\s*'((?:\\.|[^'\\])*)'/),
+    gameName: pick(/\bgame:\s*\{\s*name:\s*'((?:\\.|[^'\\])*)'/),
+    platform: pick(tsField('platform')),
+    developer: pick(tsField('developer')),
+    genre: pick(tsField('genre')),
+    releaseDate: pick(tsField('releaseDate')),
+  };
+  // Empty strings are legal values (releaseDate is optional); MISSING fields are not.
+  if (Object.values(raw).some((v) => v === undefined)) return null;
+  return Object.fromEntries(
+    Object.entries(raw).map(([k, v]) => [k, tsUnescape(v as string)]),
+  ) as unknown as SiteTsIdentity;
+}
+
+/**
+ * Is this identity still the untouched demo? Deliberately AND, not OR: a
+ * HALF-rebranded site (game renamed, demo domain forgotten) must count as a
+ * re-run and default to its current values — falling back to demo defaults
+ * there would reset the user's game name on a careless enter-through.
+ */
+export function isDemoSiteTsIdentity(id: SiteTsIdentity): boolean {
+  return id.gameName === DEMO_GAME_NAMES[0] && DEMO_DOMAINS.includes(id.domain);
+}
+
+export interface PromptDefaults {
+  gameName: string;
+  shortName: string;
+  domain: string;
+  tagline: string;
+  description: string;
+  legalNotice: string;
+  officialUrl: string;
+  platform: string;
+  developer: string;
+  genre: string;
+  releaseDate: string;
+}
+
+/**
+ * Prompt defaults for a RE-RUN: exactly what site.ts carries now, so an
+ * enter-through rewrites the site to what it already is.
+ */
+export function rerunPromptDefaults(id: SiteTsIdentity): PromptDefaults {
+  return {
+    gameName: id.gameName,
+    shortName: id.shortName,
+    domain: id.domain,
+    tagline: id.tagline,
+    description: id.description,
+    legalNotice: id.legalNotice,
+    officialUrl: id.officialUrl,
+    platform: id.platform,
+    developer: id.developer,
+    genre: id.genre,
+    releaseDate: id.releaseDate,
+  };
+}
+
+
+/**
+ * Rewrite the per-locale JSON for the chosen skin. `copyrightYear` is passed
+ * in by the caller (apply-template derives it from lib/today.ts) — this layer
+ * stays pure, with no hidden dependency on the wall clock (a night run must
+ * not stamp a different year than the CLI reported).
+ */
+export function rewriteLocaleJson(
+  input: SkinInput,
+  _locale: string,
+  copyrightYear: number,
+  existing?: string,
+): string {
   // Start from existing (if any) or a minimal skeleton; reset site/footer/nav/overview.
   let obj: Record<string, unknown> = {};
   if (existing) {
@@ -316,7 +445,7 @@ export function rewriteLocaleJson(input: SkinInput, _locale: string, existing?: 
     legalNotice: input.legalNotice,
   };
   obj.footer = obj.footer ?? {};
-  (obj.footer as Record<string, unknown>).copyrightText = `© ${new Date().getFullYear()} ${input.gameName} Wiki. All rights reserved.`;
+  (obj.footer as Record<string, unknown>).copyrightText = `© ${copyrightYear} ${input.gameName} Wiki. All rights reserved.`;
   // nav + overview are auto-filled for the chosen categories. Deliberately
   // NOT left empty: an empty nav means the fork's first `pnpm check-config`
   // run is red (3-place rule) and SiteHeader renders raw lowercase keys —
@@ -372,41 +501,115 @@ export function rewriteLocaleJson(input: SkinInput, _locale: string, existing?: 
  * carries the DEMO site's Giscus config — an unedited fork would silently
  * point its comment section at the original repo's GitHub Discussions.
  * We rewrite SITE_URL to the forker's domain and blank the Giscus values.
+ *
+ * Re-run safety: the rewrite is VALUE-AWARE. The current [vars] block is
+ * parsed first; any non-empty value that is not a known demo value is USER
+ * data (their Giscus app, their GA4 property, their beacon token…) and is
+ * carried into the rewritten block — an apply-template re-run no longer
+ * wipes env the user already filled. Demo values (DEMO_VAR_VALUES) and empty
+ * values reset to the blank template; SITE_URL always follows the CLI's
+ * domain answer; commented-out template lines (`#KEY = ""`) hold no value
+ * and never participate in preservation.
  */
-export function rewriteWranglerVars(input: SkinInput, src: string): string | null {
+
+/**
+ * Known demo env VALUES that must never survive a rewrite even though the
+ * key now carries user data: the demo Giscus config (would point a fork's
+ * comments at PNGTRID/AnvilWiki Discussions), both demo SITE_URL hosts, the
+ * demo Adsterra unit keys (five live + the commented spare), and the demo
+ * GA4 measurement ID. Exported for tests (a drift guard parses the shipped
+ * wrangler.toml against this list).
+ */
+export const DEMO_VAR_VALUES: readonly string[] = [
+  // Demo SITE_URL (canonical domain + the legacy pages.dev host)
+  'https://anvil.wiki',
+  'https://anvilwiki.pages.dev',
+  // Demo Giscus
+  'PNGTRID/AnvilWiki',
+  'R_kgDOT1aRPQ',
+  'Announcements',
+  'DIC_kwDOT1aRPc4DDODo',
+  // Demo Adsterra unit keys
+  '72f65aae2e14988904cffe17cfe697e2',
+  'e0dce7760389a360cba34b93333ea2d0',
+  '8fabf9ea9ed2d89cba2ff9888f939c26',
+  '89fabda9f10bc13544cae84f0211d77c',
+  'fba4ed072bed8749c56ebcf099b30f0e',
+  'e2ad36227bacdad94a4bfe6a9a6d3dac',
+  // Demo GA4 measurement ID
+  'G-X10CG7N6P6',
+];
+
+/** One [vars] line of the reset template, in shipped order. */
+interface VarSpec {
+  key: string;
+  /** Comment lines rendered directly above this key's line. */
+  comments?: string[];
+  /** Render commented-out (`#KEY = ""`) unless a user value is preserved — optional slots a fork enables explicitly. */
+  commented?: boolean;
+  /** Shipped default when nothing is preserved (only PUBLIC_GISCUS_MAPPING is non-empty). */
+  blank?: string;
+}
+
+const WRANGLER_VARS_TEMPLATE: VarSpec[] = [
+  {
+    key: 'SITE_URL',
+    comments: ['Site (must include https:// protocol — Astro validates this as a URL)'],
+  },
+  {
+    key: 'PUBLIC_GISCUS_REPO',
+    comments: [
+      'Giscus comments — blank = comments disabled until you fill your own values.',
+      'See docs/comments.md for how to get these from giscus.app.',
+    ],
+  },
+  { key: 'PUBLIC_GISCUS_REPO_ID' },
+  { key: 'PUBLIC_GISCUS_CATEGORY' },
+  { key: 'PUBLIC_GISCUS_CATEGORY_ID' },
+  { key: 'PUBLIC_GISCUS_MAPPING', blank: 'pathname' },
+  {
+    key: 'PUBLIC_SPONSOR_URL',
+    comments: ['Sponsor card — blank = disabled. Fill PUBLIC_SPONSOR_URL to enable.'],
+  },
+  { key: 'PUBLIC_SPONSOR_IMAGE_URL' },
+  { key: 'PUBLIC_CF_BEACON_TOKEN', comments: ['Cloudflare Web Analytics — blank = disabled.'] },
+  {
+    key: 'PUBLIC_ADSENSE_CLIENT',
+    comments: ['Optional slots (empty = disabled) — fill HERE, not the dashboard:'],
+    commented: true,
+  },
+  { key: 'PUBLIC_ADSENSE_SLOT_STICKY', commented: true },
+  { key: 'PUBLIC_ADSENSE_SLOT_SIDEBAR', commented: true },
+  { key: 'PUBLIC_ADSENSE_SLOT_INCONTENT', commented: true },
+  {
+    key: 'PUBLIC_ADSTERRA_SLOT_SIDEBAR_300X250',
+    comments: [
+      'Adsterra — for each slot you enable, also create public/ads/<name>.html with',
+      'the snippet from the Adsterra dashboard (pattern: docs/ads.md 「广告位怎么挂」).',
+    ],
+    commented: true,
+  },
+  { key: 'PUBLIC_ADSTERRA_SLOT_INCONTENT_728X90', commented: true },
+  { key: 'PUBLIC_ADSTERRA_SLOT_NATIVE_BANNER', commented: true },
+  { key: 'PUBLIC_ADSTERRA_SLOT_STICKY_320X50', commented: true },
+  { key: 'PUBLIC_ADSTERRA_SLOT_SIDEBAR_160X300', commented: true },
+  { key: 'PUBLIC_ADSTERRA_SLOT_SIDEBAR_160X600', commented: true },
+  { key: 'PUBLIC_GA_ID', commented: true },
+  { key: 'PUBLIC_GSC_VERIFICATION', commented: true },
+];
+
+/**
+ * The input parameter is deliberately the minimal shape the rewrite consumes
+ * (`domain` for SITE_URL — the only key that always follows the CLI answer).
+ * Any caller holding a full SkinInput satisfies it structurally.
+ */
+export function rewriteWranglerVars(input: { domain: string }, src: string): string | null {
   const filePath = 'wrangler.toml';
-  // TOML basic strings: escape backslash first, then the double quote.
-  const tomlStr = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-  const newVars = `[vars]
-# Site (must include https:// protocol — Astro validates this as a URL)
-SITE_URL = "https://${tomlStr(input.domain)}"
-# Giscus comments — blank = comments disabled until you fill your own values.
-# See docs/comments.md for how to get these from giscus.app.
-PUBLIC_GISCUS_REPO = ""
-PUBLIC_GISCUS_REPO_ID = ""
-PUBLIC_GISCUS_CATEGORY = ""
-PUBLIC_GISCUS_CATEGORY_ID = ""
-PUBLIC_GISCUS_MAPPING = "pathname"
-# Sponsor card — blank = disabled. Fill PUBLIC_SPONSOR_URL to enable.
-PUBLIC_SPONSOR_URL = ""
-PUBLIC_SPONSOR_IMAGE_URL = ""
-# Cloudflare Web Analytics — blank = disabled.
-PUBLIC_CF_BEACON_TOKEN = ""
-# Optional slots (empty = disabled) — fill HERE, not the dashboard:
-#PUBLIC_ADSENSE_CLIENT = ""
-#PUBLIC_ADSENSE_SLOT_STICKY = ""
-#PUBLIC_ADSENSE_SLOT_SIDEBAR = ""
-#PUBLIC_ADSENSE_SLOT_INCONTENT = ""
-# Adsterra — for each slot you enable, also create public/ads/<name>.html with
-# the snippet from the Adsterra dashboard (pattern: docs/ads.md 「广告位怎么挂」).
-#PUBLIC_ADSTERRA_SLOT_SIDEBAR_300X250 = ""
-#PUBLIC_ADSTERRA_SLOT_INCONTENT_728X90 = ""
-#PUBLIC_ADSTERRA_SLOT_NATIVE_BANNER = ""
-#PUBLIC_ADSTERRA_SLOT_STICKY_320X50 = ""
-#PUBLIC_ADSTERRA_SLOT_SIDEBAR_160X300 = ""
-#PUBLIC_ADSTERRA_SLOT_SIDEBAR_160X600 = ""
-#PUBLIC_GA_ID = ""
-#PUBLIC_GSC_VERIFICATION = ""`;
+  // TOML basic strings: strip newline/control characters (defense-in-depth —
+  // answers are rejected at the CLI's ask layer), then escape the backslash
+  // first and the double quote second.
+  const tomlStr = (s: string) =>
+    stripControlChars(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
   // Anchor [vars] at LINE START (the demo file's intro comment contains the
   // literal text "[vars]" mid-line — an unanchored match rewrote the comment
   // and left the real demo Giscus section below). Two JS regex traps here:
@@ -422,14 +625,46 @@ PUBLIC_CF_BEACON_TOKEN = ""
     console.warn(`⚠️ Could not find [vars] section in ${filePath} — edit it manually.`);
     return null;
   }
+  const eol = /(^|\n)\[vars\]\r\n/.test(src) ? '\r\n' : '\n';
+
+  // Parse the CURRENT [vars] block's uncommented `KEY = "value"` lines.
+  // Commented `#KEY = ""` placeholders hold no value and never participate.
+  const section = src.match(/(?:^|\n)\[vars\]\r?\n([\s\S]*?)(?=\r?\n\[|$)/)?.[1] ?? '';
+  const existing = new Map<string, string>();
+  for (const line of section.split(/\r?\n/)) {
+    const m = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"(.*)"\s*$/);
+    if (m) existing.set(m[1], m[2]);
+  }
+
+  const lines: string[] = ['[vars]'];
+  for (const spec of WRANGLER_VARS_TEMPLATE) {
+    for (const c of spec.comments ?? []) lines.push(`# ${c}`);
+    if (spec.key === 'SITE_URL') {
+      // Always follows the CLI's domain answer (check-config's domain gate
+      // compares it against site.ts, which the same run rewrites).
+      lines.push(`SITE_URL = "https://${tomlStr(input.domain)}"`);
+      continue;
+    }
+    const current = existing.get(spec.key);
+    const keep =
+      current !== undefined && current !== '' && !DEMO_VAR_VALUES.includes(current)
+        ? current
+        : null;
+    const rendered =
+      keep !== null
+        ? `${spec.key} = "${tomlStr(keep)}"`
+        : `${spec.key} = "${tomlStr(spec.blank ?? '')}"`;
+    // A preserved value for a commented-out slot means the user explicitly
+    // enabled it — re-emit it uncommented.
+    lines.push(spec.commented && keep === null ? `#${rendered}` : rendered);
+  }
+  const newVarsBlock = lines.join(eol);
   // Remove the demo-intro warning block: after the [vars] rewrite it would
   // claim "this file contains the DEMO SITE config" about values that are
   // now the forker's own — a stale, misleading comment. Anchors are ASCII:
   // the ⚠️ emoji is a multi-codepoint sequence that silently fails `⚠️+`.
   // The inserted block adopts the file's own EOL so the section is not left
   // with mixed line endings.
-  const eol = /(^|\n)\[vars\]\r\n/.test(src) ? '\r\n' : '\n';
-  const newVarsBlock = eol === '\r\n' ? newVars.replace(/\n/g, '\r\n') : newVars;
   const out = src.replace(varsRe, (_match, pre) => `${pre}${newVarsBlock}${eol}`);
   const demoIntroRe = /# .*FORKERS READ THIS FIRST[\s\S]*?# .*END FORKER WARNING.*\n?/;
   return demoIntroRe.test(out) ? out.replace(demoIntroRe, '') : out;

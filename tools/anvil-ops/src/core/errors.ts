@@ -2,6 +2,14 @@ export class OpsError extends Error {
   constructor(
     message: string,
     public readonly fix: string,
+    /**
+     * Stable machine-readable discriminator (e.g. 'no-analytics-source') so
+     * sibling modules can branch on an error without matching prose — wording
+     * changes must never flip behavior. Optional: existing errors keep their
+     * 2-arg constructor, new errors carry a code only when another module
+     * actually needs to branch on it.
+     */
+    public readonly code?: string,
   ) {
     super(message);
     this.name = 'OpsError';

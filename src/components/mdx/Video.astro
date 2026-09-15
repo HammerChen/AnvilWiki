@@ -18,6 +18,7 @@
  * inlined, so nothing renders twice.
  */
 import LazyYouTube from '~/components/video/LazyYouTube.astro';
+import { currentSharedStrings } from '~/lib/shared-ui';
 
 interface Props {
   /** 11-char YouTube video ID (same ID should also be in frontmatter videos). */
@@ -25,7 +26,8 @@ interface Props {
   /** Title shown on the play overlay + used for accessibility. */
   title?: string;
 }
-const { id, title = 'Watch video' } = Astro.props;
+const sharedStrings = currentSharedStrings(Astro.currentLocale);
+const { id, title = sharedStrings.watchVideo ?? 'Watch video' } = Astro.props;
 ---
 
 <div class="not-prose my-6">

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { gscQueryUrl, parseGscResponse } from '../src/core/providers/gsc.js';
+import { gscQueryUrl, parseGscResponse, raceTimeout } from '../src/core/providers/gsc.js';
+import { OpsError } from '../src/core/errors.js';
 
 const fixture = JSON.parse(readFileSync('test/fixtures/gsc-response.json', 'utf8'));
 
@@ -39,5 +40,23 @@ describe('gscQueryUrl', () => {
     const url = gscQueryUrl('sc-domain:example.com');
     expect(url).toContain(encodeURIComponent('sc-domain:example.com'));
     expect(url).not.toContain(encodeURIComponent('sc-domain:example.com/'));
+  });
+});
+
+describe('raceTimeout (whole-request watchdog incl. token exchange)', () => {
+  it('passes the settled value through when the promise wins the race', async () => {
+    await expect(raceTimeout(Promise.resolve({ data: 1 }), 5_000, 'Google Search Console API request')).resolves.toEqual({ data: 1 });
+  });
+
+  it('fails loudly with an OpsError + network fix when the request never settles (gaxios default is no timeout)', async () => {
+    const err: OpsError = await raceTimeout(new Promise(() => {}), 10, 'Google Search Console API request').then(
+      () => {
+        throw new Error('should have thrown');
+      },
+      (e) => e,
+    );
+    expect(err).toBeInstanceOf(OpsError);
+    expect(err.message).toMatch(/timed out after \d+s/);
+    expect(err.fix).toMatch(/googleapis\.com/);
   });
 });

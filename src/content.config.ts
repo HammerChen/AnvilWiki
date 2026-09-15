@@ -75,9 +75,14 @@ const wiki = defineCollection({
         .optional(),
       /**
        * Optional related YouTube video IDs (lazy-loaded embeds at the article
-       * bottom — zero JS until click). 11-char IDs, not full URLs.
+       * bottom — zero JS until click). Hard gate on the 11-char ID shape:
+       * a pasted full URL would flow through unchecked into VideoObject
+       * JSON-LD and i.ytimg/embed URLs as a broken key (invalid frontmatter
+       * fails the build instead).
        */
-      videos: z.array(z.string()).optional(),
+      videos: z
+        .array(z.string().regex(/^[A-Za-z0-9_-]{11}$/, 'YouTube video ID (11 chars, not a URL)'))
+        .optional(),
       /**
        * Optional image gallery — rendered as a thumbnail grid below the
        * article body with a native <dialog> lightbox (zero JS until click).

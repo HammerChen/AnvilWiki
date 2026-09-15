@@ -103,9 +103,8 @@ if (!/Base config complete/.test(cli.stdout)) {
   fail('CLI exited 0 but never reached its completion marker');
   process.exit(1);
 }
-if (/left over/.test(cli.stdout)) {
+if (/left over/.test((cli.stdout || '') + (cli.stderr || ''))) {
   fail('answers file has MORE entries than the CLI has prompts — prompt sequence drifted');
-  process.exit(1);
 }
 
 // 4. Assert the output shape — the exact fields the home components render.
@@ -229,7 +228,7 @@ if (!/Base config complete/.test(rerun.stdout || '')) {
   fail('re-run exited 0 but never reached its completion marker');
   process.exit(1);
 }
-if (/left over/.test(rerun.stdout || '')) {
+if (/left over/.test((rerun.stdout || '') + (rerun.stderr || ''))) {
   fail('re-run reports leftover answers — prompt sequence drifted');
 }
 // ⚠️ CLI warnings go to stderr (console.warn), completion markers to stdout.

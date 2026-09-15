@@ -40,12 +40,42 @@ function siteSummary(registry: SitesRegistry): string {
     : 'The sites registry is empty.';
 }
 
+/**
+ * Registry site names: non-empty, no whitespace/control chars, must start
+ * alphanumeric. Keeps `sites list` tables and `--site <name>` ergonomics sane.
+ * Lives in core so HAND-EDITED registries are validated by the same rule as
+ * `sites add` input (src/cli/flags.ts re-exports this for the CLI surface).
+ */
+export function validateSiteName(name: string): string {
+  const n = name.trim();
+  if (!n) {
+    throw new OpsError('Site name must not be empty.', 'Use a short slug, e.g. `anvil-ops sites add main-wiki /path/to/repo`.');
+  }
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(n)) {
+    throw new OpsError(
+      `Site name "${name}" contains unsupported characters.`,
+      'Use letters, digits, dots, dashes and underscores, starting alphanumeric (e.g. main-wiki, site2).',
+    );
+  }
+  return n;
+}
+
 function validateSite(site: RegistrySite, index: number): void {
   const label = `sites[${index}]`;
   if (!site.name?.trim()) {
     throw new OpsError(
       `Invalid sites registry entry ${label}: name is required.`,
       'Every [[sites]] entry needs a non-empty name. Fix the file or re-add the site with `anvil-ops sites add <name> <path>`.',
+    );
+  }
+  // Hand-edited files bypass `sites add` — enforce the SAME charset rule or a
+  // name like "my site" breaks --site lookups quietly.
+  try {
+    validateSiteName(site.name);
+  } catch {
+    throw new OpsError(
+      `Invalid sites registry entry ${label}: name "${site.name}" contains unsupported characters (allowed: letters, digits, dots, dashes, underscores; must start alphanumeric).`,
+      `Fix the name of entry ${index} in the registry file, or remove and re-add the site with \`anvil-ops sites remove\` + \`sites add\`.`,
     );
   }
   if (!site.path || !isAbsolute(site.path)) {

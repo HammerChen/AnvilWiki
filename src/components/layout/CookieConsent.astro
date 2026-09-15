@@ -11,6 +11,13 @@
  *   - Decline → store 'declined', trackers never load (this session & future).
  *   - Returning visitors with a stored choice never see the banner again.
  *
+ * Other consent-gated mounts (AdsterraSlot's deferred iframes) can't reach
+ * __awLoadTrackers, so whenever consent becomes known-accepted this script
+ * also dispatches the `aw:consent-accepted` document event. The script below
+ * compiles as its own module — it CANNOT see frontmatter imports — so the
+ * event/storage names are hardcoded here; canonical values live in
+ * src/lib/shared-ui.ts (keep the three files in sync).
+ *
  * Default-off contract preserved: no tracking env vars → this component is
  * never rendered → zero JS → Lighthouse unchanged.
  */
@@ -68,7 +75,10 @@ const { labels, privacyHref, privacyLabel } = Astro.props;
     }
   }
   (() => {
+    // Script can't see frontmatter imports — keep in sync with the canonical
+    // constants in src/lib/shared-ui.ts (and AdsterraSlot's inline script).
     const KEY = 'aw-cookie-consent';
+    const ACCEPTED_EVENT = 'aw:consent-accepted';
     const banner = document.getElementById('cookie-consent');
     if (!banner) return;
 
@@ -80,8 +90,15 @@ const { labels, privacyHref, privacyLabel } = Astro.props;
       }
     })();
 
+    // Tell consent-gated third-party mounts (deferred Adsterra iframes) that
+    // loading may start. Safe to fire repeatedly — consumers are idempotent.
+    const announceAccepted = () => {
+      document.dispatchEvent(new CustomEvent(ACCEPTED_EVENT));
+    };
+
     if (stored === 'accepted') {
       window.__awLoadTrackers?.();
+      announceAccepted();
       return; // never show the banner
     }
     if (stored === 'declined') return; // trackers stay off
@@ -95,6 +112,7 @@ const { labels, privacyHref, privacyLabel } = Astro.props;
       }
       banner.remove();
       window.__awLoadTrackers?.();
+      announceAccepted();
     });
     banner.querySelector('[data-consent-decline]')?.addEventListener('click', () => {
       try {

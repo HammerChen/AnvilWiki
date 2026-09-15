@@ -23,6 +23,6 @@ export async function insightsCommand(
     cfQuery: flags.cfQuery,
     aiReferralsQuery: flags.aiReferralsQuery,
   });
-  process.stdout.write(formatInsights(report.list, report.degraded, report.aio));
+  process.stdout.write(formatInsights(report.list, report.degraded, report.aio, report.notes));
   return 0;
 }

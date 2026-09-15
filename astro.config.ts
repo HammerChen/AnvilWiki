@@ -34,6 +34,16 @@ import { CONTENT_TYPES } from './src/config/navigation';
  *
  * Plain fs scan at config time — `astro:content` is not importable here.
  */
+/**
+ * Extract the frontmatter block (between the opening `---` line and its
+ * matching closing `---`) as one exact slice. NOT `src.split('---')[1]`,
+ * which silently truncates at the first `---` INSIDE a frontmatter string
+ * value — keys after it (noindex, lastModified, …) would be missed.
+ */
+function extractFrontmatter(src: string): string {
+  return src.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/)?.[1] ?? '';
+}
+
 function buildLastmodMap(
   noindexPaths: Set<string>,
   coverage: Map<string, Set<string>>,
@@ -52,10 +62,14 @@ function buildLastmodMap(
       }
       if (!entry.name.endsWith('.mdx')) continue;
       const src = fs.readFileSync(p, 'utf8');
+      const fm = extractFrontmatter(src);
       // Drafts never publish — their dates must not leak into list-page
-      // lastmod (would tell Google a page updated that didn't).
-      if (/^draft:\s*true\s*$/m.test(src.split('---')[1] ?? '')) continue;
-      const fm = src.split('---')[1] ?? '';
+      // lastmod (would tell Google a page updated that didn't). Accept the
+      // spellings js-yaml (the build's real frontmatter gate) resolves as
+      // boolean true — lowercase-only here would disagree with the gate: a
+      // `draft: True` article is excluded from the build while its lastmod
+      // still feeds the sitemap (a dead URL advertised as fresh).
+      if (/^draft:\s*(?:true|True|TRUE)\s*$/m.test(fm)) continue;
       const lm = fm.match(/^lastModified:\s*(.+)$/m)?.[1]?.trim();
       const dt = fm.match(/^date:\s*(.+)$/m)?.[1]?.trim();
       const iso = (lm || dt || '').replace(/['"]/g, '');
@@ -68,7 +82,9 @@ function buildLastmodMap(
       const [loc, cat, ...rest] = rel.split(path.sep);
       const slugPath = rest.join('/');
       const articlePath = loc === defaultLocale ? `/${cat}/${slugPath}` : `/${loc}/${cat}/${slugPath}`;
-      if (/^noindex:\s*true\s*$/m.test(fm)) {
+      // Same true-spelling rule as the draft check above: a `noindex: True`
+      // page must not ship in the sitemap it asked out of.
+      if (/^noindex:\s*(?:true|True|TRUE)\s*$/m.test(fm)) {
         noindexPaths.add(articlePath);
         // The non-default-locale routes of a default-locale noindex article
         // still get built (fallback URLs) and inherit the noindex meta —
@@ -128,7 +144,7 @@ function buildLastmodMap(
       for (const entry of fs.readdirSync(dir)) {
         if (!entry.endsWith('.md')) continue;
         const src = fs.readFileSync(path.join(dir, entry), 'utf8');
-        const fm = src.split('---')[1] ?? '';
+        const fm = extractFrontmatter(src);
         const iso = fm.match(/^updated:\s*(.+)$/m)?.[1]?.trim().replace(/['"]/g, '');
         if (!iso) continue;
         const date = new Date(iso);

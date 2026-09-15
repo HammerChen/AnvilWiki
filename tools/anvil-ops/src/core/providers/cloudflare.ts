@@ -154,7 +154,10 @@ export function parseAiReferralResponse(json: unknown): CfReferrerGroup[] {
 }
 
 export function isAiReferrerHost(host: string, whitelist: readonly string[] = AI_REFERRER_HOSTS): boolean {
-  return whitelist.some((w) => host === w || host.endsWith('.' + w));
+  // CF may report mixed-case hosts ("ChatGPT.com"); the whitelist is lowercase
+  // — normalize the incoming host or the match silently misses.
+  const h = host.toLowerCase();
+  return whitelist.some((w) => h === w || h.endsWith('.' + w));
 }
 
 /** Aggregates raw per-host groups into whitelist rows (subdomains included) + totals. */

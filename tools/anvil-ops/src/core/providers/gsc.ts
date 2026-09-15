@@ -48,6 +48,36 @@ const GSC_SCOPE = 'https://www.googleapis.com/auth/webmasters.readonly';
 // the CLI forever. API calls should fail in tens of seconds, not never.
 const GSC_TIMEOUT_MS = 30_000;
 
+/**
+ * Hard cap on a whole awaited operation. Exported (pure promise plumbing) so
+ * the timeout contract is unit-testable without network or fake JWTs.
+ *
+ * Why not just auth.request({timeout}): that only covers the API HTTP call —
+ * the FIRST call also performs the OAuth2 token exchange inside
+ * google-auth-library (gtoken), which uses gaxios's default timeout of 0
+ * (= never). A hung oauth2.googleapis.com connection would hang the CLI/MCP
+ * forever. The race does NOT cancel the underlying work (it keeps running
+ * harmlessly); the caller just stops waiting and fails loudly.
+ */
+export async function raceTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      reject(
+        new OpsError(
+          `${label} timed out after ${Math.round(timeoutMs / 1000)}s.`,
+          'Check network reachability of googleapis.com and oauth2.googleapis.com (VPN/proxy are common causes), then re-run. `anvil-ops doctor` re-checks credentials.',
+        ),
+      );
+    }, timeoutMs);
+  });
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 function windowDays(days: number): { startDate: string; endDate: string } {
   const end = new Date();
   end.setUTCDate(end.getUTCDate() - 1); // GSC data lags ~2 days; end at yesterday
@@ -86,9 +116,19 @@ async function gscRequest(
   req: { url: string; method?: 'GET' | 'POST'; data?: unknown },
 ): Promise<unknown> {
   try {
-    const res = await auth.request({ ...req, timeout: GSC_TIMEOUT_MS });
+    // The race wraps the WHOLE request including the implicit first-time token
+    // exchange (see raceTimeout); the inner per-call timeout stays as defense
+    // in depth for the HTTP leg.
+    const res = await raceTimeout(
+      auth.request({ ...req, timeout: GSC_TIMEOUT_MS }),
+      GSC_TIMEOUT_MS,
+      'Google Search Console API request',
+    );
     return res.data;
   } catch (e) {
+    // The watchdog's OpsError already carries the network-reachability fix —
+    // don't rewrap it into a generic HTTP error (it has no status/code).
+    if (e instanceof OpsError) throw e;
     throw gscHttpError(e);
   }
 }

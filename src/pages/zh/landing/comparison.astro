@@ -6,7 +6,7 @@
  * 被 apply-template 清理。
  */
 import LandingLayout from '~/components/landing/LandingLayout.astro';
-import AdsterraSlot from '~/components/ads/AdsterraSlot.astro';
+import AdsterraSlotPair from '~/components/ads/AdsterraSlotPair.astro';
 import ComparisonPage from '~/components/landing/ComparisonPage.astro';
 import { landingContent } from '~/config/landing';
 import { siteUrl } from '~/config/site';
@@ -25,7 +25,8 @@ const alternates = [
   pageDescription={t.comparisonPage.subtitle}
   togglePath="/landing/comparison/"
 >
-  <AdsterraSlot name="incontent-728x90" width={728} height={90} hideOnMobile />
-  <ComparisonPage t={t} />
-  <AdsterraSlot name="native-banner" width={700} height={240} />
+  {/* Adsterra pair: 728×90 above the comparison, responsive native after it. */}
+  <AdsterraSlotPair>
+    <ComparisonPage t={t} />
+  </AdsterraSlotPair>
 </LandingLayout>

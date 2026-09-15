@@ -15,7 +15,7 @@
  * cannot understand aborts the file loudly instead of rewriting blind.
  */
 
-import { isBlankOrComment, parseDelimited } from './delimited';
+import { containsControlChar, isBlankOrComment, parseDelimited } from './delimited';
 
 export type CodeStatus = 'active' | 'expired';
 
@@ -55,6 +55,8 @@ const CODE_STATUSES: readonly CodeStatus[] = ['active', 'expired'];
 const KNOWN_ENTRY_KEYS = ['code', 'reward', 'status', 'expiryDate', 'source'];
 const CSV_COLUMNS = ['locale', 'slug', 'code', 'status', 'reward', 'expiryDate', 'source'];
 const REQUIRED_COLUMNS = ['slug', 'code'] as const;
+/** Lower-cased: headers are matched case-insensitively ("expirydate" works). */
+const KNOWN_COLUMNS = new Set(CSV_COLUMNS.map((c) => c.toLowerCase()));
 
 // ---------------------------------------------------------------------------
 // CSV
@@ -87,6 +89,16 @@ export function parseCodesCsv(text: string, locales: readonly string[]): CsvResu
     if (colIndex(col) === -1) {
       result.errors.push(`header is missing the "${col}" column (found: ${header.join(', ')})`);
     }
+  }
+  // A misspelled optional column ("expirydata" vs "expiryDate") would look
+  // like an empty cell forever — its data silently dropped on every merge.
+  // Same contract as unknown flags/keys everywhere else in this lib: reject
+  // loudly, listing the legal column names.
+  const unknownCols = header.filter((h) => h !== '' && !KNOWN_COLUMNS.has(h));
+  if (unknownCols.length > 0) {
+    result.errors.push(
+      `unknown column(s): ${unknownCols.map((c) => `"${c}"`).join(', ')} (supported: ${CSV_COLUMNS.join(', ')})`,
+    );
   }
   if (result.errors.length > 0) return result;
 
@@ -149,10 +161,11 @@ export function parseCodesCsv(text: string, locales: readonly string[]): CsvResu
 
     // A newline/control char inside a cell would be written into a single-
     // quoted YAML scalar literally, producing INVALID frontmatter that only
-    // `pnpm build` would catch — far too late. Reject loudly at parse time.
+    // `pnpm build` would catch — far too late. Reject loudly at parse time
+    // (shared guard, also used by bulk-new-posts and apply-template).
     let hasControlError = false;
     for (const [name, value] of [['slug', slug], ['code', code], ['reward', get('reward')], ['expiryDate', expiryDate], ['source', get('source')]] as const) {
-      if (/[\n\r\u0000-\u0008\u000B-\u001F\u007F]/.test(value)) {
+      if (containsControlChar(value)) {
         result.errors.push(`line ${line}: "${name}" contains a newline/control character (not valid in a YAML scalar)`);
         hasControlError = true;
       }

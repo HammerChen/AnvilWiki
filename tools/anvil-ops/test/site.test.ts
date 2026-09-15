@@ -61,6 +61,22 @@ describe('loadSiteConfig', () => {
     }
   });
 
+  it('non-string [vars] value (TOML number) throws ConfigParseError naming the key, not a bare TypeError', () => {
+    const dir = tmpDir();
+    // SITE_URL = 2026 is a valid TOML integer — smol-toml hands us a number
+    // and the old `v?.trim()` crashed with "is not a function".
+    writeFileSync(join(dir, 'wrangler.toml'), '[vars]\nSITE_URL = 2026\n');
+    expect(() => loadSiteConfig(dir)).toThrow(ConfigParseError);
+    try {
+      loadSiteConfig(dir);
+      expect.unreachable('should have thrown');
+    } catch (e) {
+      expect((e as Error).message).toMatch(/SITE_URL/);
+      expect((e as Error).message).toMatch(/quoted string/i);
+      expect((e as Error).message).toMatch(/number/);
+    }
+  });
+
   it('falls back to .env when wrangler.toml was deleted (learn-manual setup)', () => {
     const dir = tmpDir();
     writeFileSync(join(dir, '.env'), 'SITE_URL=https://env-mode.com/\nPUBLIC_CF_BEACON_TOKEN=envtag\nCF_API_TOKEN=x\n');

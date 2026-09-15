@@ -14,13 +14,21 @@
  *      write-permission surface beyond contents + pull-requests.
  *   4. Every non-local `uses:` across ALL workflows is 40-hex SHA-pinned,
  *      and each action resolves to exactly one SHA repo-wide.
- *   5. The freshness audit stays upstream-only and issue-only (never a PR).
+ *   5. The freshness audit stays upstream-only and issue-only (never a PR),
+ *      runs serialized (file-level concurrency), and only ever closes an
+ *      issue whose title matches the exact shape this workflow files.
  *   6. setup.yml proves the fork-initialized tree builds BEFORE opening its
- *      destructive PR (GITHUB_TOKEN PRs don't trigger CI).
- *   7. release-ops.yml cannot publish unreviewed code from a bare tag: the
- *      publish job requires the "npm" Environment (owner approval) and the
- *      workflow itself proves the tagged commit sits on main (branch
- *      protection does not cover tags).
+ *      destructive PR (GITHUB_TOKEN PRs don't trigger CI), and its python
+ *      [vars] rewrite is line-anchored + key-aligned with the JS channel in
+ *      scripts/lib/apply-rewrites.ts (the demo FORKER comment mentions
+ *      "[vars]" mid-line — an unanchored match ships invalid two-table TOML
+ *      with the build green).
+ *   7. release-ops.yml cannot publish unreviewed code from EITHER trigger
+ *      path: the publish job requires the "npm" Environment (owner approval)
+ *      and the workflow itself proves the published commit sits on main —
+ *      unconditionally, so a workflow_dispatch cannot skip the ancestry
+ *      guard the way it skips the tag-only version guard (branch protection
+ *      does not cover tags).
  *   8. The postbuild range-media lowering downgrades EVERY parenthesized
  *      group of an @media prelude — pinned against the real shipping
  *      script (imported, not copied) so it cannot drift.
@@ -73,6 +81,7 @@ interface Step {
 type Workflow = {
   on?: Record<string, unknown>;
   permissions?: Record<string, string>;
+  concurrency?: { group?: string; 'cancel-in-progress'?: boolean };
   jobs?: Record<
     string,
     { steps?: Step[]; timeout?: number; if?: string; environment?: string }
@@ -251,11 +260,101 @@ describe('setup.yml verifies the fork tree before its destructive PR', () => {
   });
 });
 
+describe('setup.yml [vars] rewrite is line-anchored and key-aligned with the CLI', () => {
+  // The workflow carries its [vars] rewrite as an inline python heredoc — the
+  // JS twin (rewriteWranglerVars) lives in scripts/lib/apply-rewrites.ts. The
+  // two channels have drifted before: v2.25.0 fixed line-anchoring in JS only,
+  // and the unanchored python regex rewrote the FORKER comment's mid-line
+  // "[vars]" mention while LEAVING the real demo table in place — the fork
+  // shipped two [vars] tables (invalid TOML, Pages deploy fails) with this
+  // workflow's own build green.
+  const setupRaw = readFileSync(join(root, SETUP), 'utf8');
+
+  test('the python [vars] regex anchors at line start (old unanchored form gone)', () => {
+    // Same shape as the JS channel — and deliberately NO re.M: with it `$`
+    // means line-end and the match truncates at the first newline.
+    expect(setupRaw).toContain(String.raw`(^|\n)\[vars\]\r?\n[\s\S]*?(?=\r?\n\[|$)`);
+    expect(setupRaw).not.toContain(String.raw`\[vars\][\s\S]*?(?=\n*\[|\s*$)`);
+    // The `(^|\n)` group is consumed by the match — the splice must put it
+    // back or the section above [vars] loses its separating newline.
+    expect(setupRaw).toContain(String.raw`(m.group(1) or '')`);
+  });
+
+  test('new_vars keys match the apply-rewrites template exactly (no channel drift)', async () => {
+    const pyTemplate = setupRaw.match(/new_vars = '''([\s\S]*?)'''/)?.[1];
+    expect(pyTemplate, 'setup.yml new_vars triple-quoted template not found').toBeTruthy();
+    // Pin the JS channel's key set by BEHAVIOR, not source shape: the JS
+    // template has already been refactored (template literal → structured
+    // spec array), and a text pin would have broken with it. Rendering
+    // rewriteWranglerVars against a minimal demo [vars] emits every key of
+    // the JS template blank/commented — the output block IS its key set.
+    const { rewriteWranglerVars } = (await import('../scripts/lib/apply-rewrites')) as {
+      rewriteWranglerVars: (input: { domain: string }, src: string) => string | null;
+    };
+    const out = rewriteWranglerVars(
+      { domain: 'example.com' },
+      'name = "demo"\n[vars]\nSITE_URL = "https://old.dev"\n',
+    );
+    expect(out, 'rewriteWranglerVars returned null on a minimal [vars] block').toBeTruthy();
+    // `#?` covers commented-out slot lines; `[ \t]*` — the python template
+    // lives indented inside the YAML block scalar. `m` so ^ is line-start.
+    // Comment prose lines never match (they start `# ` — a space, not a key).
+    const keys = (s: string) =>
+      [...new Set([...s.matchAll(/^[ \t]*#?([A-Z][A-Z0-9_]*) = /gm)].map((m) => m[1]))].sort();
+    expect(keys(pyTemplate!)).toEqual(keys(out!));
+    expect(
+      keys(pyTemplate!).length,
+      'the shared template should pin a non-empty key set',
+    ).toBeGreaterThan(0);
+    // SITE_URL is not a PUBLIC_ key but is the whole point of the rewrite.
+    expect(keys(pyTemplate!)).toContain('SITE_URL');
+  });
+
+  test('the FORKER warning block is removed after the rewrite (JS-channel parity)', () => {
+    // After a successful rewrite the warning would claim the file still holds
+    // the DEMO config — stale and misleading, so the python channel must strip
+    // it with the same ASCII-anchored regex the JS channel uses.
+    expect(setupRaw).toContain(String.raw`re.sub(r'# .*FORKERS READ THIS FIRST`);
+    expect(setupRaw).toContain(String.raw`# .*END FORKER WARNING.*\n?`);
+  });
+
+  test('the rewritten file ends with exactly one newline', () => {
+    // python's `$` (without re.M) also matches just BEFORE a trailing
+    // newline, so a [vars] section at EOF keeps its old `\n` outside the
+    // match and a naive splice doubles it.
+    expect(setupRaw).toContain(String.raw`out.rstrip('\n') + '\n'`);
+  });
+});
+
 describe('freshness audit stays read-only', () => {
   test('upstream-only guard and issues-only permissions unchanged', () => {
     const wf = readWorkflow(AUDIT) as Workflow;
     expect(wf.jobs?.audit?.if).toContain('github.repository');
     expect(wf.permissions).toEqual({ contents: 'read', issues: 'write' });
+  });
+
+  test('runs are serialized at the file level (cancel-in-progress: false)', () => {
+    // Two overlapping audits would each close "the previous" evergreen issue
+    // mid-flight — a queue, not a cancel: the in-flight run finishes and the
+    // next one supersedes it with fresher data.
+    const wf = readWorkflow(AUDIT) as Workflow;
+    expect(wf.concurrency?.group).toBe('content-pipeline');
+    expect(wf.concurrency?.['cancel-in-progress']).toBe(false);
+  });
+
+  test('issue close filters on the exact audit title BEFORE picking the first hit', () => {
+    // `--search` matches title substrings: taking .[0] unfiltered could close
+    // an unrelated human issue that merely contains the phrase. The jq filter
+    // must pin the exact "Content freshness audit — YYYY-MM-DD" shape, and a
+    // no-match run must warn instead of closing anything.
+    const raw = readFileSync(join(root, AUDIT), 'utf8');
+    expect(raw).toContain('select(.title | test(');
+    expect(raw).toContain('Content freshness audit — [0-9]{4}-[0-9]{2}-[0-9]{2}');
+    const closeIdx = raw.indexOf('gh issue close');
+    const filterIdx = raw.indexOf('select(.title | test(');
+    expect(filterIdx).toBeGreaterThan(-1);
+    expect(closeIdx).toBeGreaterThan(filterIdx);
+    expect(raw).toContain('nothing closed');
   });
 });
 
@@ -271,13 +370,19 @@ describe('release-ops publish cannot run from an unreviewed tag', () => {
     expect(wf.jobs?.publish?.environment).toBe('npm');
   });
 
-  test('tag guard: full history checkout + tagged commit must sit on main', () => {
+  test('ancestry guard runs UNCONDITIONALLY (both tag push and workflow_dispatch)', () => {
     // fetch-depth: 0 — the ancestry check needs origin/main locally, which
     // the default shallow clone does not contain.
     const checkout = steps.find((s) => s.uses?.startsWith('actions/checkout'));
     expect(checkout?.with?.['fetch-depth']).toBe(0);
     const guard = steps.find((s) => /merge-base --is-ancestor/.test(s.run ?? ''));
-    expect(guard?.if).toContain("github.ref_type == 'tag'");
+    // Both guards used to be `if: github.ref_type == 'tag'` — on the
+    // workflow_dispatch path BOTH were skipped and the environment approval
+    // was the only gate left. The version guard is tag-only by nature (a
+    // dispatch has no tag to compare), so the ancestry guard must carry the
+    // dispatch path: it runs with no `if`, and on dispatch GITHUB_SHA is the
+    // checked-out branch head, which the same merge-base check covers.
+    expect(guard?.if).toBeUndefined();
     expect(guard?.run).toContain('exit 1');
     // The guard must sit between checkout and npm publish — a check that
     // runs after the publish protects nothing.
@@ -285,6 +390,11 @@ describe('release-ops publish cannot run from an unreviewed tag', () => {
     const publishIdx = steps.findIndex((s) => (s.run ?? '') === 'npm publish');
     expect(guardIdx).toBeGreaterThan(-1);
     expect(publishIdx).toBeGreaterThan(guardIdx);
+  });
+
+  test('tag↔version guard stays tag-only (a dispatch has no tag to check)', () => {
+    const versionGuard = steps.find((s) => /TAG_VERSION/.test(s.run ?? ''));
+    expect(versionGuard?.if).toContain("github.ref_type == 'tag'");
   });
 });
 

@@ -179,7 +179,11 @@ export async function getTagsWithCounts(locale: Locale): Promise<Array<{ tag: st
   }
   return Array.from(counts.entries())
     .map(([tag, count]) => ({ tag, count }))
-    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+    // Tie-break pinned to the collection's locale: a bare localeCompare()
+    // sorts by the build machine's DEFAULT locale (ICU env drift → the same
+    // content orders differently across machines). Same determinism intent
+    // as newestFirst's id tie-break.
+    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag, locale));
 }
 
 /**

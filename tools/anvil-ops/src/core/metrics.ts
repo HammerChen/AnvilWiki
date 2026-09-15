@@ -39,9 +39,12 @@ export async function collectMetrics(opts: {
   const gscReady = wanted !== 'cf' && env.gscServiceAccount && site.siteUrl;
   const cfReady = wanted !== 'gsc' && env.cfApiToken && env.cfAccountId && site.cfBeaconToken;
   if (!gscReady && !cfReady) {
+    // The stable `code` lets insights degrade on THIS error without matching
+    // prose (a wording change must not silently flip degradation behavior).
     throw new OpsError(
       'No analytics source is configured.',
       'Set GSC_SERVICE_ACCOUNT_JSON and/or CF_API_TOKEN + CF_ACCOUNT_ID in .env (site tag comes from wrangler.toml). Run `anvil-ops doctor` for a guided check.',
+      'no-analytics-source',
     );
   }
 

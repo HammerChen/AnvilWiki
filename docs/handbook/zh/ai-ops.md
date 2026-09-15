@@ -6,7 +6,7 @@ order: 7
 icon: lucide:bot
 shortTitle: "AI 运营与 GSC 接入"
 tldr: "anvilwiki-ops(npm 包,npx 免安装)把每周运营循环交给 AI:doctor 一次体检看配置缺什么;GSC 服务账号(经 Google 群组中转授权)和 CF token 写进 .env 后,metrics 拉 28 天真实数据,insights 按严重度出带证据的行动清单;MCP 接入后对 AI 说人话即可——五个工具 doctor/metrics/audit/insights/submit_pr,写操作只走校验→分支→PR 一条路,合并权在你。"
-updated: 2026-09-03
+updated: 2026-09-15
 ---
 
 ## 你现在在哪,这章解决什么
@@ -38,6 +38,8 @@ GSC 提供搜索词和排名,Cloudflare Web Analytics(模板已内置埋点)提�
 2. **建转发群组(必须,别跳过)**:GSC 加用户只认真人账号,机器人编号直接填会报「无效电子邮件」。解法:groups.google.com 建群组 → 开启「允许外部成员」→ 成员里**直接粘贴**机器人编号(JSON 里 `client_email` 那串)——不要用「邀请」,机器人不会点链接
 3. **授权**:Search Console → 设置 → 用户和权限 → 添加用户 → 填**群组邮箱**(不是机器人编号!)→ 权限「受限」。新群组可能要几分钟到几小时才生效,报「未指明的错误」就等等重试
 4. **配钥匙路径**:仓库根目录 `.env`(已在 .gitignore)写 `GSC_SERVICE_ACCOUNT_JSON=钥匙文件路径`
+
+钥匙文件本身放在**仓库外**(如 `~/.keys/anvilwiki-gsc.json`),千万不要提交进仓库:anvil-ops 的 submit 检测到暂存区里有钥匙类文件会拒绝提交,但仓库外目录才是唯一安全的存放处。
 
 **CF(一次性)**:Cloudflare → 我的资料 → API 令牌 → 创建,权限选**账户 → Analytics → 阅读**;`.env` 加 `CF_API_TOKEN=令牌` 和 `CF_ACCOUNT_ID=账户ID`。
 

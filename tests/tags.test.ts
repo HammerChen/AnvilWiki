@@ -6,8 +6,15 @@ describe('slugifyTag', () => {
   it('lowercases and hyphenates whitespace', () => {
     expect(slugifyTag('Fire Boss')).toBe('fire-boss');
   });
-  it('strips characters that are not URL-safe', () => {
-    expect(slugifyTag('DPS Check!')).toBe('dps-check');
+  it('routes tags with surviving non-slug chars to the raw path (same as CJK)', () => {
+    // Stripping just the punctuation would keep 'DPS Check!' → 'dps-check',
+    // but a partial strip is exactly what collides mixed tags ('Roblox 焰牙'
+    // and 'Roblox 攻略' would both strip to 'roblox-'). Any character outside
+    // [a-z0-9-] surviving the fold → raw, and chip link vs route param still
+    // match because both go through this single function.
+    expect(slugifyTag('DPS Check!')).toBe('DPS Check!');
+    expect(slugifyTag('Roblox 焰牙')).not.toBe(slugifyTag('Roblox 攻略'));
+    expect(slugifyTag('DPS Check!')).toBe(slugifyTag(slugifyTag('DPS Check!')));
   });
   it('converts underscores to hyphens', () => {
     expect(slugifyTag('early_game')).toBe('early-game');

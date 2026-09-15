@@ -17,11 +17,36 @@ function clean(value: string | undefined): string | undefined {
   return v ? v : undefined;
 }
 
-function fromVars(vars: Record<string, string>, root: string): SiteConfig {
+function tomlTypeName(v: unknown): string {
+  if (Array.isArray(v)) return 'array';
+  if (v instanceof Date) return 'date-time';
+  if (v !== null && typeof v === 'object') return 'table';
+  return typeof v;
+}
+
+/**
+ * smol-toml parses TOML faithfully — `SITE_URL = 2026` arrives as a NUMBER,
+ * and `v?.trim()` on it used to crash with a bare TypeError that bypassed the
+ * ConfigParseError contract (resolveEffectiveRoot would then treat the site as
+ * unconfigured and could redirect writes elsewhere). Validate types up front.
+ */
+function fromVars(vars: Record<string, unknown> | undefined, root: string, tomlPath: string): SiteConfig {
+  if (vars !== undefined && (typeof vars !== 'object' || Array.isArray(vars))) {
+    throw new ConfigParseError(tomlPath, new Error('[vars] must be a TOML table ([vars] section with KEY = "value" lines)'));
+  }
+  for (const key of ['SITE_URL', 'PUBLIC_CF_BEACON_TOKEN'] as const) {
+    const v = vars?.[key];
+    if (v !== undefined && typeof v !== 'string') {
+      throw new ConfigParseError(
+        tomlPath,
+        new Error(`${key} must be a quoted string, got TOML ${tomlTypeName(v)} (${String(v)})`),
+      );
+    }
+  }
   return {
     root,
-    siteUrl: clean(vars['SITE_URL'])?.replace(/\/+$/, ''),
-    cfBeaconToken: clean(vars['PUBLIC_CF_BEACON_TOKEN']),
+    siteUrl: clean(vars?.['SITE_URL'] as string | undefined)?.replace(/\/+$/, ''),
+    cfBeaconToken: clean(vars?.['PUBLIC_CF_BEACON_TOKEN'] as string | undefined),
     source: 'wrangler.toml',
   };
 }
@@ -51,13 +76,13 @@ export function loadSiteConfig(startDir: string): SiteConfig {
       // path or hint on every metrics/audit/submit path. Deliberately NOT an
       // OpsError (see ConfigParseError): a corrupt config must propagate, not
       // fall back to another registered site.
-      let parsed: { vars?: Record<string, string> };
+      let parsed: { vars?: Record<string, unknown> };
       try {
-        parsed = parseToml(readFileSync(tomlPath, 'utf8')) as { vars?: Record<string, string> };
+        parsed = parseToml(readFileSync(tomlPath, 'utf8')) as { vars?: Record<string, unknown> };
       } catch (e) {
         throw new ConfigParseError(tomlPath, e);
       }
-      return fromVars(parsed.vars ?? {}, dir);
+      return fromVars(parsed.vars, dir, tomlPath);
     }
     dotenvCandidates.push(dir);
     const parent = dirname(dir);

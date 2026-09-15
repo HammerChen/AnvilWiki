@@ -15,17 +15,12 @@
  */
 import { Icon } from 'astro-icon/components';
 import AdSenseSlot from './AdSenseSlot.astro';
-import { getUi } from '~/i18n/ui';
-import { isLocale } from '~/i18n/routing';
+import { currentSharedStrings } from '~/lib/shared-ui';
 
 const client = import.meta.env.PUBLIC_ADSENSE_CLIENT as string | undefined;
 const slot = import.meta.env.PUBLIC_ADSENSE_SLOT_STICKY as string | undefined;
 const show = !!(client && slot);
-const current = Astro.currentLocale;
-const sharedStrings =
-  current && isLocale(current)
-    ? ((getUi(current).shared ?? {}) as unknown as Record<string, string>)
-    : {};
+const sharedStrings = currentSharedStrings(Astro.currentLocale);
 const closeAd = sharedStrings.closeAd ?? 'Close ad';
 ---
 
@@ -53,30 +48,37 @@ const closeAd = sharedStrings.closeAd ?? 'Close ad';
     </div>
   )
 }
-<script is:inline>
-  (() => {
-    const banner = document.getElementById('sticky-banner');
-    const btn = document.getElementById('dismiss-sticky');
-    if (!banner || !btn) return;
-    // Storage can be blocked (privacy extensions / strict browsers) — degrade
-    // to "dismiss works, just not remembered", same pattern as ThemeToggle.
-    let dismissed = false;
-    try {
-      dismissed = localStorage.getItem('sticky-dismissed') === '1';
-    } catch (e) {
-      /* storage unavailable */
-    }
-    if (dismissed) {
-      banner.remove();
-      return;
-    }
-    btn.addEventListener('click', () => {
-      try {
-        localStorage.setItem('sticky-dismissed', '1');
-      } catch (e) {
-        /* storage unavailable */
-      }
-      banner.remove();
-    });
-  })();
-</script>
+{
+  show && (
+    <script is:inline>
+      /* Dismiss logic is gated on the same env condition as the markup above
+         (same pattern as AdSenseSlot's push script) — zero-ad forks render
+         and execute none of this. */
+      (() => {
+        const banner = document.getElementById('sticky-banner');
+        const btn = document.getElementById('dismiss-sticky');
+        if (!banner || !btn) return;
+        // Storage can be blocked (privacy extensions / strict browsers) — degrade
+        // to "dismiss works, just not remembered", same pattern as ThemeToggle.
+        let dismissed = false;
+        try {
+          dismissed = localStorage.getItem('sticky-dismissed') === '1';
+        } catch (e) {
+          /* storage unavailable */
+        }
+        if (dismissed) {
+          banner.remove();
+          return;
+        }
+        btn.addEventListener('click', () => {
+          try {
+            localStorage.setItem('sticky-dismissed', '1');
+          } catch (e) {
+            /* storage unavailable */
+          }
+          banner.remove();
+        });
+      })();
+    </script>
+  )
+}

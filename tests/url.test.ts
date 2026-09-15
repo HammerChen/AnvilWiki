@@ -61,20 +61,31 @@ describe('url helpers', () => {
   });
 });
 
-describe('slugifyTag (CJK / non-ASCII fallback)', () => {
+describe('slugifyTag (ASCII slug / raw fallback for non-ASCII)', () => {
   it('slugifies ASCII tags to lowercase kebab-case', () => {
     expect(slugifyTag('Boss Guide')).toBe('boss-guide');
     expect(slugifyTag('Fire_Warden')).toBe('fire-warden');
   });
 
   it('returns CJK tags raw instead of collapsing to empty', () => {
-    // The ASCII branch strips every CJK char → '' → all such tags would
-    // collide on /tags/. The raw fallback keeps them unique; Astro writes
-    // params to disk verbatim, so the built directory is the raw tag and
-    // browser-encoded links (/tags/%E7%84%B0…) resolve to it.
+    // Folding a CJK tag leaves characters outside [a-z0-9-], so it takes the
+    // raw path. Astro writes params to disk verbatim, so the built directory
+    // is the raw tag and browser-encoded links (/tags/%E7%84%B0…) resolve to
+    // it — while a partial ASCII strip would have collapsed this to ''.
     const zh = slugifyTag('焰牙');
     expect(zh).toBe('焰牙');
     expect(zh).not.toBe('');
+  });
+
+  it('returns mixed ASCII+CJK tags raw — a partial strip would collide them', () => {
+    // Stripping only the non-ASCII would leave '焰牙 攻略' → '-' (truthy, so
+    // no fallback) and BOTH 'Roblox 焰牙' and 'Roblox 攻略' → 'roblox-':
+    // distinct tags crowding onto one /tags/ page. Any tag still holding a
+    // non-[a-z0-9-] character after folding goes raw wholesale instead.
+    expect(slugifyTag('焰牙 攻略')).toBe('焰牙 攻略');
+    expect(slugifyTag('Roblox 焰牙')).not.toBe(slugifyTag('Roblox 攻略'));
+    // The raw path is idempotent, like the ASCII one.
+    expect(slugifyTag(slugifyTag('焰牙 攻略'))).toBe(slugifyTag('焰牙 攻略'));
   });
 
   it('keeps two different CJK tags distinguishable', () => {
@@ -83,7 +94,7 @@ describe('slugifyTag (CJK / non-ASCII fallback)', () => {
 
   it('keeps pure-symbol tags non-empty', () => {
     // Whatever the exact characters, the slug is stable and distinct from ''
-    // — the property the fallback exists to guarantee.
+    // — the property the raw path exists to guarantee.
     expect(slugifyTag('!!!')).toBe('!!!');
     expect(slugifyTag('  ???  ')).toBe('???');
   });

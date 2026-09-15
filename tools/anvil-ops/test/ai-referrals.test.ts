@@ -15,6 +15,13 @@ describe('isAiReferrerHost', () => {
     expect(isAiReferrerHost('gemini.google.com')).toBe(true);
   });
 
+  it('is case-insensitive on the incoming host (CF reports mixed case)', () => {
+    expect(isAiReferrerHost('ChatGPT.com')).toBe(true);
+    expect(isAiReferrerHost('WWW.Perplexity.AI')).toBe(true);
+    expect(isAiReferrerHost('sub.Claude.AI')).toBe(true);
+    expect(isAiReferrerHost('GOOGLE.COM')).toBe(false);
+  });
+
   it('rejects non-AI hosts and lookalikes', () => {
     expect(isAiReferrerHost('google.com')).toBe(false);
     expect(isAiReferrerHost('fakeperplexity.ai')).toBe(false);

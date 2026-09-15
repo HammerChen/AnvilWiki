@@ -26,7 +26,8 @@ export async function getStaticPaths() {
     const parsedId = parseEntryId(entry.id);
     if (!parsedId || !slugsByLocale.has(parsedId.locale)) continue;
     for (const tag of entry.data.tags) {
-      slugsByLocale.get(parsedId.locale)!.add(slugifyTag(tag));
+      const slug = slugifyTag(tag);
+      if (slug) slugsByLocale.get(parsedId.locale)!.add(slug); // skip empty slugs (blank tags)
     }
   }
 

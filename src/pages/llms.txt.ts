@@ -21,6 +21,20 @@ import { detailPath } from '~/lib/url';
 import { newestFirst } from '~/lib/content-utils';
 import { chaptersForLocale, handbookPath, parseHandbookId, sortChapters } from '~/lib/handbook';
 
+/**
+ * llms.txt entries are ONE Markdown list item per line (`- [title](url): summary`).
+ * escapeLinkText keeps a title containing [ or ] from breaking the link shape
+ * (backslash escaped first so the added \ can't be double-interpreted);
+ * oneLine folds ALL whitespace — a summary with an embedded newline would
+ * split one entry into two broken lines.
+ */
+function escapeLinkText(text: string): string {
+  return text.replace(/[\\[\]]/g, '\\$&');
+}
+function oneLine(text: string): string {
+  return text.replace(/\s+/g, ' ').trim();
+}
+
 export const GET: APIRoute = async () => {
   const all = await getCollection('wiki');
   const entries = all
@@ -46,7 +60,7 @@ export const GET: APIRoute = async () => {
     const slug = parsed?.slug ?? '';
     const url = `${siteUrl}${detailPath(e.data.category, slug, defaultLocale)}`;
     const summary = e.data.summary ?? e.data.description;
-    lines.push(`- [${e.data.title}](${url}): ${summary}`);
+    lines.push(`- [${escapeLinkText(e.data.title)}](${url}): ${oneLine(summary)}`);
   }
 
   // Handbook (project docs center, /landing/docs) — this is AnvilWiki-project
@@ -61,7 +75,7 @@ export const GET: APIRoute = async () => {
       for (const c of chapters) {
         const slug = parseHandbookId(c.id)?.slug ?? '';
         lines.push(
-          `- [${c.data.title}](${siteUrl}${handbookPath('en', slug)}): ${c.data.description}`,
+          `- [${escapeLinkText(c.data.title)}](${siteUrl}${handbookPath('en', slug)}): ${oneLine(c.data.description)}`,
         );
       }
     }

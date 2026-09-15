@@ -21,6 +21,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { classifyWikiArticles, type WikiArticleEntry } from './lib/apply-rewrites';
+import { walkFiles } from './lib/walk';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
@@ -30,21 +31,13 @@ function main(): void {
     console.log('No src/content/wiki — nothing to clear.');
     return;
   }
-  const entries: WikiArticleEntry[] = [];
-  const walk = (dir: string) => {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const p = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        walk(p);
-      } else if (entry.name.endsWith('.mdx') || entry.name.endsWith('.md')) {
-        entries.push({
-          rel: path.relative(base, p).split(path.sep).join('/'),
-          src: fs.readFileSync(p, 'utf8'),
-        });
-      }
-    }
-  };
-  walk(base);
+  // Shared walker (full recursion + stable sort) — the same file order
+  // apply-template's "Clear demo content" reports, so both channels warn
+  // identically. rel keeps the forward-slash `locale/category/file` shape.
+  const entries: WikiArticleEntry[] = walkFiles(base, { exts: ['.mdx', '.md'] }).map((p) => ({
+    rel: path.relative(base, p).split(path.sep).join('/'),
+    src: fs.readFileSync(p, 'utf8'),
+  }));
   const { demo, kept } = classifyWikiArticles(entries);
   for (const file of demo) {
     console.log(`🗑️  demo article: src/content/wiki/${file.rel}`);

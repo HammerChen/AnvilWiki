@@ -77,7 +77,20 @@ let missingUiKeys = false;
 console.log(`\n🌐 i18n coverage report — default locale: ${defaultLocale}\n`);
 
 const defaultArticles = articleMap(defaultLocale);
-const defaultJson = JSON.parse(fs.readFileSync(path.join(LOCALES_DIR, `${defaultLocale}.json`), 'utf8'));
+const defaultJsonPath = path.join(LOCALES_DIR, `${defaultLocale}.json`);
+if (!fs.existsSync(defaultJsonPath)) {
+  console.error(
+    `❌ src/locales/${defaultLocale}.json is missing — the default locale declared in src/i18n/routing.ts MUST have a UI JSON (every other locale diffs against it). Restore it from the upstream template or fix defaultLocale.`,
+  );
+  process.exit(1);
+}
+let defaultJson: Record<string, unknown>;
+try {
+  defaultJson = JSON.parse(fs.readFileSync(defaultJsonPath, 'utf8'));
+} catch (e) {
+  console.error(`❌ src/locales/${defaultLocale}.json is not valid JSON: ${(e as Error).message}`);
+  process.exit(1);
+}
 const defaultKeys = new Set(flattenKeys(defaultJson));
 
 // Compare every NON-default locale against the default — never assume the

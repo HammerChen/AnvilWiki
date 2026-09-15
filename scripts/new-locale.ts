@@ -109,7 +109,10 @@ async function main() {
   let ui = read(uiPath);
   ui = mustReplace(
     ui,
-    /(import \w+ from '~\/locales\/\w+\.json';\n)(?!(?:import \w+ from '~\/locales\/\w+\.json';\n)+)/,
+    // The PATH side accepts hyphens ([\w-]+) — same shape as UI_IMPORT_BLOCK_RE
+    // in lib/apply-rewrites.ts (v2.25.0): with `\w+` only, a re-run next to a
+    // `zh-tw.json` import matched nothing and failed with ❌.
+    /(import \w+ from '~\/locales\/[\w-]+\.json';\n)(?!(?:import \w+ from '~\/locales\/[\w-]+\.json';\n)+)/,
     `$1import ${locale} from '~/locales/${locale}.json';\n`,
     'ui.ts locale import',
   );

@@ -6,7 +6,7 @@
  * splice must preserve everything outside the codes block / lastModified.
  */
 import { describe, expect, test } from 'vitest';
-import { parseDelimited } from '../scripts/lib/delimited';
+import { containsControlChar, parseDelimited } from '../scripts/lib/delimited';
 import {
   fanOutLocales,
   mergeCodes,
@@ -100,6 +100,24 @@ describe('parseCodesCsv', () => {
     expect(errors[0]).toContain('path separator');
     expect(errors[1]).toContain('path separator');
     expect(errors[2]).toContain('control character');
+  });
+
+  test('rejects unknown header columns loudly — a misspelled optional column must not be silently dropped (S4)', () => {
+    // "expirydata" ≠ "expiryDate": without the guard the cell would read as an
+    // empty optional column forever and its data silently never land.
+    const { rows, errors } = parseCodesCsv(
+      'locale,slug,code,expirydata\nen,all-codes,XYZ,Sep 30',
+      LOCALES,
+    );
+    expect(rows).toEqual([]);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain('unknown column');
+    expect(errors[0]).toContain('"expirydata"');
+    expect(errors[0]).toContain('expiryDate'); // the legal spelling is listed
+    // Case-insensitive known columns stay accepted ("expirydate" is fine).
+    const okCase = parseCodesCsv('LOCALE,SLUG,CODE,EXPIRYDATE\nen,all-codes,XYZ,Sep 30', LOCALES);
+    expect(okCase.errors).toEqual([]);
+    expect(okCase.rows[0]?.expiryDate).toBe('Sep 30');
   });
 });
 
@@ -269,6 +287,22 @@ describe('CSV hostile-cell rejection', () => {
     const { rows, errors } = parseCodesCsv(csv, LOCALES);
     expect(rows).toEqual([]);
     expect(errors.some((e) => e.includes('control character'))).toBe(true);
+  });
+});
+
+describe('containsControlChar — shared guard (sync-codes + bulk-new-posts + apply-template intake)', () => {
+  test('rejects raw newlines and control chars, accepts ordinary text (S6)', () => {
+    expect(containsControlChar('plain title')).toBe(false);
+    expect(containsControlChar('accents and emoji 🗡 ok')).toBe(false);
+    expect(containsControlChar('multi\nline')).toBe(true);
+    expect(containsControlChar('carriage\rreturn')).toBe(true);
+    expect(containsControlChar('null\u0000byte')).toBe(true);
+    expect(containsControlChar('esc\u001B[0m')).toBe(true);
+    expect(containsControlChar('del\u007F')).toBe(true);
+    // C0 range edges: \u0008 (BS) rejected, \u0009 (tab) allowed, \u000B rejected.
+    expect(containsControlChar('bs\u0008')).toBe(true);
+    expect(containsControlChar('tab\tinside')).toBe(false);
+    expect(containsControlChar('vt\u000B')).toBe(true);
   });
 });
 

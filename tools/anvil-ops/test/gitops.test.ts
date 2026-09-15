@@ -3,7 +3,7 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { submit } from '../src/core/gitops.js';
+import { findStagedSecrets, looksLikeSecretFile, submit } from '../src/core/gitops.js';
 import { defaultRun, type RunFn } from '../src/core/content.js';
 import { OpsError } from '../src/core/errors.js';
 
@@ -32,6 +32,15 @@ function tmpRepo(): string {
   return dir;
 }
 
+/** Scripted-run shorthand: dirty worktree + toplevel answers pointing at `repo`. */
+function gitFlow(responses: (c: Scripted) => { status: number | null; stdout: string; stderr: string }, repo: string) {
+  return scriptedRun((c) => {
+    if (c.args[0] === 'status') return { ...ok, stdout: 'M file.mdx\n' };
+    if (c.args[0] === 'rev-parse' && c.args[1] === '--show-toplevel') return { ...ok, stdout: repo + '\n' };
+    return responses(c);
+  });
+}
+
 describe('submit orchestration', () => {
   it('no uncommitted changes -> OpsError, nothing else runs', async () => {
     const run = scriptedRun((c) => (c.args[0] === 'status' ? { ...ok, stdout: '' } : ok));
@@ -49,19 +58,21 @@ describe('submit orchestration', () => {
     expect(run.calls.some((c) => c.args.includes('checkout'))).toBe(false);
   });
 
-  it('happy path: branch, commit, push, gh pr create; PR body contains validation', async () => {
-    const run = scriptedRun((c) => {
-      if (c.args[0] === 'status') return { ...ok, stdout: 'M file.mdx\n' };
+  it('happy path: branch, commit, push, gh pr create; PR body contains fenced validation output', async () => {
+    const repo = tmpRepo();
+    const run = gitFlow((c) => {
       if (c.cmd === 'gh') return { ...ok, stdout: 'https://github.com/o/r/pull/9\n' };
       return ok;
-    });
-    const r = await submit({ cwd: tmpRepo(), title: 'add boss guide', run });
+    }, repo);
+    const r = await submit({ cwd: repo, title: 'add boss guide', run });
     expect(r.branch).toMatch(/^ops\/submit-\d{8}-\d{4}$/);
     expect(r.prUrl).toBe('https://github.com/o/r/pull/9');
     const gh = run.calls.find((c) => c.cmd === 'gh')!;
     expect(gh.args[0]).toBe('pr');
     const body = gh.args[gh.args.indexOf('--body') + 1];
     expect(body).toContain('check-content');
+    // validation summaries are raw tool output — must be fenced (GFM injection)
+    expect(body).toContain('```\n');
     const push = run.calls.find((c) => c.args[0] === 'push')!;
     expect(push.args).toContain(r.branch);
   });
@@ -69,13 +80,13 @@ describe('submit orchestration', () => {
 
 describe('submit failure cleanup', () => {
   it('staged-secrets abort: switches back to the original branch and deletes the temp branch', async () => {
-    const run = scriptedRun((c) => {
-      if (c.args[0] === 'status') return { ...ok, stdout: 'M file.mdx\n' };
+    const repo = tmpRepo();
+    const run = gitFlow((c) => {
       if (c.args[0] === 'rev-parse') return { ...ok, stdout: 'main\n' };
       if (c.args[0] === 'diff') return { ...ok, stdout: '.env\n' };
       return ok;
-    });
-    await expect(submit({ cwd: tmpRepo(), run })).rejects.toMatchObject({ name: 'OpsError' });
+    }, repo);
+    await expect(submit({ cwd: repo, run })).rejects.toMatchObject({ name: 'OpsError' });
     const calls = run.calls;
     const diffIdx = calls.findIndex((c) => c.args[0] === 'diff');
     const backIdx = calls.findIndex((c) => c.cmd === 'git' && c.args[0] === 'checkout' && c.args[1] === 'main');
@@ -88,15 +99,15 @@ describe('submit failure cleanup', () => {
   });
 
   it('staged-secrets abort reports (not swallows) cleanup failures', async () => {
-    const run = scriptedRun((c) => {
-      if (c.args[0] === 'status') return { ...ok, stdout: 'M file.mdx\n' };
+    const repo = tmpRepo();
+    const run = gitFlow((c) => {
       if (c.args[0] === 'rev-parse') return { ...ok, stdout: 'main\n' };
       if (c.args[0] === 'diff') return { ...ok, stdout: '.env\n' };
       if (c.args[0] === 'checkout' && c.args[1] === 'main') return { status: 1, stdout: '', stderr: 'cannot switch' };
       if (c.args[0] === 'branch') return { status: 1, stdout: '', stderr: 'cannot delete' };
       return ok;
-    });
-    const err: OpsError = await submit({ cwd: tmpRepo(), run }).then(
+    }, repo);
+    const err: OpsError = await submit({ cwd: repo, run }).then(
       () => {
         throw new Error('should have thrown');
       },
@@ -108,15 +119,15 @@ describe('submit failure cleanup', () => {
   });
 
   it('branch name collision: error carries the exact recovery command, no state change', async () => {
-    const run = scriptedRun((c) => {
-      if (c.args[0] === 'status') return { ...ok, stdout: 'M file.mdx\n' };
+    const repo = tmpRepo();
+    const run = gitFlow((c) => {
       if (c.args[0] === 'rev-parse') return { ...ok, stdout: 'main\n' };
       if (c.args[0] === 'checkout' && c.args[1] === '-b') {
         return { status: 1, stdout: '', stderr: "fatal: a branch named 'ops/submit-20260914-1010' already exists" };
       }
       return ok;
-    });
-    const err: OpsError = await submit({ cwd: tmpRepo(), run }).then(
+    }, repo);
+    const err: OpsError = await submit({ cwd: repo, run }).then(
       () => {
         throw new Error('should have thrown');
       },
@@ -126,6 +137,158 @@ describe('submit failure cleanup', () => {
     expect(err.fix).toMatch(/git branch -D ops\/submit-\d{8}-\d{4}/);
     expect(run.calls.some((c) => c.args[0] === 'add')).toBe(false);
     expect(run.calls.some((c) => c.args[0] === 'branch')).toBe(false);
+  });
+
+  it('git add failure: unwinds, points at index.lock, never pretends to be a commit error', async () => {
+    const repo = tmpRepo();
+    const run = gitFlow((c) => {
+      if (c.args[0] === 'rev-parse') return { ...ok, stdout: 'main\n' };
+      if (c.args[0] === 'add') return { status: 1, stdout: '', stderr: 'fatal: Unable to create index.lock: File exists' };
+      return ok;
+    }, repo);
+    const err: OpsError = await submit({ cwd: repo, run }).then(
+      () => {
+        throw new Error('should have thrown');
+      },
+      (e) => e,
+    );
+    expect(err).toBeInstanceOf(OpsError);
+    expect(err.fix).toMatch(/index\.lock/);
+    // unwound to the original branch, temp branch deleted
+    expect(run.calls.some((c) => c.cmd === 'git' && c.args[0] === 'checkout' && c.args[1] === 'main')).toBe(true);
+    expect(run.calls.some((c) => c.cmd === 'git' && c.args[0] === 'branch' && c.args[1] === '-D')).toBe(true);
+    expect(run.calls.some((c) => c.args[0] === 'commit')).toBe(false);
+  });
+
+  it('push failure: keeps branch+commit, points at manual push + gh pr create (not "re-run")', async () => {
+    const repo = tmpRepo();
+    const run = gitFlow((c) => {
+      if (c.args[0] === 'rev-parse') return { ...ok, stdout: 'main\n' };
+      if (c.args[0] === 'push') return { status: 128, stdout: '', stderr: 'fatal: Authentication failed' };
+      return ok;
+    }, repo);
+    const err: OpsError = await submit({ cwd: repo, run }).then(
+      () => {
+        throw new Error('should have thrown');
+      },
+      (e) => e,
+    );
+    expect(err).toBeInstanceOf(OpsError);
+    expect(err.message).toMatch(/preserved/i);
+    expect(err.fix).toMatch(/git push -u origin ops\/submit-\d{8}-\d{4}/);
+    expect(err.fix).toMatch(/gh pr create/);
+    expect(err.fix).toMatch(/git checkout main/);
+    // branch + commit are NOT undone on push failure
+    expect(run.calls.some((c) => c.cmd === 'git' && c.args[0] === 'branch' && c.args[1] === '-D')).toBe(false);
+    expect(run.calls.some((c) => c.cmd === 'gh')).toBe(false);
+  });
+
+  it('monorepo guard: git toplevel != site root aborts loudly before anything is staged', async () => {
+    const repo = tmpRepo();
+    const monorepoRun = scriptedRun((c) => {
+      if (c.args[0] === 'status') return { ...ok, stdout: 'M file.mdx\n' };
+      if (c.args[0] === 'rev-parse' && c.args[1] === '--show-toplevel') return { ...ok, stdout: '/home/user/big-monorepo\n' };
+      return ok;
+    });
+    const err: OpsError = await submit({ cwd: repo, run: monorepoRun }).then(
+      () => {
+        throw new Error('should have thrown');
+      },
+      (e) => e,
+    );
+    expect(err).toBeInstanceOf(OpsError);
+    expect(err.message).toMatch(/not the site root/);
+    expect(err.fix).toMatch(/sites add|--site/);
+    expect(monorepoRun.calls.some((c) => c.args[0] === 'add')).toBe(false);
+    expect(monorepoRun.calls.some((c) => c.args[0] === 'checkout')).toBe(false);
+    expect(monorepoRun.calls.some((c) => c.cmd === 'pnpm')).toBe(false);
+  });
+});
+
+describe('staged-secret safety net layers', () => {
+  function stageHit(responses: (c: Scripted) => { status: number | null; stdout: string; stderr: string }, repo: string) {
+    return submit({ cwd: repo, run: gitFlow(responses, repo) }).then(
+      () => {
+        throw new Error('should have thrown');
+      },
+      (e: OpsError) => e,
+    );
+  }
+
+  it('filename layer: a staged *.pem aborts with the file named', async () => {
+    const repo = tmpRepo();
+    writeFileSync(join(repo, 'server.pem'), 'not really a key\n');
+    const err = await stageHit((c) => {
+      if (c.args[0] === 'rev-parse') return { ...ok, stdout: 'main\n' };
+      if (c.args[0] === 'diff') return { ...ok, stdout: 'server.pem\n' };
+      return ok;
+    }, repo);
+    expect(err).toBeInstanceOf(OpsError);
+    expect(err.message).toContain('server.pem');
+    expect(err.fix).toMatch(/restore --staged/);
+    expect(err.fix).toMatch(/Nothing was committed or pushed/);
+  });
+
+  it('content layer: GSC key JSON under an innocent name aborts on private-key material', async () => {
+    const repo = tmpRepo();
+    writeFileSync(
+      join(repo, 'anvilwiki-1234-abc.json'),
+      JSON.stringify({ type: 'service_account', project_id: 'x', private_key: '-----BEGIN PRIVATE KEY-----\nMIIE\n-----END PRIVATE KEY-----\n' }),
+    );
+    const err = await stageHit((c) => {
+      if (c.args[0] === 'rev-parse') return { ...ok, stdout: 'main\n' };
+      if (c.args[0] === 'diff') return { ...ok, stdout: 'anvilwiki-1234-abc.json\n' };
+      return ok;
+    }, repo);
+    expect(err).toBeInstanceOf(OpsError);
+    expect(err.message).toContain('anvilwiki-1234-abc.json');
+    expect(err.message).toMatch(/private-key material/);
+  });
+
+  it('.env path layer: the GSC_SERVICE_ACCOUNT_JSON target aborts even with an innocent name', async () => {
+    const repo = tmpRepo();
+    writeFileSync(join(repo, '.env'), 'GSC_SERVICE_ACCOUNT_JSON=./gsc-robot.txt\n');
+    writeFileSync(join(repo, 'gsc-robot.txt'), 'placeholder bytes\n');
+    const err = await stageHit((c) => {
+      if (c.args[0] === 'rev-parse') return { ...ok, stdout: 'main\n' };
+      if (c.args[0] === 'diff') return { ...ok, stdout: 'gsc-robot.txt\n' };
+      return ok;
+    }, repo);
+    expect(err).toBeInstanceOf(OpsError);
+    expect(err.message).toContain('gsc-robot.txt');
+    expect(err.message).toMatch(/GSC_SERVICE_ACCOUNT_JSON/);
+  });
+
+  it('normal JSON and extensionless files do not false-positive — submit completes', async () => {
+    const repo = tmpRepo();
+    writeFileSync(join(repo, 'data.json'), JSON.stringify({ title: 'boss guide', tags: ['boss'] }));
+    writeFileSync(join(repo, 'LICENSE'), 'MIT License\n');
+    const run = gitFlow((c) => {
+      if (c.args[0] === 'rev-parse') return { ...ok, stdout: 'main\n' };
+      if (c.args[0] === 'diff') return { ...ok, stdout: 'data.json\nLICENSE\n' };
+      if (c.cmd === 'gh') return { ...ok, stdout: 'https://github.com/o/r/pull/1\n' };
+      return ok;
+    }, repo);
+    const r = await submit({ cwd: repo, run });
+    expect(r.prUrl).toBe('https://github.com/o/r/pull/1');
+    expect(run.calls.some((c) => c.args[0] === 'commit')).toBe(true);
+  });
+
+  it('looksLikeSecretFile covers the mirrored .gitignore key patterns', () => {
+    expect(looksLikeSecretFile('.env')).toBe(true);
+    expect(looksLikeSecretFile('.env.local')).toBe(true);
+    expect(looksLikeSecretFile('config/app.key')).toBe(true);
+    expect(looksLikeSecretFile('cert.pem')).toBe(true);
+    expect(looksLikeSecretFile('upload-secret.json')).toBe(true);
+    expect(looksLikeSecretFile('article.mdx')).toBe(false);
+    expect(looksLikeSecretFile('src/content/wiki/en/codes/main.mdx')).toBe(false);
+    expect(looksLikeSecretFile('environment')).toBe(false);
+  });
+
+  it('findStagedSecrets dedupes and reports each hit once with its layer', () => {
+    const hits = findStagedSecrets(['.env', '.env', 'a.pem'], '/root');
+    expect(hits).toHaveLength(2);
+    expect(hits.map((h) => h.path).sort()).toEqual(['.env', 'a.pem']);
   });
 });
 
@@ -184,5 +347,43 @@ describe('submit integration (real git, local bare origin)', () => {
     await expect(submit({ cwd: work, title: 'secrets abort', run: mixedRun })).rejects.toMatchObject({ name: 'OpsError' });
     expect(execSync(`git -C "${work}" rev-parse --abbrev-ref HEAD`).toString().trim()).toBe('main');
     expect(execSync(`git -C "${work}" branch --list`).toString()).not.toContain('ops/submit-');
+  });
+
+  it('real GSC key JSON staged under an innocent name aborts before commit (real git)', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ops-gitops-keyjson-'));
+    const origin = join(dir, 'origin.git');
+    const work = join(dir, 'work');
+    execSync(`git init -q -b main "${origin}" --bare`);
+    execSync(`git init -q -b main "${work}"`);
+    execSync(`git -C "${work}" config user.email t@t.t`);
+    execSync(`git -C "${work}" config user.name t`);
+    execSync(`git -C "${work}" remote add origin "${origin}"`);
+    writeFileSync(join(work, 'wrangler.toml'), '[vars]\nSITE_URL = "https://x.com"\n');
+    execSync(`git -C "${work}" add -A`);
+    execSync(`git -C "${work}" commit -q -m init`);
+
+    writeFileSync(join(work, 'new-article.mdx'), '---\ntitle: T\n---\nbody\n');
+    // The O1 headline scenario: Google-downloaded key dropped in the repo root.
+    writeFileSync(
+      join(work, 'anvilwiki-1234-abc.json'),
+      JSON.stringify({ type: 'service_account', client_email: 'x@y.iam.gserviceaccount.com', private_key: '-----BEGIN PRIVATE KEY-----\nMIIE\n-----END PRIVATE KEY-----\n' }),
+    );
+
+    const mixedRun: RunFn = (cmd, args, opts2) => {
+      if (cmd === 'gh') return { status: 0, stdout: '', stderr: '' };
+      if (cmd === 'pnpm') return ok;
+      return defaultRun(cmd, args, opts2);
+    };
+
+    const err: OpsError = await submit({ cwd: work, title: 'key json', run: mixedRun }).then(
+      () => {
+        throw new Error('should have thrown');
+      },
+      (e) => e,
+    );
+    expect(err.message).toMatch(/anvilwiki-1234-abc\.json/);
+    // nothing leaked: no commit, no push, worktree back on main
+    expect(execSync(`git -C "${work}" rev-parse --abbrev-ref HEAD`).toString().trim()).toBe('main');
+    expect(execSync(`git -C "${origin}" branch --list`).toString()).not.toContain('ops/submit-');
   });
 });

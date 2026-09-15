@@ -16,8 +16,7 @@
  *     (event delegation — safe for multiple videos per article).
  */
 import { Icon } from 'astro-icon/components';
-import { getUi } from '~/i18n/ui';
-import { isLocale } from '~/i18n/routing';
+import { currentSharedStrings } from '~/lib/shared-ui';
 
 interface Props {
   /** 11-char YouTube video ID. */
@@ -25,12 +24,8 @@ interface Props {
   /** Title for accessibility + the play button overlay. */
   title?: string;
 }
-const { videoId, title = 'Watch video' } = Astro.props;
-const current = Astro.currentLocale;
-const sharedStrings =
-  current && isLocale(current)
-    ? ((getUi(current).shared ?? {}) as unknown as Record<string, string>)
-    : {};
+const sharedStrings = currentSharedStrings(Astro.currentLocale);
+const { videoId, title = sharedStrings.watchVideo ?? 'Watch video' } = Astro.props;
 const playLabel = sharedStrings.playVideo ?? 'Play video';
 ---
 

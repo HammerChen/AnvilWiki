@@ -29,6 +29,13 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import {
+  DEMO_ARTICLE_IMAGES,
+  DEMO_COVERS,
+  DEMO_DOMAINS,
+  DEMO_GALLERY_IMAGES,
+  DEMO_PUBLIC_FILES,
+} from './lib/apply-rewrites';
 import { walkFiles } from './lib/walk';
 
 const ROOT = process.cwd();
@@ -37,29 +44,14 @@ const exists = (p: string) => fs.existsSync(path.resolve(ROOT, p));
 const REL = (p: string) => path.relative(ROOT, p);
 
 // ---------------------------------------------------------------------------
-// Demo markers — KEEP IN SYNC with scripts/apply-template.ts (DEMO_COVERS /
-// clearDemoAssets) and .github/workflows/setup.yml ("Clear demo content").
+// Demo markers — the file inventories are IMPORTED from lib/apply-rewrites
+// (the single source shared with apply-template's clearDemoAssets and the
+// setup.yml rm list, pinned by tests/apply-template.test.ts). Local copies
+// drifted before: this file's cover list was missing the v2.6.0 batch.
 // ---------------------------------------------------------------------------
-/** Demo domains that must be rebranded in a fork: the canonical anvil.wiki and
- * the legacy pages.dev host (also the apply-template CLI placeholder default). */
-const DEMO_DOMAINS = ['anvil.wiki', 'anvilwiki.pages.dev'];
 const DEMO_GAME_NAME = 'Anvil Quest';
 /** Demo-game identifiers that must never appear in RENDERED code-layer output. */
 const DEMO_CODE_STRINGS = ['anvil quest', 'anvilquest', 'emberfang', 'stormcaller'];
-const DEMO_COVERS = [
-  'beginner-guide-cover.png',
-  'emberfang-cover.png',
-  'stormcaller-cover.png',
-  'weapon-tier-list-cover.png',
-  'codes-cover.png',
-];
-const DEMO_GALLERY_FILES = [
-  'beginner-class-picks.png',
-  'beginner-route.png',
-  'stormcaller-arena.png',
-  'stormcaller-mechanics.png',
-];
-const DEMO_ARTICLE_IMAGES = ['weapon-frostpike.png', 'weapon-voidforge.png'];
 const DEMO_GISCUS_MARKERS = ['PNGTRID/AnvilWiki', 'R_kgDOT1aRPQ'];
 
 let passed = 0;
@@ -272,7 +264,7 @@ check(() => {
 // ---------------------------------------------------------------------------
 // 4. Reskin leftovers
 // ---------------------------------------------------------------------------
-console.log('\n4. 换皮残留（demo 图片资产 + wrangler.toml demo 值）');
+console.log('\n4. 换皮残留（demo 图片资产 + public/ demo 文件 + wrangler.toml demo 值）');
 
 check(() => {
   const found: string[] = [];
@@ -294,7 +286,7 @@ check(() => {
   const galleryDir = path.resolve(ROOT, 'src/assets/gallery');
   if (fs.existsSync(galleryDir)) {
     for (const file of fs.readdirSync(galleryDir)) {
-      if (DEMO_GALLERY_FILES.includes(file)) found.push(`src/assets/gallery/${file}`);
+      if (DEMO_GALLERY_IMAGES.includes(file)) found.push(`src/assets/gallery/${file}`);
     }
   }
   const articlesDir = path.resolve(ROOT, 'public/images/articles');
@@ -307,6 +299,22 @@ check(() => {
     warn(`demo article artwork still present (${found.length}): ${found.join(', ')}`);
   } else {
     ok('no demo gallery / inline article images');
+  }
+});
+
+check(() => {
+  // Demo public/ residue: the upstream search-console verification token plus
+  // the demo Adsterra unit pages (public/ads/<name>.html) — they carry the
+  // DEMO's ad-unit keys (config, not template content), so a fork must not
+  // inherit them. apply-template's clearDemoAssets and setup.yml delete them;
+  // this check catches repos that predate those lists or missed the step.
+  const found = DEMO_PUBLIC_FILES.filter((f) => exists(path.join('public', f))).map(
+    (f) => `public/${f}`,
+  );
+  if (found.length > 0) {
+    warn(`demo public/ files still present (${found.length}): ${found.join(', ')} — deleted by apply-template / setup.yml; on a fork they leak demo ad-unit keys.`);
+  } else {
+    ok('no demo public/ residue (search-console token + ads unit pages)');
   }
 });
 

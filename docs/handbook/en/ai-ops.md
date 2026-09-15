@@ -6,7 +6,7 @@ order: 7
 icon: lucide:bot
 shortTitle: "AI ops & GSC setup"
 tldr: "anvilwiki-ops (npm package, runs via npx) hands the weekly ops loop to AI: doctor checks what's missing in one pass; once a GSC service account (authorized through a Google Group) and a CF token sit in .env, metrics pulls 28 days of real data and insights ranks evidence-backed actions; with MCP registered you just talk — five tools (doctor/metrics/audit/insights/submit_pr), and every write goes verify → branch → PR with the merge button staying yours."
-updated: 2026-09-03
+updated: 2026-09-15
 ---
 
 ## Where you are, and what this lesson solves
@@ -38,6 +38,8 @@ GSC provides search queries and rankings; Cloudflare Web Analytics (already inst
 2. **Create the forwarding Group (mandatory, don't skip)**: GSC's "add user" only accepts real accounts — a raw robot ID reads as "invalid email". Fix: create a Google Group at groups.google.com → allow external members → add members by **pasting the robot ID** (the `client_email` string in the key JSON) — never "invite", robots don't click links
 3. **Authorize**: Search Console → Settings → Users and permissions → add user → enter the **group email** (not the robot ID!) → permission "Restricted". New groups may take minutes to hours to activate; "unspecified error" means wait and retry
 4. **Configure the key path**: repo-root `.env` (gitignored) gets `GSC_SERVICE_ACCOUNT_JSON=path-to-key-file`
+
+Keep the key file itself **outside** the repository (e.g. `~/.keys/anvilwiki-gsc.json`) — never commit it: anvil-ops refuses submits that stage key-like files, but a directory outside the repo is the only safe home.
 
 **CF (one-time)**: Cloudflare console → My Profile → API Tokens → create, permission **Account → Analytics → Read**; `.env` adds `CF_API_TOKEN=token` and `CF_ACCOUNT_ID=account-id`.
 

@@ -13,6 +13,7 @@
 
 /*
   Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin
@@ -36,3 +37,10 @@
 # Revalidate every time; etag 304s keep repeat visits cheap.
 /pagefind/*
   Cache-Control: public, max-age=0, must-revalidate
+
+# Ad unit pages (public/ads/*.html) exist only to be iframed by this same
+# site — restrict who may frame them. Scoped to /ads/* on purpose: a
+# site-wide CSP stays out (see the note at the top), this only fences the
+# unit pages themselves. Same-origin framing is unaffected.
+/ads/*
+  Content-Security-Policy: frame-ancestors 'self'

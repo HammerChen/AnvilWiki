@@ -144,17 +144,38 @@ export function buildInsights(input: InsightsInput): Insight[] {
   return out.sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);
 }
 
-// Extracts codes-page paths from refresh-audit's markdown table
-// (rows look like: | P0 | `src/content/wiki/en/codes/x.mdx` | codes | 45d | ... |)
-export function parseStaleCodes(stdout: string): string[] {
-  const out: string[] = [];
-  for (const m of stdout.matchAll(/\| P\d \| `([^`]+)` \| (\w+) \|/g)) {
-    if (m[2] === 'codes') out.push(m[1]!);
-  }
-  return out;
+export interface StaleCodesScan {
+  pages: string[];
+  /**
+   * Set when the input didn't look like refresh-audit's freshness table at all
+   * (format drift / wrong tool output) — surfaced as a visible note instead of
+   * a silent empty result. A well-formed table with zero P-rows is a clean
+   * audit and gets NO note.
+   */
+  note?: string;
 }
 
-export function formatInsights(list: Insight[], degraded: ('gsc' | 'cf')[], aio?: AioProbeResult): string {
+// Extracts codes-page paths from refresh-audit's markdown table
+// (rows look like: | P0 | `src/content/wiki/en/codes/x.mdx` | codes | 45d | ... |)
+const STALE_CODES_ROW = /\| P\d \| `([^`]+)` \| (\w+) \|/g;
+// Header row of refresh-audit's table (scripts/refresh-audit.ts) — the marker
+// that distinguishes "audited, nothing stale" from "output we don't recognize".
+const STALE_TABLE_HEADER = /\|\s*Priority\s*\|[^|]*\|\s*Category\s*\|/;
+
+export function parseStaleCodes(stdout: string): StaleCodesScan {
+  const pages = [...stdout.matchAll(STALE_CODES_ROW)].filter((m) => m[2] === 'codes').map((m) => m[1]!);
+  if (pages.length === 0 && !STALE_TABLE_HEADER.test(stdout)) {
+    return {
+      pages,
+      note:
+        "refresh-audit output didn't match the expected freshness table — stale-codes detection may be blind this run. Raw output tail: " +
+        (stdout.trim().slice(-160) || '(empty)'),
+    };
+  }
+  return { pages };
+}
+
+export function formatInsights(list: Insight[], degraded: ('gsc' | 'cf')[], aio?: AioProbeResult, notes: string[] = []): string {
   const lines = ['# Insights'];
   if (list.length === 0) {
     lines.push('', 'No actionable insights found for the current window.');
@@ -178,6 +199,7 @@ export function formatInsights(list: Insight[], degraded: ('gsc' | 'cf')[], aio?
   if (degraded.length) {
     lines.push('', `Degraded (not configured, rules limited): ${degraded.join(', ')}. Run \`anvil-ops doctor\` to enable.`);
   }
+  for (const n of notes) lines.push(`Note: ${n}`);
   return lines.join('\n') + '\n';
 }
 
@@ -185,6 +207,8 @@ export interface InsightsReport {
   list: Insight[];
   degraded: ('gsc' | 'cf')[];
   aio?: AioProbeResult;
+  /** Visible caveats (e.g. refresh-audit output drifted) — never silent empty results. */
+  notes: string[];
 }
 
 /** Shared runner behind both `anvil-ops insights` (CLI) and the insights MCP tool. */
@@ -215,7 +239,10 @@ export async function collectInsights(opts: {
     cf = metrics.cf;
     degraded = metrics.degraded;
   } catch (e) {
-    if (e instanceof OpsError && /No analytics source/.test(e.message)) {
+    // Branch on the stable OpsError code first; the prose regex stays only as
+    // a compatibility fallback so a metrics wording change can never flip
+    // degradation behavior silently.
+    if (e instanceof OpsError && (e.code === 'no-analytics-source' || /No analytics source/.test(e.message))) {
       degraded = ['gsc', 'cf'];
     } else {
       throw e;
@@ -251,7 +278,17 @@ export async function collectInsights(opts: {
   }
 
   const staleRun = run('pnpm', ['refresh-audit'], { cwd: site.root });
-  const stale = staleRun.status === 0 ? parseStaleCodes(staleRun.stdout) : [];
+  const notes: string[] = [];
+  let stale: string[] = [];
+  if (staleRun.status === 0) {
+    const scan = parseStaleCodes(staleRun.stdout);
+    stale = scan.pages;
+    if (scan.note) notes.push(scan.note);
+  } else {
+    // A failed refresh-audit must not silently equal "no stale codes".
+    const tail = `${staleRun.stderr}\n${staleRun.stdout}`.trim().split('\n').slice(-1)[0] ?? '';
+    notes.push(`refresh-audit failed (exit ${staleRun.status ?? 'error'}) — stale-codes detection skipped this run. ${tail}`.trimEnd());
+  }
 
-  return { list: buildInsights({ gsc, cf, staleCodesPages: stale }), degraded, aio };
+  return { list: buildInsights({ gsc, cf, staleCodesPages: stale }), degraded, aio, notes };
 }

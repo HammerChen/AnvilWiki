@@ -4,7 +4,8 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { buildServer } from '../src/mcp/server.js';
+import { buildServer, submitMutex } from '../src/mcp/server.js';
+import { createSubmitMutex } from '../src/mcp/submit-mutex.js';
 import type { queryCloudflare, fetchAiReferrals } from '../src/core/providers/cloudflare.js';
 
 function tmpSite(): string {
@@ -98,6 +99,35 @@ describe('anvil-ops MCP server', () => {
     expect(res.isError).toBe(true);
     const text = (res.content as { type: string; text: string }[])[0].text;
     expect(text).toMatch(/No uncommitted changes|not a git|failed/i);
+  });
+});
+
+describe('submit_pr mutex (one submit at a time per process)', () => {
+  it('createSubmitMutex: second acquire refused until release', () => {
+    const m = createSubmitMutex();
+    expect(m.tryAcquire()).toBe(true);
+    expect(m.tryAcquire()).toBe(false);
+    m.release();
+    expect(m.tryAcquire()).toBe(true);
+    m.release();
+  });
+
+  it('refuses a second submit while one is in flight, releases properly afterwards', async () => {
+    const client = await connect(tmpSite());
+    expect(submitMutex.tryAcquire()).toBe(true);
+    try {
+      const res = await client.callTool({ name: 'submit_pr', arguments: {} });
+      expect(res.isError).toBe(true);
+      const text = (res.content as { type: string; text: string }[])[0].text;
+      expect(text).toMatch(/already in progress/i);
+    } finally {
+      submitMutex.release();
+    }
+    // after release the normal path runs again (fails on the dirty-check, not the mutex)
+    const res2 = await client.callTool({ name: 'submit_pr', arguments: {} });
+    const text2 = (res2.content as { type: string; text: string }[])[0].text;
+    expect(text2).toMatch(/No uncommitted changes|not a git|failed/i);
+    expect(text2).not.toMatch(/already in progress/);
   });
 });
 

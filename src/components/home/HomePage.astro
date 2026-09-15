@@ -133,7 +133,9 @@ function trendingLabel(link: QuickLink): string {
   </section>
 
   {/* Trailer — only renders when a videoId is configured. */}
-  {hero.videoId && <VideoSection videoId={hero.videoId} title={`${site.game.name} trailer`} />}
+  {hero.videoId && (
+    <VideoSection videoId={hero.videoId} title={`${site.game.name} ${shared.gameTrailer}`} />
+  )}
 
   {/* ───────────────────────────── Quick Start ────────────────────────── */}
   <QuickStart

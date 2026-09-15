@@ -8,22 +8,18 @@
  * BaseLayout's no-FOUC script.
  */
 import { Icon } from 'astro-icon/components';
-import { getUi } from '~/i18n/ui';
-import { isLocale } from '~/i18n/routing';
+import { currentSharedStrings } from '~/lib/shared-ui';
 
-const current = Astro.currentLocale;
-const sharedStrings =
-  current && isLocale(current)
-    ? ((getUi(current).shared ?? {}) as unknown as Record<string, string>)
-    : {};
+const sharedStrings = currentSharedStrings(Astro.currentLocale);
 const toggleTheme = sharedStrings.toggleTheme ?? 'Cycle theme (light / dark / AMOLED black)';
+const themeTitle = sharedStrings.themeToggleTitle ?? 'Light / Dark / AMOLED black';
 ---
 
 <button
   id="theme-toggle"
   type="button"
   aria-label={toggleTheme}
-  title="Light / Dark / AMOLED black"
+  title={themeTitle}
   class="inline-flex h-9 w-9 items-center justify-center rounded-md text-foreground transition hover:bg-muted"
 >
   <Icon name="lucide:sun" data-theme-icon="light" class="h-5 w-5" />

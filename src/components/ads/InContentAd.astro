@@ -9,8 +9,7 @@
  * Unlike StickyBanner, this is not sticky; it sits inline with content.
  */
 import AdSenseSlot from './AdSenseSlot.astro';
-import { getUi } from '~/i18n/ui';
-import { isLocale } from '~/i18n/routing';
+import { currentSharedStrings } from '~/lib/shared-ui';
 
 interface Props {
   /** Optional label override above the ad (for disclosure). */
@@ -20,11 +19,7 @@ interface Props {
 const client = import.meta.env.PUBLIC_ADSENSE_CLIENT as string | undefined;
 const slot = import.meta.env.PUBLIC_ADSENSE_SLOT_INCONTENT as string | undefined;
 const show = !!(client && slot);
-const current = Astro.currentLocale;
-const sharedStrings =
-  current && isLocale(current)
-    ? ((getUi(current).shared ?? {}) as unknown as Record<string, string>)
-    : {};
+const sharedStrings = currentSharedStrings(Astro.currentLocale);
 const { label = sharedStrings.adLabel ?? 'Advertisement' } = Astro.props;
 ---
 {show && (

@@ -85,20 +85,49 @@ jobs:
           #PUBLIC_ADSENSE_SLOT_STICKY = ""
           #PUBLIC_ADSENSE_SLOT_SIDEBAR = ""
           #PUBLIC_ADSENSE_SLOT_INCONTENT = ""
+          # Adsterra — for each slot you enable, also create public/ads/<name>.html
+          # with the snippet from the Adsterra dashboard (see docs/ads.md).
+          #PUBLIC_ADSTERRA_SLOT_SIDEBAR_300X250 = ""
+          #PUBLIC_ADSTERRA_SLOT_INCONTENT_728X90 = ""
+          #PUBLIC_ADSTERRA_SLOT_NATIVE_BANNER = ""
+          #PUBLIC_ADSTERRA_SLOT_STICKY_320X50 = ""
+          #PUBLIC_ADSTERRA_SLOT_SIDEBAR_160X300 = ""
+          #PUBLIC_ADSTERRA_SLOT_SIDEBAR_160X600 = ""
           #PUBLIC_GA_ID = ""
           #PUBLIC_GSC_VERIFICATION = ""'''
           new_vars = new_vars.replace('__SITE_URL__', url)
-          # Plain string splicing, NOT re.subn: the replacement now embeds the
-          # user-supplied URL, and re.subn treats backslashes in a replacement
-          # as escapes (a trailing `\` → re.error). search + slicing keeps the
-          # exact same match semantics with zero escape processing.
-          m = re.search(r'\[vars\][\s\S]*?(?=\n*\[|\s*$)', s)
+          # Anchor [vars] at LINE START — same shape as the JS channel in
+          # scripts/lib/apply-rewrites.ts. The demo file's FORKER intro comment
+          # contains the literal text "[vars]" mid-line: the old unanchored
+          # pattern rewrote the COMMENT while leaving the real demo [vars] table
+          # below, so the fork shipped two [vars] tables (invalid TOML, the
+          # Pages deploy fails) with this workflow's own build green. Two regex
+          # traps carried over from the JS channel: NO re.M (with it `$` means
+          # line-end and the match truncates at the first newline), and the
+          # `(^|\n)` group must be re-inserted on splice or the section above
+          # loses its separating newline.
+          m = re.search(r'(^|\n)\[vars\]\r?\n[\s\S]*?(?=\r?\n\[|$)', s)
           if m is None:
               # [vars] is a structural invariant of the template — a silent
               # no-op rewrite here would leave the fork on demo values with
               # a misleading success status.
               raise SystemExit('❌ wrangler.toml [vars] rewrite matched nothing — template drift?')
-          open(p, 'w').write(s[:m.start()] + new_vars + s[m.end():])
+          # Plain string splicing, NOT re.subn: the replacement embeds the
+          # user-supplied URL, and re.subn treats backslashes in a replacement
+          # as escapes (a trailing `\` → re.error). search + slicing keeps the
+          # exact same match semantics with zero escape processing.
+          out = s[:m.start()] + (m.group(1) or '') + new_vars + '\n' + s[m.end():]
+          # Drop the FORKER warning block: after the rewrite it would claim the
+          # file still carries the DEMO SITE config — stale and misleading (the
+          # JS channel removes it too). ASCII anchors only — python's `.` skips
+          # newlines exactly like JS's, so the heading's ⚠️ emoji is covered
+          # by `.*` and no multi-codepoint quantifier trap applies.
+          out = re.sub(r'# .*FORKERS READ THIS FIRST[\s\S]*?# .*END FORKER WARNING.*\n?', '', out)
+          # End with exactly one newline: python's `$` (without re.M) also
+          # matches just BEFORE a trailing newline, so a [vars] section at EOF
+          # keeps its old `\n` outside the match and the splice can double it.
+          out = out.rstrip('\n') + '\n'
+          open(p, 'w').write(out)
           EOF
 
       - name: Read normalized SITE_URL

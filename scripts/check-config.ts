@@ -103,13 +103,22 @@ for (const loc of routingLocales) {
     localeErrors++;
   }
 }
-for (const f of fs.readdirSync(path.resolve(ROOT, 'src/locales'))) {
-  if (!f.endsWith('.json')) continue;
-  const loc = f.replace('.json', '');
-  if (!routingLocales.includes(loc)) {
-    err(`src/locales/${f} exists but "${loc}" is not in routing.ts locales`);
-    localeErrors++;
+const localesDir = path.resolve(ROOT, 'src/locales');
+if (fs.existsSync(localesDir)) {
+  for (const f of fs.readdirSync(localesDir)) {
+    if (!f.endsWith('.json')) continue;
+    const loc = f.replace('.json', '');
+    if (!routingLocales.includes(loc)) {
+      err(`src/locales/${f} exists but "${loc}" is not in routing.ts locales`);
+      localeErrors++;
+    }
   }
+} else {
+  // A missing directory would otherwise surface as a raw readdir ENOENT stack.
+  // Gate semantics unchanged: this is an error and the run exits 1 below.
+  err(
+    `src/locales/ directory not found — the template ships it (routing.ts declares: ${routingLocales.join(', ')}). Restore it from upstream or create the JSON files.`,
+  );
 }
 if (localeErrors === 0) console.log('  ✅ all locales consistent');
 

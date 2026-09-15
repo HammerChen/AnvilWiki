@@ -92,18 +92,26 @@ export function languageAlternates(
  * Tag pages are keyed by this slug; both article tag links and route
  * params go through this function so they always match. Pure function
  * (testable without a build).
+ *
+ * ASCII-safe tags ("Boss Guide" → "boss-guide") get the slugified form.
+ * Anything that still contains a character outside [a-z0-9-] AFTER folding
+ * takes the raw path wholesale — a partial ASCII strip would COLLAPSE
+ * distinct tags onto one /tags/ page ('Roblox 焰牙' and 'Roblox 攻略' both
+ * strip to 'roblox-'; '焰牙 攻略' strips to just '-').
  */
 export function slugifyTag(tag: string): string {
-  const slug = tag
+  const folded = tag
     .trim()
     .toLowerCase()
-    .replace(/[\s_]+/g, '-')
-    .replace(/[^a-z0-9-]/g, '');
-  // Non-ASCII tags (CJK etc.) would collapse to '' — which would route all
-  // of them to the same /tags/ page. Fall back to the raw tag: Astro writes
-  // params to disk verbatim, so a percent-encoded value here becomes a
-  // literal '%E7...' directory that only serves at the double-encoded URL,
-  // while every in-page link points at the single-encoded form (404). The
-  // raw tag builds a raw-named directory that both URL forms resolve to.
-  return slug || tag.trim();
+    .replace(/[\s_]+/g, '-');
+  // Raw path (CJK etc.): Astro writes params to disk verbatim, so a
+  // percent-encoded value here becomes a literal '%E7...' directory that
+  // only serves at the double-encoded URL, while every in-page link points
+  // at the single-encoded form (404). The raw tag builds a raw-named
+  // directory that both URL forms resolve to. Returning tag.trim() — never
+  // the folded husk — keeps distinct non-ASCII tags distinct and the
+  // function idempotent. (Only a blank tag can still yield '' here; the
+  // route-level `if (slug)` guards skip it.)
+  if (/[^a-z0-9-]/.test(folded)) return tag.trim();
+  return folded;
 }

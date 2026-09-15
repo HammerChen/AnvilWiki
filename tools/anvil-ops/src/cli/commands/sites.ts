@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
   loadSitesRegistry,
@@ -55,6 +55,12 @@ export function sitesAddCommand(opts: { name: string; path: string; url?: string
     throw new OpsError(
       `Path does not exist: ${path}`,
       'Register an existing checkout of the site repo (the directory with wrangler.toml / .env).',
+    );
+  }
+  if (!statSync(path).isDirectory()) {
+    throw new OpsError(
+      `Path is not a directory: ${path}`,
+      'Register the checkout directory itself (the folder containing wrangler.toml / .env), not a file inside it.',
     );
   }
   const registryPath = sitesRegistryPath();

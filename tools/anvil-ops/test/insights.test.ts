@@ -113,7 +113,21 @@ describe('formatInsights', () => {
       '| P0 | `src/content/wiki/en/codes/main.mdx` | codes | 45d | 45d since last verify |',
       '| P1 | `src/content/wiki/en/bosses/emberfang.mdx` | bosses | 95d | stale 95d |',
     ].join('\n');
-    expect(parseStaleCodes(stdout)).toEqual(['src/content/wiki/en/codes/main.mdx']);
+    expect(parseStaleCodes(stdout).pages).toEqual(['src/content/wiki/en/codes/main.mdx']);
+  });
+
+  it('parseStaleCodes: well-formed table with zero P-rows is a clean audit — no note', () => {
+    const stdout = ['## Content freshness audit', '| Priority | Article | Category | Age | Why |', '|---|---|---|---|---|'].join('\n');
+    const scan = parseStaleCodes(stdout);
+    expect(scan.pages).toEqual([]);
+    expect(scan.note).toBeUndefined();
+  });
+
+  it('parseStaleCodes: unrecognized output (format drift) surfaces a visible note, not a silent empty array', () => {
+    const scan = parseStaleCodes('Error: something else entirely\n');
+    expect(scan.pages).toEqual([]);
+    expect(scan.note).toMatch(/didn't match the expected freshness table/);
+    expect(scan.note).toMatch(/something else entirely/);
   });
 });
 
@@ -144,5 +158,44 @@ describe('collectInsights AIO probe failure', () => {
     });
     expect(r.aio?.error).toContain('wait a minute');
     expect(r.aio?.error).toContain('Fix:');
+  });
+
+  it('no credentials: degrades via the stable no-analytics-source code, never throws', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ops-insights-bare-'));
+    writeFileSync(join(dir, 'wrangler.toml'), '[vars]\nSITE_URL = "https://wiki.example.com"\n');
+    const r = await collectInsights({
+      cwd: dir,
+      days: 7,
+      run: () => ({ status: 1, stdout: '', stderr: '' }),
+    });
+    expect(r.degraded).toEqual(['gsc', 'cf']);
+    expect(r.list).toEqual([]);
+    // a failed refresh-audit must be a visible note, not a silent empty scan
+    expect(r.notes.join('\n')).toMatch(/refresh-audit failed/);
+  });
+
+  it('refresh-audit format drift surfaces a note; unchanged table does not', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ops-insights-stale-'));
+    writeFileSync(join(dir, 'wrangler.toml'), '[vars]\nSITE_URL = "https://wiki.example.com"\n');
+
+    const drifted = await collectInsights({
+      cwd: dir,
+      days: 7,
+      run: ((_cmd: string, args: string[]) =>
+        args[0] === 'refresh-audit'
+          ? { status: 0, stdout: 'unexpected new format\n', stderr: '' }
+          : { status: 0, stdout: '', stderr: '' }) as never,
+    });
+    expect(drifted.notes.join('\n')).toMatch(/freshness table/);
+
+    const clean = await collectInsights({
+      cwd: dir,
+      days: 7,
+      run: ((_cmd: string, args: string[]) =>
+        args[0] === 'refresh-audit'
+          ? { status: 0, stdout: '| Priority | Article | Category | Age | Why |\n|---|---|---|---|---|\n', stderr: '' }
+          : { status: 0, stdout: '', stderr: '' }) as never,
+    });
+    expect(clean.notes).toEqual([]);
   });
 });

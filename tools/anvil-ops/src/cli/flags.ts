@@ -26,18 +26,8 @@ export function assertNotBothSiteAndAll(flags: SiteFlags): void {
 
 /**
  * Registry site names: non-empty, no whitespace/control chars, must start
- * alphanumeric. Keeps `sites list` tables and `--site <name>` ergonomics sane.
+ * alphanumeric. The single implementation lives in core/sites.ts so the
+ * registry loader enforces the same charset rule on hand-edited files;
+ * re-exported here for the CLI surface (`sites add` input gate).
  */
-export function validateSiteName(name: string): string {
-  const n = name.trim();
-  if (!n) {
-    throw new OpsError('Site name must not be empty.', 'Use a short slug, e.g. `anvil-ops sites add main-wiki /path/to/repo`.');
-  }
-  if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(n)) {
-    throw new OpsError(
-      `Site name "${name}" contains unsupported characters.`,
-      'Use letters, digits, dots, dashes and underscores, starting alphanumeric (e.g. main-wiki, site2).',
-    );
-  }
-  return n;
-}
+export { validateSiteName } from '../core/sites.js';

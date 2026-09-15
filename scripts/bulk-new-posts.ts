@@ -34,7 +34,7 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { isBlankOrComment, parseDelimited } from './lib/delimited';
+import { containsControlChar, isBlankOrComment, parseDelimited } from './lib/delimited';
 import { readLocales } from './lib/routing-flags';
 import { todayIso } from './lib/today';
 
@@ -232,6 +232,20 @@ for (let r = headerIdx + 1; r < table.length; r++) {
     errors.push(`line ${line}: description is ${description.length} chars (schema requires 40-165)`);
     continue;
   }
+
+  // A quoted CSV cell can carry a raw newline past the parser; written into a
+  // single-line YAML scalar it would tear the frontmatter apart (a multi-line
+  // title becomes three frontmatter lines). Same loud rejection as sync-codes
+  // (shared guard in lib/delimited.ts). Checked on the RAW cell for slug —
+  // slugify would silently fold a newline into a hyphen, retargeting the file.
+  let hasControlError = false;
+  for (const [name, value] of [['slug', rawSlug], ['title', title], ['description', get('description')]] as const) {
+    if (containsControlChar(value)) {
+      errors.push(`line ${line}: "${name}" contains a newline/control character (not valid in a YAML scalar)`);
+      hasControlError = true;
+    }
+  }
+  if (hasControlError) continue;
 
   const relPath = path.join('src/content/wiki', locale, category, `${slug}.mdx`);
   const dupLine = seenTargets.get(relPath);

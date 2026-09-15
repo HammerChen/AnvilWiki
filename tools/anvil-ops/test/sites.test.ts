@@ -86,6 +86,20 @@ describe('sites registry load/save', () => {
     writeFileSync(p, '[[sites]]\nname = "a"\npath = "not/absolute"\n');
     expect(() => loadSitesRegistry(p)).toThrow(/sites\[0\].*absolute/s);
   });
+
+  it('hand-edited registry with an unsupported site name is rejected with the entry named (same charset rule as sites add)', () => {
+    const p = tmpRegistryFile();
+    writeFileSync(p, '[[sites]]\nname = "my site"\npath = "/tmp/x"\n');
+    expect(() => loadSitesRegistry(p)).toThrow(OpsError);
+    try {
+      loadSitesRegistry(p);
+      expect.unreachable('should have thrown');
+    } catch (e) {
+      expect((e as OpsError).message).toMatch(/sites\[0\]/);
+      expect((e as Error).message).toContain('my site');
+      expect((e as OpsError).fix).toMatch(/sites remove|sites add/);
+    }
+  });
 });
 
 describe('resolveSitePath', () => {
@@ -173,5 +187,29 @@ describe('sitesRegistryPath', () => {
     expect(sitesRegistryPath({ XDG_CONFIG_HOME: 'relative' })).toBe(
       join(homedir(), '.config', 'anvil-ops', 'sites.toml'),
     );
+  });
+});
+
+describe('sitesAddCommand path gate', () => {
+  it('refuses a file path with directory guidance', async () => {
+    const { sitesAddCommand } = await import('../src/cli/commands/sites.js');
+    const filePath = tmpRegistryFile(); // a plain file on disk
+    writeFileSync(filePath, 'x\n');
+    expect(() => sitesAddCommand({ name: 'filed', path: filePath })).toThrow(/not a directory/i);
+  });
+
+  it('accepts an existing directory', async () => {
+    const { sitesAddCommand } = await import('../src/cli/commands/sites.js');
+    const { XDG_CONFIG_HOME } = process.env;
+    process.env['XDG_CONFIG_HOME'] = mkdtempSync(join(tmpdir(), 'ops-sites-xdg-'));
+    try {
+      const dir = tmpSiteDir();
+      expect(sitesAddCommand({ name: 'ok-site', path: dir })).toBe(0);
+      const registry = loadSitesRegistry(sitesRegistryPath());
+      expect(registry.sites[0]).toMatchObject({ name: 'ok-site', path: dir });
+    } finally {
+      if (XDG_CONFIG_HOME === undefined) delete process.env['XDG_CONFIG_HOME'];
+      else process.env['XDG_CONFIG_HOME'] = XDG_CONFIG_HOME;
+    }
   });
 });
