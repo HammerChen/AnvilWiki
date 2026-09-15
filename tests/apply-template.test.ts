@@ -12,18 +12,21 @@
  *     "Clear demo content" rm list (they have drifted before: the v2.6.0
  *     covers initially landed in neither list).
  */
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
 import {
   DEMO_ARTICLE_IMAGES,
   DEMO_COVERS,
+  DEMO_GAME_NAMES,
   DEMO_GALLERY_IMAGES,
   DEMO_PUBLIC_FILES,
   buildLocaleLabels,
   buildUiImports,
   buildUiMessagesEntries,
+  classifyWikiArticles,
+  isDemoArticleContent,
   isDemoLocaleContent,
   isLocaleCode,
   KNOWN_LOCALE_LABELS,
@@ -368,5 +371,67 @@ describe('demo locale deletion is content-aware (rebranded locales must survive 
   test('corrupt JSON or missing site.name is never classified as demo (never delete unreadable)', () => {
     expect(isDemoLocaleContent('{ not json')).toBe(false);
     expect(isDemoLocaleContent('{"nav": {"home": "Home"}}')).toBe(false);
+  });
+});
+
+describe('demo article clearing is content-aware (re-runs must keep user work)', () => {
+  test('every shipped demo article carries the demo-game marker (marker drift guard)', () => {
+    // Mirrors the locale marker guard above: if a template author ships a demo
+    // article that never mentions the demo game, content-aware clearing would
+    // KEEP it forever — this goes red in the template repo until the article
+    // carries the marker. Vacuous in forks after a first-run clear.
+    const base = join(repoRoot, 'src/content/wiki');
+    const walk = (dir: string): string[] =>
+      existsSync(dir)
+        ? readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+            e.isDirectory()
+              ? walk(join(dir, e.name))
+              : /\.(mdx|md)$/.test(e.name)
+                ? [join(dir, e.name)]
+                : [],
+          )
+        : [];
+    const files = walk(base);
+    expect(files.length, 'the template repo should ship demo wiki articles').toBeGreaterThan(0);
+    for (const file of files) {
+      expect(
+        isDemoArticleContent(readFileSync(file, 'utf8')),
+        `${file} lacks the demo-game marker (${DEMO_GAME_NAMES.join(', ')}) — content-aware clearing would keep it`,
+      ).toBe(true);
+    }
+  });
+
+  test('the verdict is content-only: same path flips when rewritten for the fork game', () => {
+    const asDemo = { rel: 'en/bosses/emberfang.mdx', src: '---\ntitle: Emberfang\n---\n\nAnvil Quest boss strategy.' };
+    const rewritten = { rel: 'en/bosses/emberfang.mdx', src: '---\ntitle: Emberfang\n---\n\nMy own boss, rewritten for my game.' };
+    const scaffold = { rel: 'en/bosses/getting-started.mdx', src: '---\ntitle: Getting Started\n---\n\nReplace this scaffold with your article.' };
+    expect(classifyWikiArticles([asDemo]).demo).toHaveLength(1);
+    expect(classifyWikiArticles([rewritten]).kept).toHaveLength(1);
+    expect(classifyWikiArticles([rewritten]).demo).toHaveLength(0);
+    expect(classifyWikiArticles([scaffold]).kept).toHaveLength(1);
+  });
+
+  test('rel path shape never flips the verdict (win32 callers normalize, content decides)', () => {
+    const out = classifyWikiArticles([{ rel: 'en\\bosses\\emberfang.mdx', src: 'no demo mention here' }]);
+    expect(out.kept).toHaveLength(1);
+    expect(out.demo).toHaveLength(0);
+  });
+
+  test('setup.yml clears articles via the content-aware script (never a blanket find -delete)', () => {
+    const yml = readFileSync(join(repoRoot, '.github/workflows/setup.yml'), 'utf8');
+    expect(yml).not.toContain('find src/content/wiki');
+    expect(yml).toContain('scripts/clear-demo-content.ts');
+    const script = readFileSync(join(repoRoot, 'scripts/clear-demo-content.ts'), 'utf8');
+    // Single source: the script must classify through the shared lib, never
+    // carry its own copy of the demo-identity rule.
+    expect(script).toContain("from './lib/apply-rewrites'");
+    expect(script).toContain('classifyWikiArticles');
+    // The clear step must sit between install and build: tsx needs
+    // node_modules, and the build must validate the CLEARED tree.
+    const installIdx = yml.indexOf('pnpm install --frozen-lockfile');
+    const clearIdx = yml.indexOf('Clear demo articles (content-aware)');
+    const buildIdx = yml.indexOf('pnpm build');
+    expect(clearIdx).toBeGreaterThan(installIdx);
+    expect(clearIdx).toBeLessThan(buildIdx);
   });
 });

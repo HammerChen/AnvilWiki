@@ -514,3 +514,42 @@ export function isDemoLocaleContent(raw: string): boolean {
     return false;
   }
 }
+
+/**
+ * Game names the demo's own articles are authored around. Content, not
+ * filename, decides deletion (same rule as isDemoLocaleContent): a first run
+ * clears the demo articles; on a re-run, files the forker authored themselves
+ * — including demo-path files they already rewrote for their own game and the
+ * per-category scaffolds a previous run created — do not mention the demo
+ * game and fall into the warn-and-keep path. No file-name manifest on
+ * purpose: a manifest goes stale the moment a template author adds demo
+ * content (or a fork adds their own article), while the content marker is
+ * exactly the identity a rebrand replaces.
+ */
+export const DEMO_GAME_NAMES = ['Anvil Quest'];
+
+export function isDemoArticleContent(src: string): boolean {
+  return DEMO_GAME_NAMES.some((name) => src.includes(name));
+}
+
+export interface WikiArticleEntry {
+  /** Path relative to src/content/wiki, forward slashes. */
+  rel: string;
+  src: string;
+}
+
+/**
+ * Split wiki articles into demo-authored (safe to delete) and everything else
+ * (the forker's own work — warn-and-keep). Pure: the caller owns all IO.
+ */
+export function classifyWikiArticles(entries: WikiArticleEntry[]): {
+  demo: WikiArticleEntry[];
+  kept: WikiArticleEntry[];
+} {
+  const demo: WikiArticleEntry[] = [];
+  const kept: WikiArticleEntry[] = [];
+  for (const entry of entries) {
+    (isDemoArticleContent(entry.src) ? demo : kept).push(entry);
+  }
+  return { demo, kept };
+}

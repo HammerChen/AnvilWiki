@@ -40,12 +40,14 @@ import { createLinePrompt, type LinePrompt } from './lib/prompt';
 import {
   DEMO_ARTICLE_IMAGES,
   DEMO_COVERS,
+  DEMO_GAME_NAMES,
   DEMO_GALLERY_IMAGES,
   DEMO_LOCALES,
   DEMO_PUBLIC_FILES,
   buildLocaleLabels,
   buildUiImports,
   buildUiMessagesEntries,
+  classifyWikiArticles,
   isDemoLocaleContent,
   isLocaleCode,
   rewriteLocaleJson,
@@ -337,34 +339,53 @@ function countWikiArticles(): number {
   return count;
 }
 
-function clearDemoContent(categories: { key: string }[]) {
+/**
+ * Clear demo articles content-aware (same rule as isDemoLocaleContent for
+ * locale JSONs): only files positively identified as demo content (authored
+ * around the demo game) are deleted; anything else under src/content/wiki/ —
+ * the forker's own articles, rewrites of demo-path files, and a previous
+ * run's scaffolds — is kept and reported. A re-run must never destroy user
+ * work (v2.25.0 made the prompt honest; this makes the behavior match it).
+ */
+function clearDemoContent(categories: { key: string }[]): { removed: number; kept: string[] } {
   const base = path.resolve(ROOT, 'src/content/wiki');
-  if (!fs.existsSync(base)) return 0;
-  let removed = 0;
+  if (!fs.existsSync(base)) return { removed: 0, kept: [] };
   const chosen = new Set(categories.map((c) => c.key));
+  const entries: { rel: string; src: string }[] = [];
+  const catDirs: string[] = [];
   for (const localeDir of fs.readdirSync(base)) {
     const localePath = path.join(base, localeDir);
-    const stat = fs.statSync(localePath);
-    if (!stat.isDirectory()) continue;
+    if (!fs.statSync(localePath).isDirectory()) continue;
     for (const catDir of fs.readdirSync(localePath)) {
       const catPath = path.join(localePath, catDir);
       if (!fs.statSync(catPath).isDirectory()) continue;
+      catDirs.push(catPath);
       for (const file of fs.readdirSync(catPath)) {
-        if (file.endsWith('.mdx') || file.endsWith('.md')) {
-          if (!DRY_RUN) fs.unlinkSync(path.join(catPath, file));
-          removed++;
-        }
+        if (!file.endsWith('.mdx') && !file.endsWith('.md')) continue;
+        entries.push({
+          rel: `${localeDir}/${catDir}/${file}`,
+          src: fs.readFileSync(path.join(catPath, file), 'utf8'),
+        });
       }
-      // Prune category dirs that are now empty AND not chosen — a leftover
-      // empty dir is an unreachable category (template-audit flags it) and
-      // invites creating articles for a nav that doesn't link it.
-      if (!chosen.has(catDir) && !DRY_RUN && fs.readdirSync(catPath).length === 0) {
+    }
+  }
+  const { demo, kept } = classifyWikiArticles(entries);
+  if (!DRY_RUN) {
+    for (const file of demo) fs.unlinkSync(path.join(base, file.rel));
+    // Prune category dirs that are now empty AND not chosen — a leftover
+    // empty dir is an unreachable category (template-audit flags it) and
+    // invites creating articles for a nav that doesn't link it. Dirs holding
+    // kept (user) files are never empty, so they survive untouched.
+    for (const catPath of catDirs) {
+      if (!chosen.has(path.basename(catPath)) && fs.readdirSync(catPath).length === 0) {
         fs.rmdirSync(catPath);
       }
     }
   }
-  removed += clearDemoAssets();
-  return removed;
+  return {
+    removed: demo.length,
+    kept: kept.map((f) => `src/content/wiki/${f.rel}`),
+  };
 }
 
 function clearDemoAssets() {
@@ -628,10 +649,10 @@ async function main() {
     console.log('⚠️  CONTENT LAYER');
     console.log('━'.repeat(60));
     const articleCount = countWikiArticles();
-    console.log(`   This deletes EVERY .mdx/.md article under src/content/wiki/ — ${articleCount} found right now.`);
+    console.log(`   ${articleCount} article file(s) under src/content/wiki/ right now.`);
+    console.log('   Clearing is CONTENT-AWARE: demo-authored articles are removed, and');
+    console.log('   anything else (articles/scaffolds you wrote) is KEPT with a warning.');
     console.log('   Directory structure is preserved for you to drop in new content.');
-    console.log('   ⚠️  On a RE-RUN this deletes ALL articles in src/content/wiki/ — including ones YOU wrote.');
-    console.log('   Demo translations in locales get content-checked, articles do not.');
     clearContent = await askBool(rl, 'Clear demo content?', false);
   }
 
@@ -797,8 +818,14 @@ async function main() {
   }
 
   if (clearContent) {
-    const n = clearDemoContent(categories);
-    console.log(`   🗑️  Removed ${n} demo MDX file${n === 1 ? '' : 's'} under src/content/wiki/`);
+    const { removed, kept } = clearDemoContent(categories);
+    const assets = clearDemoAssets();
+    console.log(`   🗑️  ${DRY_RUN ? 'Would remove' : 'Removed'} ${removed} demo article${removed === 1 ? '' : 's'} under src/content/wiki/ (content-aware)`);
+    console.log(`   🖼️  ${DRY_RUN ? 'Would remove' : 'Removed'} ${assets} demo asset file(s) (covers/gallery/article images/public tokens, by name)`);
+    if (kept.length > 0) {
+      console.warn(`   ⚠️  Kept ${kept.length} file(s) that are NOT demo content — they never mention the demo game (${DEMO_GAME_NAMES.join(', ')}). Delete them yourself if unwanted:`);
+      for (const rel of kept) console.warn(`      ${rel}`);
+    }
     if (categories.length > 0) {
       const s = scaffoldContent(categories);
       console.log(`   📄 Created ${s} scaffold article${s === 1 ? '' : 's'} (one per category, en/)`);

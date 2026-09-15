@@ -26,7 +26,7 @@
  * before running this locally if you want them covered.
  */
 import { execSync, spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -161,6 +161,46 @@ writeFileSync(
   JSON.stringify({ site: { name: 'My Game Wiki' }, nav: { home: 'ホーム' } }, null, 2),
   'utf8',
 );
+// Content-aware demo-article clearing (v2.25.1): a user-authored article must
+// survive the re-run; a demo-authored one must go. The scaffold articles run 1
+// created (no demo-game mentions) are the forker's now.
+const userArticle = join(scratch, 'src/content/wiki/en/bosses/my-own-boss.mdx');
+mkdirSync(dirname(userArticle), { recursive: true });
+writeFileSync(
+  userArticle,
+  `---
+title: "My Own Boss Guide"
+description: "A user-authored article that must survive a template init re-run — content-aware demo clearing keeps everything the forker wrote."
+category: "bosses"
+date: 2026-09-15
+draft: true
+tags: []
+---
+
+## My own boss
+
+Written by the forker. No demo game mentioned here.
+`,
+  'utf8',
+);
+const demoLeftover = join(scratch, 'src/content/wiki/en/bosses/demo-leftover.mdx');
+writeFileSync(
+  demoLeftover,
+  `---
+title: "Anvil Quest Boss Leftover"
+description: "Mentions Anvil Quest so content-aware clearing classifies it as demo content and removes it on the re-run."
+category: "bosses"
+date: 2026-09-15
+draft: true
+tags: []
+---
+
+## Anvil Quest strategy
+
+Demo leftover content.
+`,
+  'utf8',
+);
 step('apply-template re-run (idempotent, keeps user locales)');
 const rerun = spawnSync(
   'pnpm',
@@ -197,6 +237,17 @@ if (!existsSync(join(scratch, 'src/locales/ja.json'))) {
 if (!/My Game Wiki/.test(readFileSync(join(scratch, 'src/locales/ja.json'), 'utf8'))) {
   fail('re-run overwrote the rebranded ja.json site.name with demo/placeholder content');
 }
+// Content-aware article clearing: user work survives, demo content goes.
+if (!existsSync(userArticle)) {
+  fail('re-run DELETED the user-authored article — content-aware demo clearing regressed to blanket deletion');
+}
+if (existsSync(demoLeftover)) {
+  fail('re-run KEPT a demo-authored article — content-aware demo clearing did not classify it');
+}
+if (!/kept \(not demo content/.test((rerun.stdout || '') + (rerun.stderr || ''))) {
+  fail('re-run did not warn about kept non-demo articles');
+}
+console.log('  ✅ user-authored article survived the re-run; demo-authored leftover was cleared');
 // Heed the warning like a user would, so the gates below see a clean state.
 rmSync(join(scratch, 'src/locales/ko.json'));
 rmSync(join(scratch, 'src/locales/ja.json'));
