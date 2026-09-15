@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.26.1] — 2026-09-15
+
 ### Security
 
 - **全项目三维代码审查第二轮修复批（2026-09-15 对 main@v2.26.0 审查,2 高 + 9 中 + ~30 低全修,五路并行按文件所有权落地+集成复核）——安全面**：① anvil-ops submit 私钥安全网三层防御——原安全网仅按文件名拦 `.env*`,GSC 服务账号 JSON（默认命名不命中 .gitignore 密钥模式）会被 `git add -A` 无告警 commit+push 到公开 fork 仓;现文件名层镜像 `\.(pem|key)$`/`*-secret.json$` + 内容层扫暂存 json 前 64KB（`BEGIN PRIVATE KEY`/`"private_key"`）+ 路径层比对 `.env` 的 `GSC_SERVICE_ACCOUNT_JSON` 指向,命中即 unwind+指引,手册 ai-ops 课中英补「钥匙文件放仓库外」;② AdsterraSlot 补齐同意门控——cookie 横幅激活时（BaseLayout 同条件 `PUBLIC_GA_ID || PUBLIC_ADSENSE_CLIENT`）iframe 挂 `data-src` 由 ES2018 inline 脚本在「localStorage 已存 accepted 或收到 `aw:consent-accepted` 事件」后才换 `src`（拒绝/未选永不加载,与 GA/AdSense 同门,兑现横幅「广告等同意」承诺）,横幅不激活（开箱零 tracking env）行为逐字节不变,CookieConsent 在已存/点同意两条路径幂等 dispatch 事件,docs/ads.md「诚实的边界」同步;③ release-ops 祖先守卫去掉 `ref_type == 'tag'` 条件改无条件执行——workflow_dispatch 路径此前只剩 environment 单门,与文件头「双门」叙述不符;④ anvil-ops submit PR body 校验输出包 fenced code block（恶意 MDX 借报错 GFM 注入伪内容根治）;⑤ `_headers` 全站补 `Cross-Origin-Resource-Policy: same-origin` + `/ads/*` 段 `frame-ancestors 'self'`（广告单元页仅可被本站 iframe,整站 CSP 缺席决策不动）。
@@ -1140,7 +1142,8 @@ This release covers everything since v0.2.0: the full PRD roadmap (v1.1–v2.0) 
 - Docs: PRD (1600+ lines), deployment, apply-template (4-step guide), content-format, seo, ads, migration-from-nextjs
 - Build: 27 pages, typecheck 0 errors
 
-[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.26.0...HEAD
+[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.26.1...HEAD
+[2.26.1]: https://github.com/PNGTRID/AnvilWiki/compare/v2.26.0...v2.26.1
 [2.26.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.25.1...v2.26.0
 [2.25.1]: https://github.com/PNGTRID/AnvilWiki/compare/v2.25.0...v2.25.1
 [2.25.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.24.0...v2.25.0

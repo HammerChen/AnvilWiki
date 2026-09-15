@@ -11,7 +11,7 @@
  */
 
 /** Keep in sync with package.json "version" (used by the announcement bar). */
-export const PROJECT_VERSION = '2.26.0';
+export const PROJECT_VERSION = '2.26.1';
 
 export type LandingLocale = 'en' | 'zh';
 
@@ -357,7 +357,7 @@ const en: LandingContent = {
   description:
     'An open-source game wiki template with an AI-native content workflow: pick the right game, generate pages by talking to your AI tool, codes pages stay fresh on autopilot. Lighthouse 4×100, free on Cloudflare, 100% ad revenue yours.',
   announcement: {
-    text: `AnvilWiki template update log (v${PROJECT_VERSION}): Adsterra ad slots are now built in — six env-gated units mounted in sandboxed iframes across articles, the handbook, and the landing layer. A slot renders nothing while its env var is empty, so forks ship ad-free out of the box. Zero fork migration: merge upstream and pnpm install as usual. This bar tracks template releases — details & full changelog on GitHub Releases.`,
+    text: `AnvilWiki template update log (v${PROJECT_VERSION}): second full code-review pass closed — 47 findings fixed across correctness, maintainability, and security. Highlights: the zero-terminal setup workflow no longer corrupts wrangler.toml, anvil-ops submit refuses to stage private-key files, and Adsterra units now wait for cookie consent like GA/AdSense. Re-running apply-template preserves your wrangler [vars]. Zero fork migration: merge upstream and pnpm install as usual. This bar tracks template releases — details & full changelog on GitHub Releases.`,
     href: RELEASES,
     dismissLabel: 'Dismiss announcement',
   },
@@ -882,7 +882,7 @@ const zh: LandingContent = {
   description:
     '开源游戏 wiki 模板 + AI 原生内容工作流:选对游戏、和 AI 对话就能产页、codes 页自动保鲜。Lighthouse 4×100、Cloudflare 免费部署、广告收入 100% 归你。',
   announcement: {
-    text: `AnvilWiki 模板更新日志（v${PROJECT_VERSION}）：Adsterra 广告位进模板——六个 env 门控单元以 iframe 隔离挂载在文章页/手册课页/落地层，环境变量为空一律不渲染，fork 开箱零广告。fork 常规 merge 零迁移，照常 pnpm install 即可。本条为模板发版通告，非站点故障；详情与完整变更见 GitHub Releases。`,
+    text: `AnvilWiki 模板更新日志（v${PROJECT_VERSION}）：第二轮全项目代码审查收官——正确性/可维护性/安全性 47 项发现全修。重点：零终端初始化不再写坏 wrangler.toml；anvil-ops submit 拒绝暂存私钥文件；Adsterra 广告位与 GA/AdSense 同门、访客同意后才加载；apply-template 重跑保留你已填的环境变量。fork 常规 merge 零迁移，照常 pnpm install 即可。本条为模板发版通告，非站点故障；详情与完整变更见 GitHub Releases。`,
     href: RELEASES,
     dismissLabel: '关闭公告',
   },
