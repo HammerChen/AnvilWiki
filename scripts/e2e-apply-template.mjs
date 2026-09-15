@@ -26,7 +26,7 @@
  * before running this locally if you want them covered.
  */
 import { execSync, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -119,6 +119,13 @@ for (const p of ['src/config/landing.ts', 'src/components/landing', 'src/pages/l
 if (existsSync(join(scratch, 'public/google8362d9398114b66b.html'))) {
   fail('demo search-console verification file still present — DEMO_PUBLIC_FILES was not cleared');
 }
+// Demo Adsterra unit pages (public/ads/*.html) carry the DEMO's ad-unit keys —
+// config, not template content (DEMO_PUBLIC_FILES). Vacuous until committed.
+for (const unit of ['sticky-320x50', 'sidebar-300x250', 'sidebar-160x300', 'sidebar-160x600', 'incontent-728x90', 'native-banner']) {
+  if (existsSync(join(scratch, 'public', 'ads', `${unit}.html`))) {
+    fail(`demo ad unit page still present after fork init: public/ads/${unit}.html — DEMO_PUBLIC_FILES was not cleared`);
+  }
+}
 const en = JSON.parse(readFileSync(join(scratch, 'src/locales/en.json'), 'utf8'));
 const checks = [
   ['home.meta.title is a string', typeof en.home?.meta?.title === 'string'],
@@ -137,6 +144,7 @@ const checks = [
   ['wrangler.toml has exactly one [vars] section (line-anchored rewrite)', (readFileSync(join(scratch, 'wrangler.toml'), 'utf8').match(/^\[vars\]/gm) || []).length === 1],
   ['wrangler.toml carries no demo Giscus VALUES', !readFileSync(join(scratch, 'wrangler.toml'), 'utf8').includes('PUBLIC_GISCUS_REPO = "PNGTRID')],
   ['wrangler.toml demo-intro warning block removed', !readFileSync(join(scratch, 'wrangler.toml'), 'utf8').includes('FORKERS READ THIS FIRST')],
+  ['wrangler.toml carries no demo Adsterra KEYS (slot lines commented or absent — demo unit keys are config)', !/^\s*PUBLIC_ADSTERRA_SLOT_\w+ += +"[0-9a-f]{16,}"/m.test(readFileSync(join(scratch, 'wrangler.toml'), 'utf8'))],
 ];
 for (const [name, ok] of checks) {
   console.log(`  ${ok ? '✅' : '❌'} ${name}`);
@@ -244,7 +252,7 @@ if (!existsSync(userArticle)) {
 if (existsSync(demoLeftover)) {
   fail('re-run KEPT a demo-authored article — content-aware demo clearing did not classify it');
 }
-if (!/kept \(not demo content/.test((rerun.stdout || '') + (rerun.stderr || ''))) {
+if (!/NOT demo content/.test((rerun.stdout || '') + (rerun.stderr || ''))) {
   fail('re-run did not warn about kept non-demo articles');
 }
 console.log('  ✅ user-authored article survived the re-run; demo-authored leftover was cleared');
@@ -267,6 +275,22 @@ for (const p of ['dist/index.html', 'dist/zh/index.html']) {
   if (!html.includes('<title>Test Game Wiki')) fail(`${p}: homepage <title> missing`);
   if (html.includes('object Object')) fail(`${p}: an object was rendered as [object Object]`);
 }
+
+// Ad purity end-to-end: every ad slot is env-gated (empty = renders nothing)
+// and the demo's unit pages are fork-deleted, so a fresh fork's build must
+// contain ZERO ad iframes — a single hit means demo config leaked into the
+// template or a slot lost its env gate.
+step('Assert zero ad iframes in the fork build');
+const adRefs = [];
+(function walkAds(dir) {
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, e.name);
+    if (e.isDirectory()) walkAds(p);
+    else if (e.name.endsWith('.html') && readFileSync(p, 'utf8').includes('src="/ads/')) adRefs.push(p);
+  }
+})(join(scratch, 'dist'));
+if (adRefs.length) fail(`ad iframes rendered in the fork build (template must ship ad-free): ${adRefs.join(', ')}`);
+console.log('  ✅ no ad iframes anywhere in dist');
 if (failed) process.exit(1);
 
 console.log('\n✅ E2E passed — apply-template real mode produces a buildable site');
