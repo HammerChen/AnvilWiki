@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.27.1] — 2026-09-15
+
+### Changed
+
+- **类型逃生口收敛（P2 复杂度治理第一刀,群友「誓言」外部审查报告,零行为变更）**：src/ 下 16 处 `as unknown as` 双跳断言全数根除——`getUi` 返回 `typeof en` 结构化类型本就贯通,直接 `ui.shared`/`ui.footer` 即可（ui.ts 早已导出但全仓无人使用的 `SharedUi` 类型启用）；shared-ui helper 返回 `Partial<SharedUi>`（7 个既有调用者「扁平键 + ?? 英文兜底」契约不变）；收敛过程暴露 3 处被断言掩盖的真实动态访问并修正（SiteFooter socials/legalLinks 循环键改 `keyof typeof footer` 真类型化 + `satisfies` 校验字面量；ArticlePage 主断言）；约 10 处二次断言（`as string`/`as Array<>`/`as Record<>`）一并删除；动态键访问（`nav[category]`/`overview[category]`）有意保留并归后续拆分批；新契约测试：src/ 全域 `as unknown as` 零容忍扫描（注释剥离 + 扫描量 sanity 防静默腐烂,先例：is:inline ES2018 门禁）；AGENTS Engineering Constraints 新增第 13 条「复杂度预算」+ docs/development.md 新 §6（归属层判定/核心文件体积敏感清单七文件基线/构建零 warning 常态化）；typecheck/lint/test 265 全绿,7 个代表页 dist **逐字节零漂移**实证零行为变更。
+
 ## [2.27.0] — 2026-09-15
 
 ### Fixed
@@ -1153,7 +1159,8 @@ This release covers everything since v0.2.0: the full PRD roadmap (v1.1–v2.0) 
 - Docs: PRD (1600+ lines), deployment, apply-template (4-step guide), content-format, seo, ads, migration-from-nextjs
 - Build: 27 pages, typecheck 0 errors
 
-[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.27.0...HEAD
+[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.27.1...HEAD
+[2.27.1]: https://github.com/PNGTRID/AnvilWiki/compare/v2.27.0...v2.27.1
 [2.27.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.26.1...v2.27.0
 [2.26.1]: https://github.com/PNGTRID/AnvilWiki/compare/v2.26.0...v2.26.1
 [2.26.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.25.1...v2.26.0
