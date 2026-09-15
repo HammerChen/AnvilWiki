@@ -8,6 +8,7 @@ import * as path from 'node:path';
 
 import { locales, defaultLocale } from './src/i18n/routing';
 import { CONTENT_TYPES } from './src/config/navigation';
+import { fallbackDetailPaths } from './src/lib/fallback-paths';
 
 /**
  * Build a map of page path → lastmod ISO date, read from MDX frontmatter
@@ -17,7 +18,10 @@ import { CONTENT_TYPES } from './src/config/navigation';
  *
  * Also collects `noindex: true` article paths — pages excluded from search
  * must not appear in the sitemap (rss.xml/llms.txt already filter them; this
- * closes the loop for the third generator).
+ * closes the loop for the third generator). Same for English-fallback detail
+ * URLs (/{locale}/… serving the default-locale article): the page renders
+ * noindex via `resolved.isFallback`, so they are derived from `coverage` and
+ * excluded here too (see fallbackDetailPaths).
  *
  * Also builds `coverage`: "category/slug" → locales that REALLY have an MDX
  * for it. The sitemap alternates must mirror the page-level hreflang truth:
@@ -86,18 +90,6 @@ function buildLastmodMap(
       // page must not ship in the sitemap it asked out of.
       if (/^noindex:\s*(?:true|True|TRUE)\s*$/m.test(fm)) {
         noindexPaths.add(articlePath);
-        // The non-default-locale routes of a default-locale noindex article
-        // still get built (fallback URLs) and inherit the noindex meta —
-        // exclude every prefixed variant too. Skip locales that have their
-        // own MDX of this article: that entry's own frontmatter governs its
-        // page (it may not be noindex).
-        if (loc === defaultLocale) {
-          for (const l of locales) {
-            if (l === defaultLocale) continue;
-            const translated = path.join(base, l, cat, ...rest) + '.mdx';
-            if (!fs.existsSync(translated)) noindexPaths.add(`/${l}${articlePath}`);
-          }
-        }
       }
       map.set(articlePath, date.toISOString());
 
@@ -122,6 +114,17 @@ function buildLastmodMap(
     }
   };
   walk(base);
+
+  // English-fallback detail URLs: built and human-reachable, but the page
+  // renders noindex (ArticlePage passes `resolved.isFallback` through) — the
+  // sitemap must agree, or it submits a URL that asks to be excluded.
+  // Derives from `coverage` (populated by the walk above): every default-
+  // locale article missing a locale's MDX contributes its /{locale}/…
+  // variant — superset of the old per-article fs.existsSync check, which
+  // only covered frontmatter-noindex articles.
+  for (const p of fallbackDetailPaths(coverage, locales, defaultLocale)) {
+    noindexPaths.add(p);
+  }
 
   // Empty (category × locale) list pages: noindex thin content on the page
   // side (ListPage), excluded from the sitemap here. Same paths, same truth.

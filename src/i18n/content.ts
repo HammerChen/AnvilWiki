@@ -15,7 +15,7 @@
  * detail = reachability (a URL shared on social media must never break).
  */
 
-import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import { defaultLocale, type Locale } from './routing';
 import { slugifyTag } from '~/lib/url';
 import { selectRelatedEntries, newestFirst } from '~/lib/content-utils';
@@ -54,20 +54,25 @@ export async function getEntryWithFallback(
   slug: string,
   locale: Locale,
 ): Promise<ResolvedEntry | null> {
-  // Note: getCollection() returns entry.id WITH the .mdx extension, but
-  // getEntry() expects the id WITHOUT the extension. This is an Astro 5
-  // inconsistency. We always query without extension here.
-  const id = `${locale}/${category}/${slug}`;
+  // getCollection() + id map instead of getEntry(): a getEntry miss logs
+  // "Entry … was not found." once per fallback page (every untranslated
+  // /ja/… URL at build time), training the eye to ignore build warnings.
+  // Same lookup, silent. getCollection returns entry.id WITH the .mdx
+  // extension — strip it before matching (Astro Content Layer quirk).
+  const byId = new Map<string, WikiEntry>();
+  for (const e of await getCollection('wiki')) {
+    byId.set(e.id.replace(/\.mdx$/, ''), e);
+  }
 
   // 1. Try the requested locale first.
-  const requested = await getEntry('wiki', id);
+  const requested = byId.get(`${locale}/${category}/${slug}`);
   if (requested && isPublished(requested)) {
     return { entry: requested, servedLocale: locale, isFallback: false };
   }
 
   // 2. Fall back to English (default locale).
   if (locale !== defaultLocale) {
-    const fallback = await getEntry('wiki', `${defaultLocale}/${category}/${slug}`);
+    const fallback = byId.get(`${defaultLocale}/${category}/${slug}`);
     if (fallback && isPublished(fallback)) {
       return { entry: fallback, servedLocale: defaultLocale, isFallback: true };
     }

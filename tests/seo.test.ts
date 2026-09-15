@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import {
   organizationJsonLd,
   websiteJsonLd,
@@ -8,7 +10,11 @@ import {
   faqPageJsonLd,
   pageTitle,
 } from '~/lib/seo';
+import { fallbackDetailPaths } from '~/lib/fallback-paths';
 import { site } from '~/config/site';
+
+/** Repo-root-relative source text (contract-test helper, handbook.test.ts style). */
+const src = (rel: string) => readFileSync(fileURLToPath(new URL(`../${rel}`, import.meta.url)), 'utf8');
 
 describe('SEO helpers', () => {
   describe('organizationJsonLd', () => {
@@ -135,6 +141,62 @@ describe('SEO helpers', () => {
       const long = 'Best Weapons and Armor for Early Game Players Ranked';
       const t = pageTitle(long);
       expect(t).toBe(`${long} — ${site.shortName}`);
+    });
+  });
+
+  describe('fallbackDetailPaths', () => {
+    const locales = ['en', 'ja'] as const;
+    // Coverage shape mirrors astro.config's localeCoverage: "cat/slug" →
+    // locales that really have a published MDX.
+    const coverage = new Map<string, Set<string>>([
+      // English-only article → /ja/ URL is a fallback page.
+      ['bosses/stormcaller', new Set(['en'])],
+      // Translated in both locales → both URLs are real pages.
+      ['bosses/emberfang', new Set(['en', 'ja'])],
+      // ja-only article → /ja/ is real; en never falls back (no /ja/-owned
+      // English URL exists to begin with).
+      ['guides/ja-only', new Set(['ja'])],
+      // Nested slug folds into the key after the category.
+      ['guides/nested/deep-slug', new Set(['en'])],
+      // CJK slug keeps raw filesystem names (sitemap filter decodes first).
+      ['items/熔炉之心', new Set(['en'])],
+    ]);
+
+    it('derives one path per non-default locale missing a translation of a default-locale article', () => {
+      expect(fallbackDetailPaths(coverage, locales, 'en')).toEqual([
+        '/ja/bosses/stormcaller',
+        '/ja/guides/nested/deep-slug',
+        '/ja/items/熔炉之心',
+      ]);
+    });
+
+    it('never emits paths for the default locale, translated slugs, or locale-owned articles', () => {
+      const paths = fallbackDetailPaths(coverage, locales, 'en');
+      expect(paths).not.toContain('/en/bosses/stormcaller');
+      expect(paths).not.toContain('/ja/bosses/emberfang');
+      expect(paths).not.toContain('/en/guides/ja-only');
+      // With a single locale there is nothing to fall back to.
+      expect(fallbackDetailPaths(coverage, ['en'], 'en')).toEqual([]);
+    });
+
+    it('is deterministic across calls (sorted keys, locales in order)', () => {
+      const a = fallbackDetailPaths(coverage, locales, 'en');
+      const b = fallbackDetailPaths(new Map(coverage), locales, 'en');
+      expect(a).toEqual(b);
+      expect(a).toEqual([...a].sort());
+    });
+  });
+
+  describe('fallback noindex wiring (contract)', () => {
+    it('astro.config.ts derives sitemap exclusions from fallbackDetailPaths', () => {
+      const config = src('astro.config.ts');
+      expect(config).toContain("from './src/lib/fallback-paths'");
+      expect(config).toContain('fallbackDetailPaths(coverage, locales, defaultLocale)');
+    });
+
+    it('ArticlePage passes isFallback into the noindex prop', () => {
+      const page = src('src/components/article/ArticlePage.astro');
+      expect(page).toContain('noindex={entry.data.noindex || isFallback}');
     });
   });
 });

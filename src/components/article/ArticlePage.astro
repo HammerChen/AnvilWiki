@@ -151,6 +151,11 @@ const jsonLd = [
 ];
 ---
 
+{/* English-fallback pages (requested locale missing, PR served the
+     default-locale article) render noindex so search engines never see two
+     self-canonical copies of the same content; sitemap exclusion mirrors
+     this in astro.config.ts via fallbackDetailPaths. Translation landing
+     flips isFallback to false and re-admits the page automatically. */}
 <LocaleLayout
   locale={locale}
   title={pageTitle(entry.data.title)}
@@ -160,7 +165,7 @@ const jsonLd = [
   availableLocales={availableLocales}
   article={true}
   jsonLd={jsonLd}
-  noindex={entry.data.noindex}
+  noindex={entry.data.noindex || isFallback}
   ogImageWidth={entry.data.image?.width}
   ogImageHeight={entry.data.image?.height}
   articlePublished={entry.data.date}
