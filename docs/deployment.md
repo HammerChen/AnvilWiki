@@ -67,7 +67,7 @@ Cloudflare 会自动检测 Astro，但请确认以下设置：
 | `SITE_URL`                | `https://<project>.pages.dev` | **先用临时域名**，必须含 `https://` 前缀 |
 | `PUBLIC_ADSENSE_CLIENT`    | （你的 AdSense Publisher ID） | 可选，留空则不显示广告                 |
 
-> ⚠️ **`SITE_URL` 必须含 `https://` 前缀**（如 `https://anvilquestwiki.wiki`，不是裸域名 `anvilquestwiki.wiki`）。Astro 把它当 URL 解析，裸域名会让 build 报 `Invalid url`。它影响 sitemap、og:image、robots.txt 里所有绝对 URL 的生成。
+> ⚠️ **`SITE_URL` 必须含 `https://` 前缀**（如 `https://your-domain.wiki`，不是裸域名 `your-domain.wiki`）。Astro 把它当 URL 解析，裸域名会让 build 报 `Invalid url`。它影响 sitemap、og:image、robots.txt 里所有绝对 URL 的生成。
 
 #### wrangler.toml 接管警告
 
@@ -115,7 +115,7 @@ Cloudflare 会自动检测 Astro，但请确认以下设置：
 ### Step 2 — 在 Cloudflare 配域名
 
 1. 进入你的 Pages 项目 → **Custom domains** → **Set up a custom domain**
-2. 输入你的域名（如 `anvilquestwiki.wiki`）
+2. 输入你的域名（如 `your-domain.wiki`）
 3. Cloudflare 会给你一条 **CNAME 记录**：
    ```
    类型:  CNAME
@@ -129,11 +129,11 @@ Cloudflare 会自动检测 Astro，但请确认以下设置：
 
 DNS 生效后，改 `SITE_URL` 为你的真实域名。**根据你部署时的选择**：
 
-- **如果删了 `wrangler.toml`**：去 Cloudflare Pages → **Settings** → **Environment variables**，把 `SITE_URL` 改成 `https://anvilquestwiki.wiki`。
+- **如果删了 `wrangler.toml`**：去 Cloudflare Pages → **Settings** → **Environment variables**，把 `SITE_URL` 改成 `https://your-domain.wiki`。
 - **如果保留了 `wrangler.toml`**：改 `wrangler.toml` 里 `[vars]` 的 `SITE_URL`，commit + push。
 
 ```
-SITE_URL=https://anvilquestwiki.wiki
+SITE_URL=https://your-domain.wiki
 ```
 
 然后触发一次重新部署（push 一个空 commit，或在 dashboard 点 **Retry deployment**）。

@@ -71,7 +71,7 @@
 ```
 1. development.md         ← 开发指导:三层架构、加功能的模式、验证清单、发版流程(必读)
 2. PRD.md 第 3-13 章      ← 架构与每个模块的设计依据
-3. AGENTS.md              ← 工程约束 + Astro 5 踩坑清单(6 条,全是实测)
+3. AGENTS.md              ← 工程约束 + Astro Content Layer 踩坑清单(6 条,5→6→7 迁移全重验)
 4. development.md 的发版流程 ← 改完代码怎么验证、怎么发版
 ```
 

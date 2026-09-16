@@ -1,6 +1,6 @@
 ---
 title: "Read the Map First: What to Change, What to Leave Alone"
-description: "Three layers — code (rarely touched), config (once per game), content (daily). The decision tree locates any change in 30 seconds, plus six Astro 5 gotchas."
+description: "Three layers — code (rarely touched), config (once per game), content (daily). A 30-second decision tree for any change, plus six Astro gotchas (5→7 re-verified)."
 manual: dev
 order: 1
 icon: lucide:layers
@@ -63,9 +63,9 @@ Short answer: from draft to live, an article passes through four stations.
 
 Multilingual has one **deliberately asymmetric** rule: when a player opens the URL of an article you only wrote in English, the site shows the English version (that URL never fails to open); but a category list page only shows articles that really exist in that language (no fake empty pages). The former optimizes for "always opens"; the latter for "never lies".
 
-## Six Astro 5 gotchas (only needed when you edit the code layer)
+## Six Astro gotchas (only needed when you edit the code layer)
 
-All six were hit in real debugging. Content-layer and config-layer work never needs them:
+All six were hit in real debugging and re-verified item-by-item through the Astro 5→6→7 migration. Content-layer and config-layer work never needs them:
 
 1. An article's internal id carries the `.mdx` suffix, but queries must strip it (the repo already wraps this — don't concatenate strings yourself).
 2. The old Astro `entry.render()` style is gone; use the standalone `render()` function.

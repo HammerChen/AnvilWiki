@@ -127,7 +127,7 @@ AnvilWiki 面向「游戏 wiki 站点」这一特定场景，在框架、部署�
 
 | 层 | 选型 | 版本 | 理由 |
 |---|---|---|---|
-| **框架** | Astro | 5.x（最新稳定） | 静态优先，岛屿架构（只在交互处 hydrate），零 JS by default，Cloudflare 原生友好。 |
+| **框架** | Astro | 7.x（v2.23.0 自 5.x 两跳迁移，fork 常规 merge 零迁移） | 静态优先，岛屿架构（只在交互处 hydrate），零 JS by default，Cloudflare 原生友好。 |
 | **输出模式** | `output: 'static'` | — | 纯静态 HTML，无需 adapter，直接部署 Cloudflare Pages。 |
 | **内容** | Content Layer API + `glob()` loader | 内置 | 类型安全，Zod schema 校验，构建时发现字段错误。配合 YAML frontmatter，替代 `export const metadata = {}` 方案。 |
 | **MDX** | `@astrojs/mdx` | latest | 支持 MDX 组件 + YAML frontmatter，兼容标准 MDX 内容。 |
@@ -355,8 +355,8 @@ anvilwiki/
 
 ### 5.1 目录设计要点
 
-1. **内容在 `src/content/wiki/<locale>/`**：Astro 5 Content Layer API 用 `glob({ base: './src/content/wiki' })` 显式指定；直接放 `src/content/<locale>/` 会触发 legacy 自动集合（deprecation 警告），所以必须有 `wiki/` 这一层。
-2. **`src/content.config.ts`**：Astro 5 约定位置（根目录无副本）。
+1. **内容在 `src/content/wiki/<locale>/`**：Astro Content Layer API 用 `glob({ base: './src/content/wiki' })` 显式指定；直接放 `src/content/<locale>/` 会触发 legacy 自动集合（deprecation 警告），所以必须有 `wiki/` 这一层。
+2. **`src/content.config.ts`**：Astro 约定位置（根目录无副本）。
 3. **配置文件集中在 `src/config/`**：新手套用模板时只关注这一个目录 + `globals.css` + `locales/`。
 4. **`scripts/` 提供脚手架与门禁**：降低写 MDX 门槛 + CI 可跑的检查脚本。
 5. **`docs/` 完整文档**：每个关注点一个文件，README 只做导航；handbook markdown 是站内文档中心的单一源。
@@ -401,7 +401,7 @@ export const collections = { wiki, handbook };
 
 **Content Collections 的优势**：
 - YAML frontmatter + Zod schema，**构建时校验**，字段缺失/类型错误立即 fail build。
-- 类型安全的 entry（`{ id, data, body }`；Astro 5 Content Layer API 中渲染用独立 `render(entry)` 函数，`entry.render()` 方法已不存在——见 AGENTS.md 踩坑清单）。
+- 类型安全的 entry（`{ id, data, body }`；Astro Content Layer API 中渲染用独立 `render(entry)` 函数，`entry.render()` 方法已不存在——见 AGENTS.md 踩坑清单）。
 - frontmatter 与正文分离，MDX 作者只关心内容，字段规范由 schema 强约束。
 
 ### 6.2 文章示例
@@ -430,7 +430,7 @@ export interface SiteConfig {
   name: string;              // "Anvil Quest Wiki"（全站 title 后缀、JSON-LD name）
   shortName: string;         // "AQ Wiki"（PWA short_name、Logo 缩写）
   description: string;       // 站点描述（Organization JSON-LD、og:site_name）
-  domain: string;            // "anvilquestwiki.wiki"（sitemap/robots 绝对 URL 拼接）
+  domain: string;            // "your-domain.wiki"（sitemap/robots 绝对 URL 拼接）
   tagline: string;           // 首页副标题
   legalNotice: string;       // 法律声明
   social: {
@@ -865,7 +865,7 @@ export default defineConfig({
 });
 ```
 
-> **验证状态**：已确认 Astro 5 原生支持 `prefixDefaultLocale: false`（即 as-needed 前缀策略，默认语言无前缀）。原「待验证清单」第 1 条 ✅ 通过。
+> **验证状态**：已确认 `prefixDefaultLocale: false` 原生支持（即 as-needed 前缀策略，默认语言无前缀）——Astro 5 时验证，v2.23.0 迁移 7.x 重验仍成立。原「待验证清单」第 1 条 ✅ 通过。
 
 ### 9.2 路由实现
 
@@ -1192,7 +1192,7 @@ pages_build_output_dir = "dist"
 
 所有环境变量在 Cloudflare Pages 项目 Settings → Environment variables 配置。支持 Production / Preview 两套。
 
-**关键**：`SITE_URL` 必须在 production 配为最终域名（如 `https://anvilquestwiki.wiki`），影响 sitemap / og:image / robots 的绝对路径生成。
+**关键**：`SITE_URL` 必须在 production 配为最终域名（如 `https://your-domain.wiki`），影响 sitemap / og:image / robots 的绝对路径生成。
 
 ---
 
@@ -1451,7 +1451,7 @@ describe('sitemap', () => {
 
 | 变量名 | 用途 | 示例 | 必填 |
 |---|---|---|---|
-| `SITE_URL` | 站点绝对 URL（sitemap/og:image/robots 拼接用） | `https://anvilquestwiki.wiki` | ✅ |
+| `SITE_URL` | 站点绝对 URL（sitemap/og:image/robots 拼接用） | `https://your-domain.wiki` | ✅ |
 
 ### A.2 广告（Google AdSense）
 
@@ -1479,8 +1479,16 @@ describe('sitemap', () => {
 
 | 变量名 | 用途 |
 |---|---|
-| `PUBLIC_GA_ID` | Google Analytics ID（如 `G-XXXXXXXX`） |
+| `PUBLIC_GA_ID` | Google Analytics ID（如 `G-XXXXXXXX`；有 cookie，经同意横幅门控） |
+| `PUBLIC_CF_BEACON_TOKEN` | Cloudflare Web Analytics beacon token（无 cookie，不需同意横幅） |
 | `PUBLIC_GSC_VERIFICATION` | Google Search Console 验证 token |
+| `PUBLIC_SPONSOR_URL` | 赞助/捐赠卡链接（空 = 不渲染） |
+| `PUBLIC_SPONSOR_IMAGE_URL` | 赞助卡二维码/横幅图（空 = 只显示文字卡） |
+| `PUBLIC_GISCUS_REPO` | Giscus 仓库（`owner/repo`，4 个必填项之一） |
+| `PUBLIC_GISCUS_REPO_ID` | Giscus 仓库 ID（4 个必填项之一） |
+| `PUBLIC_GISCUS_CATEGORY` | Giscus Discussion 分类名（4 个必填项之一） |
+| `PUBLIC_GISCUS_CATEGORY_ID` | Giscus 分类 ID（4 个必填项之一） |
+| `PUBLIC_GISCUS_MAPPING` | Giscus 页面映射方式，默认 `pathname`（唯一可选项） |
 
 ### A.4 环境变量示例文件
 
@@ -1505,6 +1513,19 @@ PUBLIC_ADSTERRA_SLOT_SIDEBAR_160X600=
 
 # 分析（可选）
 PUBLIC_GA_ID=
+PUBLIC_CF_BEACON_TOKEN=
+PUBLIC_GSC_VERIFICATION=
+
+# 赞助卡（可选）
+PUBLIC_SPONSOR_URL=
+PUBLIC_SPONSOR_IMAGE_URL=
+
+# Giscus 评论（可选，4 个必填项全填才开启）
+PUBLIC_GISCUS_REPO=
+PUBLIC_GISCUS_REPO_ID=
+PUBLIC_GISCUS_CATEGORY=
+PUBLIC_GISCUS_CATEGORY_ID=
+PUBLIC_GISCUS_MAPPING=pathname
 ```
 
 ---
