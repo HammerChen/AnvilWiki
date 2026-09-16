@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.29.0] — 2026-09-16
+
 ### Fixed
 
 - **anvil-ops 1.0.4——submit 私钥安全网引号路径绕过(十五轮 24h 审计唯一 HIGH)**:staged 清单取自 `git diff --cached --name-only` 未加 `-z`+`core.quotePath=false`,git 默认 quotePath=true 会把非 ASCII/含引号文件名 C-quote 成 `"\350..."` 八进制转义串——带引号串匹配不上文件名模式、进不了内容扫描、比对不上 .env GSC 路径,三层防线全部静默落空后 commit+push 照常执行=零警告泄钥;现清单改 `-z`(NUL 分隔,顺带容忍文件名含换行)+禁 quotePath 获取,新增真实 git 集成测试以 `谷歌密钥.json` 复现钉死。配套三件:①内容扫描**去扩展名门**——staged 全文件做 64KB 头扫描,不再只查 .json/无扩展名(.md 草稿贴 key 同样拦截);②**submit 跨进程文件锁**(tmpdir 按 site realpath 键控,owner pid 活性检测、死锁自动盗取,包住 CLI+MCP+offload worker;src/mcp 进程内 mutex 保留为快路径,watchdog 10min 释放与 spawnSync 15min 僵尸窗口的并发面一并关死);③PR body **GFM 围栏按 summary 内最长反引号串自适应**(固定 ``` 会被工具输出里的 ``` 提前闭合)+offload worker **exit 事件兜底**(硬崩退出不再伪装成 10 分钟 watchdog 超时)。
@@ -1176,7 +1178,8 @@ This release covers everything since v0.2.0: the full PRD roadmap (v1.1–v2.0) 
 - Docs: PRD (1600+ lines), deployment, apply-template (4-step guide), content-format, seo, ads, migration-from-nextjs
 - Build: 27 pages, typecheck 0 errors
 
-[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.28.0...HEAD
+[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.29.0...HEAD
+[2.29.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.28.0...v2.29.0
 [2.28.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.27.1...v2.28.0
 [2.27.1]: https://github.com/PNGTRID/AnvilWiki/compare/v2.27.0...v2.27.1
 [2.27.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.26.1...v2.27.0

@@ -11,7 +11,7 @@
  */
 
 /** Keep in sync with package.json "version" (used by the announcement bar). */
-export const PROJECT_VERSION = '2.28.0';
+export const PROJECT_VERSION = '2.29.0';
 
 export type LandingLocale = 'en' | 'zh';
 
@@ -359,7 +359,7 @@ const en: LandingContent = {
   description:
     'An open-source game wiki template with an AI-native content workflow: pick the right game, generate pages by talking to your AI tool, codes pages stay fresh on autopilot. Lighthouse 4×100, free on Cloudflare, 100% ad revenue yours.',
   announcement: {
-    text: `AnvilWiki template update log (v${PROJECT_VERSION}): article pages now carry a dismissible mobile-only ad anchor (bottom edge, consent-gated, zero layout shift — reading comes first), credits are linked, and a complexity budget now governs future changes. Zero fork migration: merge upstream and pnpm install as usual. This bar tracks template releases — details & full changelog on GitHub Releases.`,
+    text: `AnvilWiki template update log (v${PROJECT_VERSION}): security-hardening release — the ops toolkit's private-key safety net now survives git's quoted (non-ASCII) file paths, submit gained a cross-process lock, and apply-template re-runs no longer silently reset hand-edited env values; plus mobile anchor safe-area polish. Zero fork migration: merge upstream and pnpm install as usual. This bar tracks template releases — details & full changelog on GitHub Releases.`,
     href: RELEASES,
     dismissLabel: 'Dismiss announcement',
   },
@@ -889,7 +889,7 @@ const zh: LandingContent = {
   description:
     '开源游戏 wiki 模板 + AI 原生内容工作流:选对游戏、和 AI 对话就能产页、codes 页自动保鲜。Lighthouse 4×100、Cloudflare 免费部署、广告收入 100% 归你。',
   announcement: {
-    text: `AnvilWiki 模板更新日志（v${PROJECT_VERSION}）：文章页新增移动端广告锚位（仅手机、贴底、可一键关闭、同意后才加载、零布局偏移——阅读优先）,致谢已挂链接,复杂度预算成文约束后续改动。fork 常规 merge 零迁移，照常 pnpm install 即可。本条为模板发版通告，非站点故障；详情与完整变更见 GitHub Releases。`,
+    text: `AnvilWiki 模板更新日志（v${PROJECT_VERSION}）：安全加固版——ops 工具箱私钥安全网修复 git 引号路径（非 ASCII 文件名）绕过、submit 新增跨进程锁、apply-template 重跑不再静默重置手改的 env 值；移动端锚位 safe-area 补偿修正。fork 常规 merge 零迁移，照常 pnpm install 即可。本条为模板发版通告，非站点故障；详情与完整变更见 GitHub Releases。`,
     href: RELEASES,
     dismissLabel: '关闭公告',
   },
