@@ -54,7 +54,7 @@
 
 **跑完这一节你会得到**:一个跑在 Cloudflare 免费版上、属于你自己的 wiki 站(先以 demo 内容上线,换成你的游戏、清掉 demo,随时可以做)。
 
-**开始前需要**:[Node.js 22+](https://nodejs.org) 和 pnpm(没装 pnpm?终端跑 `npm install -g pnpm`;或跟着[学习手册「装好 6 样工具」一课](https://anvil.wiki/zh/landing/docs/install-tools)把 6 样工具一次装齐)。
+**开始前需要**:[Node.js 22.13+](https://nodejs.org)(pnpm 11 的版本门槛) 和 pnpm(没装 pnpm?终端跑 `npm install -g pnpm`;或跟着[学习手册「装好 6 样工具」一课](https://anvil.wiki/zh/landing/docs/install-tools)把 6 样工具一次装齐)。
 
 ```bash
 # 1. Fork 本仓库(仓库右上角 Fork 按钮),然后克隆你的 fork(换成你的 GitHub 用户名)
@@ -97,7 +97,7 @@ AnvilWiki 是一个**游戏 SEO 内容站模板**——用来快速搭建围绕�
 - 🤖 **AI 对话即产页**:内容技能随仓库分发(`.agent/skills/`),对 ZCode / Claude Code / Codex 说「根据这些笔记写篇攻略」,产出自动通过构建质检;批量产页走 **PR 门控管道**——AI 写、八道质量门禁验、你审完才合并([docs/content-pipeline.md](docs/content-pipeline.md))
 - 🧭 **一套工具管 N 个站**:`anvilwiki-ops`(npx 免安装 + MCP)让 AI 替你拉 GSC/Cloudflare 数据、给优化清单,并追踪 ChatGPT/Perplexity 等 **AI 引用来路**([docs/multi-site.md](docs/multi-site.md))
 - 🧰 **产能三件套**:`pnpm template-audit` 检查「这个站还能不能干净复制成下一个」、`pnpm bulk-new-posts` 从关键词清单批量铺内页草稿、`pnpm gen-covers` 自动生成 1200×675 封面(中日文标题自动配字体)
-- 💰 **变现三件套**:AdSense 广告位 ×3 + 联盟链接组件 + 文末建议位,全部默认关闭、env/config 驱动,收入 100% 归你([docs/ads.md](docs/ads.md))
+- 💰 **变现三件套**:AdSense 广告位 ×3 + 联盟链接组件 + 文末建议位(另内置 Adsterra 隔离槽位,含移动端底部锚位),全部默认关闭、env/config 驱动,收入 100% 归你([docs/ads.md](docs/ads.md))
 - 🔍 **SEO 工程化**:sitemap(含 lastmod)/ JSON-LD 全套 / hreflang / Quick Answer 摘要块 / llms.txt(AI 搜索),全部自动生成
 - ⚡ **Lighthouse 4×100 开箱即得**:Astro 零 JS 优先,开了广告也不掉分
 - 🆓 **零成本**:Cloudflare Pages 免费无限带宽 + 全球 CDN + SSL,永远没有服务器账单
@@ -132,7 +132,7 @@ fork 后用 ZCode / Claude Code / Codex / Cursor 打开仓库,直接对话即可
 
 | | AnvilWiki | Fandom 类平台 | 自建 Next.js |
 | --- | --- | --- | --- |
-| 广告收入 | **100% 归你**(自带 AdSense 位) | 平台抽成 | 归你,但要自己接 |
+| 广告收入 | **100% 归你**(自带 AdSense/Adsterra 位) | 平台抽成 | 归你,但要自己接 |
 | 每月成本 | **¥0**(Cloudflare Pages 免费无限带宽) | 免费(代价是失去控制权) | Vercel 免费额度有限 |
 | Lighthouse | **4×100 开箱即得** | 平台决定 | 自己调优数周 |
 | AI 产页 | **技能随仓库分发,对话即产页** | 无 | 自己搭 |
@@ -193,7 +193,7 @@ fork 后用 ZCode / Claude Code / Codex / Cursor 打开仓库,直接对话即可
 
 **What you'll have when this section is done**: your own wiki live on Cloudflare's free tier (it ships with demo content first — rebranding and demo removal come whenever you're ready).
 
-**Prerequisites**: [Node.js 22+](https://nodejs.org) and pnpm (no pnpm? run `npm install -g pnpm` — or let [the "Install the 6 Tools" lesson](https://anvil.wiki/landing/docs/install-tools) walk you through all six tools).
+**Prerequisites**: [Node.js 22.13+](https://nodejs.org) (the pnpm 11 floor) and pnpm (no pnpm? run `npm install -g pnpm` — or let [the "Install the 6 Tools" lesson](https://anvil.wiki/landing/docs/install-tools) walk you through all six tools).
 
 ```bash
 # 1. Fork this repo (Fork button, top right), then clone YOUR fork (replace the username)
@@ -232,7 +232,7 @@ AnvilWiki is an **open-source game wiki site template**: build a content site ar
 - 🤖 **Talk to generate pages**: agent skills ship inside the repo (`.agent/skills/`) — say "write a boss guide from these notes" and get a build-check-passing page; batches go through a **PR-gated pipeline** — AI writes, 8 quality gates verify, you review and merge ([docs/content-pipeline.md](docs/content-pipeline.md))
 - 🧭 **Run N sites from one toolkit**: `anvilwiki-ops` (npx + MCP) lets your AI pull GSC/Cloudflare data, rank SEO actions, and track **AI referrals** from ChatGPT/Perplexity ([docs/multi-site.md](docs/multi-site.md))
 - 🧰 **Production trio**: `pnpm template-audit` scores how cleanly this site can be copied into the next game's, `pnpm bulk-new-posts` scaffolds a batch of inner pages from a keyword list, `pnpm gen-covers` auto-generates 1200×675 covers (CJK titles auto-fonted)
-- 💰 **Monetization trio**: 3 AdSense slots + affiliate link component + end-of-article suggestion cards — all off by default, env/config-gated, 100% revenue yours ([docs/ads.md](docs/ads.md))
+- 💰 **Monetization trio**: 3 AdSense slots + affiliate link component + end-of-article suggestion cards (plus sandboxed Adsterra slots incl. a mobile bottom anchor) — all off by default, env/config-gated, 100% revenue yours ([docs/ads.md](docs/ads.md))
 - 🔍 **SEO engineering**: sitemap (lastmod) / JSON-LD suite / hreflang / Quick Answer blocks / llms.txt — all automatic
 - ⚡ **Lighthouse 4×100 out of the box**: zero-JS-first Astro, stays green with ads on
 - 🆓 **Free forever**: Cloudflare Pages, unlimited bandwidth, global CDN, SSL
@@ -267,7 +267,7 @@ The full prompt library (game selection, page generation, batch production, tran
 
 | | AnvilWiki | Fandom-style platforms | DIY Next.js |
 | --- | --- | --- | --- |
-| Ad revenue | **100% yours** (AdSense slots built in) | Platform takes a cut | Yours, but you wire it up |
+| Ad revenue | **100% yours** (AdSense/Adsterra slots built in) | Platform takes a cut | Yours, but you wire it up |
 | Monthly cost | **$0** (Cloudflare Pages free unlimited bandwidth) | Free (at the cost of control) | Vercel free tier is limited |
 | Lighthouse | **4×100 out of the box** | Platform decides | Weeks of tuning |
 | AI page generation | **Skills ship with the repo — talk to generate** | None | Build it yourself |

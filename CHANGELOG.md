@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **AGENTS Engineering Constraints 新增第 14 条「全仓一致性扫描」**:任何优化(文案/版本号/功能/文档)必须全仓一致性扫描并禁止「这里更新了那里还是旧版」——把长期只存在于维护者个人记忆的用户工作指令(2026-08-15)收编为所有 agent 的 workspace 契约;发版同步面见 docs/development.md 发版清单。同批补录 06291d5 进 [2.29.0](文章页 meta 行 flex-wrap,v2.21.0 移动批漏网)。
 
+### Fixed
+
+- **文档漂移修复批(7 天变更对照审计,零代码变更)**:①tools/anvil-ops README 状态行 1.0.2→1.0.4,并补记 submit 两道护栏——私钥安全网(文件名镜像 gitignore/全 staged 文件 64KB 头扫描/.env GSC 路径比对,staged 清单 `-z`+`core.quotePath=false` 使非 ASCII 文件名按真名筛查)与跨进程文件锁(site realpath 键控+owner pid 活性盗死锁,包 CLI/MCP/offload),此前仅 handbook 一句带过;②AGENTS Ops Toolkit 段 semver 1.0.3→1.0.4、ops 测试计数 162→169(实跑确认,该两处无门禁纯纪律);③PRD 第 10 章新增 §10.7「Adsterra 扩展位」(AdsterraSlot sandbox 契约与诚实边界/MobileAnchorAd/DEMO_PUBLIC_FILES 双通道清理——v2.26.0–v2.28.0 广告批此前正文零覆盖,仅存于更新记录表)+附录 A.2 补 6 个 `PUBLIC_ADSTERRA_SLOT_*` 变量表+A.4 示例块同步(`.env.example` v2.26.0 起已含,PRD 是落后方);④deployment.md 环境变量清单补 Adsterra 6 键+方案 B `[vars]` 改值指引补 GA/Adsterra 键名;⑤apply-template.md demo 凭据行补「重跑 value-aware 保留手改值」保证(v2.26.1 落地、v2.29.0 加固的行为此前无用户文档);⑥README 中英变现行/对比表补 Adsterra 提及、前置要求 Node.js 22+→22.13+(engines `>=22.13.0`,v2.25.0 起)。
+
 ## [2.29.0] — 2026-09-16
 
 ### Fixed

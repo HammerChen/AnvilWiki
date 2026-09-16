@@ -74,7 +74,7 @@ Cloudflare 会自动检测 Astro，但请确认以下设置：
 > 🚨 **重要：`wrangler.toml` 会接管 env 配置。** 本仓库根目录有 `wrangler.toml`，里面声明了 `[vars]` 段。**当 wrangler.toml 存在时，Cloudflare dashboard 的 Environment variables 会被完全忽略**（[官方文档](https://developers.cloudflare.com/pages/functions/wrangler-configuration/)）。所以你有两个选择：
 >
 > - **选项 A（推荐新手）：删掉 `wrangler.toml`**，然后 dashboard 的 Environment variables 就能正常工作。fork 后 `git rm wrangler.toml && git commit`，再在 dashboard 配 env 即可。
-> - **选项 B（保留 wrangler.toml）：改 `wrangler.toml` 的 `[vars]` 值**，把 `SITE_URL` 和 `PUBLIC_GISCUS_*` 改成你自己的，dashboard 不用配（配了也被忽略）。
+> - **选项 B（保留 wrangler.toml）：改 `wrangler.toml` 的 `[vars]` 值**，把 `SITE_URL`、`PUBLIC_GISCUS_*`、`PUBLIC_GA_ID` 与要启用的 `PUBLIC_ADSTERRA_SLOT_*` 改成你自己的，dashboard 不用配（配了也被忽略）。
 >
 > 如果你在 dashboard 配了 env 但 build 时拿不到（症状：组件不渲染、`process.env` 读不到），99% 是踩了这个坑。诊断方法：在 `astro.config.ts` 顶部加一行 `console.log('ENV:', Object.keys(process.env).filter(k => k.startsWith('PUBLIC_')))`，push 后看 build 日志。
 
@@ -203,6 +203,12 @@ Dashboard（方案 C）在 Pages → **Settings** → **Environment variables** 
 | `PUBLIC_ADSENSE_SLOT_STICKY` | 可选 | Sticky 粘顶横幅 slot ID                                |
 | `PUBLIC_ADSENSE_SLOT_SIDEBAR`| 可选 | Sidebar 桌面端侧边栏 slot ID                           |
 | `PUBLIC_ADSENSE_SLOT_INCONTENT` | 可选 | InContent 文章内 slot ID                            |
+| `PUBLIC_ADSTERRA_SLOT_INCONTENT_728X90` | 可选 | Adsterra 728×90 横幅（移动端隐藏）                     |
+| `PUBLIC_ADSTERRA_SLOT_NATIVE_BANNER`    | 可选 | Adsterra 响应式 Native                                 |
+| `PUBLIC_ADSTERRA_SLOT_STICKY_320X50`    | 可选 | Adsterra 文章页底部锚位（`MobileAnchorAd`）            |
+| `PUBLIC_ADSTERRA_SLOT_SIDEBAR_160X300`  | 可选 | Adsterra 160×300 竖幅（手册课页粘性）                  |
+| `PUBLIC_ADSTERRA_SLOT_SIDEBAR_160X600`  | 可选 | Adsterra 160×600 竖幅（≥1700px 视口页边固定）          |
+| `PUBLIC_ADSTERRA_SLOT_SIDEBAR_300X250`  | 可选 | Adsterra 300×250（示例单元，模板未挂载）               |
 | `PUBLIC_GA_ID`              | 可选 | Google Analytics ID（有 cookie，经同意横幅门控）       |
 | `PUBLIC_CF_BEACON_TOKEN`    | 可选 | Cloudflare Web Analytics beacon token（无 cookie）     |
 | `PUBLIC_GSC_VERIFICATION`   | 可选 | Google Search Console 验证 meta token                 |

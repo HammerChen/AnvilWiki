@@ -73,6 +73,8 @@ Content layer (src/content, src/locales)                   — fully replace per
 
 广告系统基于 Google AdSense,3 个广告位(Sticky / Sidebar / InContent)各一个 `<AdSenseSlot position="...">` 组件。`AdSenseSlot` 根据 `position` 读对应的 `PUBLIC_ADSENSE_SLOT_*` 环境变量,渲染 `<ins class="adsbygoogle">` 标签。`PUBLIC_ADSENSE_CLIENT` 或对应 slot ID 为空时组件 `return null` 不渲染(保 Lighthouse 4×100 开箱契约)。AdSense loader 由 `BaseLayout.astro` 在 `<head>` 注入,仅当 `PUBLIC_ADSENSE_CLIENT` 有值时加载。详见 PRD §10。
 
+Adsterra(v2.26.0 起)是并存的第二广告网络:`AdsterraSlot`(每单元一个 `public/ads/<name>.html` + sandbox iframe,env `PUBLIC_ADSTERRA_SLOT_<NAME>` 门控,空=不渲染,与 GA/AdSense 同一同意门控)+ `MobileAnchorAd`(v2.28.0,文章页 320×50 底部锚位,env `PUBLIC_ADSTERRA_SLOT_STICKY_320X50`)。预挂位总清单与接入教程见 `docs/ads.md`,架构见 PRD §10.7,env 全表见 PRD 附录 A.2。
+
 ## Conversational Content Authoring (AI-native page generation)
 
 Fork users drive this template from AI coding agents (ZCode / Claude Code / Codex / Cursor). They should be able to say "write a boss guide from these notes" and get a build-passing MDX page — no scripts required for authoring. Rules for any agent creating content:
@@ -114,12 +116,12 @@ pnpm new-post         # interactive MDX article scaffold
 
 ## Ops Toolkit: `tools/anvil-ops/` (anvilwiki-ops)
 
-Standalone npm package (`anvilwiki-ops`, semver 1.0.3 as of v2.26.1, published to npm): ops CLI (`anvil-ops`) + stdio MCP server (`anvil-ops-mcp` / `anvil-ops mcp`) for fork sites — `doctor` / `metrics` / `audit` / `insights` / `submit` map 1:1 to MCP tools (all accept optional `site`); plus `sites list/add/remove` (multi-site registry `~/.config/anvil-ops/sites.toml`, credentials never stored there), `--site <name>`/`--all` flags (submit refuses `--all`), AI referral tracking (CF referrer-host aggregation + GSC `AI_OVERVIEWS` probe + `metrics --import-aio <csv>`). 1.0.0 breaking change: MCP tool schemas gained the optional `site` param. GSC (service-account JSON) + CF Web Analytics (token; site tag read from `wrangler.toml PUBLIC_CF_BEACON_TOKEN`), env-gated (empty = disabled). Writes go through validation (check-content + non-strict check-i18n + build) → branch → PR only, never push main. Spec: `docs/superpowers/specs/2026-08-18-anvil-ops-cli-mcp-design.md`.
+Standalone npm package (`anvilwiki-ops`, semver 1.0.4 as of v2.29.0, published to npm): ops CLI (`anvil-ops`) + stdio MCP server (`anvil-ops-mcp` / `anvil-ops mcp`) for fork sites — `doctor` / `metrics` / `audit` / `insights` / `submit` map 1:1 to MCP tools (all accept optional `site`); plus `sites list/add/remove` (multi-site registry `~/.config/anvil-ops/sites.toml`, credentials never stored there), `--site <name>`/`--all` flags (submit refuses `--all`), AI referral tracking (CF referrer-host aggregation + GSC `AI_OVERVIEWS` probe + `metrics --import-aio <csv>`). 1.0.0 breaking change: MCP tool schemas gained the optional `site` param. GSC (service-account JSON) + CF Web Analytics (token; site tag read from `wrangler.toml PUBLIC_CF_BEACON_TOKEN`), env-gated (empty = disabled). Writes go through validation (check-content + non-strict check-i18n + build) → branch → PR only, never push main. Spec: `docs/superpowers/specs/2026-08-18-anvil-ops-cli-mcp-design.md`.
 
 ```bash
 cd tools/anvil-ops
 pnpm install   # own pnpm-workspace.yaml (allowBuilds) — do NOT remove: without it the root workspace hijacks installs (node_modules stays empty)
-pnpm test      # 162 tests
+pnpm test      # 169 tests
 pnpm typecheck && pnpm build
 ```
 

@@ -1056,6 +1056,15 @@ const show = !!(client && slot);
 
 > AdSense 审核通常需要数天到数周，期间站点正常运行（广告位为空）。详见 [AdSense 帮助中心](https://support.google.com/adsense/)。
 
+### 10.7 Adsterra 扩展位（v2.26.0 起）
+
+与 AdSense 并存的第二广告网络，组件层、门控契约互相独立，可只用其中一家：
+
+- **`AdsterraSlot.astro`**：每个单元一个独立文件 `public/ads/<name>.html`（Adsterra 后台拿到的 snippet），组件以 sandbox iframe 挂载——`allow-scripts allow-same-origin allow-popups allow-forms`，**有意省略 `allow-top-navigation`**（部分移动端创意会尝试整页跳转）。诚实边界：`allow-same-origin` 与 `allow-scripts` 同开是素材渲染的硬前提，此时 sandbox 是布局隔离而非对抗恶意创意的硬边界，真隔离需独立域名——载明于组件 docstring 与 `docs/ads.md`「诚实的边界」。
+- **env 门控与 AdSense 同契约**：`PUBLIC_ADSTERRA_SLOT_<NAME>`（`<NAME>` = html 文件名大写、连字符转下划线，如 `sidebar-300x250` → `SIDEBAR_300X250`）为空该位零渲染。`hideOnMobile` 的固定尺寸创意在移动端隐藏、只出响应式 Native；加载经同意门控（与 GA/AdSense 同门，拒绝/未选永不加载）。
+- **`MobileAnchorAd.astro`（v2.28.0）**：文章页底部 320×50 fixed 锚位（env `PUBLIC_ADSTERRA_SLOT_STICKY_320X50`），可关闭且记忆、零 CLS（显示时给移动端 body 加底部内边距，文末内容不被盖，含 iOS safe-area 补偿）。顶部粘性位是有意排除项——决策记录见 `StickyBanner.astro` 注释与 `docs/ads.md`。
+- **fork 安全**：`public/ads/*.html` 六个演示文件入 `DEMO_PUBLIC_FILES` 双通道清理（`setup.yml` rm 清单 + 契约测试），apply-template 后零残留、dist 零广告 iframe。demo 站 6 个预挂位逐槽清单与接入教程见 `docs/ads.md`「模板预挂位总清单」；env 全表见[附录 A.2](#a2-广告google-adsense)。
+
 ---
 
 ## 第 11 章 套用模板指南
@@ -1453,6 +1462,17 @@ describe('sitemap', () => {
 | `PUBLIC_ADSENSE_SLOT_SIDEBAR` | Sidebar 桌面端侧边栏 slot ID |
 | `PUBLIC_ADSENSE_SLOT_INCONTENT` | InContent 文章内 slot ID |
 
+**Adsterra（v2.26.0 起，可选）**——env 命名规则 `PUBLIC_ADSTERRA_SLOT_<NAME>`（单元 html 文件名大写、连字符转下划线），每个启用的槽位还需 `public/ads/<name>.html` 放置对应 snippet（iframe 挂载该文件）；逐槽说明见 `docs/ads.md`：
+
+| 变量名 | 对应单元 |
+|---|---|
+| `PUBLIC_ADSTERRA_SLOT_INCONTENT_728X90` | 728×90 横幅（移动端隐藏） |
+| `PUBLIC_ADSTERRA_SLOT_NATIVE_BANNER` | 响应式 Native |
+| `PUBLIC_ADSTERRA_SLOT_STICKY_320X50` | 文章页底部锚位（`MobileAnchorAd`，v2.28.0） |
+| `PUBLIC_ADSTERRA_SLOT_SIDEBAR_160X300` | 160×300 竖幅（手册课页粘性） |
+| `PUBLIC_ADSTERRA_SLOT_SIDEBAR_160X600` | 160×600 竖幅（≥1700px 视口页边固定） |
+| `PUBLIC_ADSTERRA_SLOT_SIDEBAR_300X250` | 300×250（示例单元，模板未挂载） |
+
 > 所有广告变量为空时，对应广告组件 `return null` 不渲染。新手部署时不填也能正常上线。
 
 ### A.3 其他（可选）
@@ -1474,6 +1494,14 @@ PUBLIC_ADSENSE_CLIENT=
 PUBLIC_ADSENSE_SLOT_STICKY=
 PUBLIC_ADSENSE_SLOT_SIDEBAR=
 PUBLIC_ADSENSE_SLOT_INCONTENT=
+
+# 广告（Adsterra，可选——每个启用的槽位还需 public/ads/<name>.html，见 docs/ads.md）
+PUBLIC_ADSTERRA_SLOT_SIDEBAR_300X250=
+PUBLIC_ADSTERRA_SLOT_INCONTENT_728X90=
+PUBLIC_ADSTERRA_SLOT_NATIVE_BANNER=
+PUBLIC_ADSTERRA_SLOT_STICKY_320X50=
+PUBLIC_ADSTERRA_SLOT_SIDEBAR_160X300=
+PUBLIC_ADSTERRA_SLOT_SIDEBAR_160X600=
 
 # 分析（可选）
 PUBLIC_GA_ID=
