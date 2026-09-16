@@ -60,6 +60,7 @@ Content layer (src/content, src/locales)                   — fully replace per
 11. **评论组件 env 空值 = 不渲染** — `Comments.astro` 在 `PUBLIC_GISCUS_REPO` / `PUBLIC_GISCUS_REPO_ID` / `PUBLIC_GISCUS_CATEGORY` / `PUBLIC_GISCUS_CATEGORY_ID` 任一为空时 `return null`。与广告组件同模式,默认关闭是模板的开箱契约(保 Lighthouse 4×100)。不要给这些 env 加默认值或硬编码 demo 配置。
 12. **`wrangler.toml` 接管 Cloudflare Pages env** — 当 `wrangler.toml` 存在时,它是 Pages 项目 env 的唯一真相源,dashboard 的 Environment variables UI 被完全忽略([官方文档](https://developers.cloudflare.com/pages/functions/wrangler-configuration/))。所有构建时 env 变量必须在 `wrangler.toml` 的 `[vars]` 段声明。fork 用户须知:要么改 `[vars]` 值,要么删 `wrangler.toml` 让 dashboard 接管。详见 `docs/deployment.md`。
 13. **复杂度预算** — 新能力先判定归属层(**核心模板** / 可选插件 / 运维工具 `tools/` / 文档 SOP),不全进主运行时;UI JSON 一律走结构化类型(`getUi` → `typeof en` / `SharedUi`),禁止 `as unknown as` 双跳断言(契约测试零容忍,动态键访问用 `keyof typeof` 收窄);核心文件(landing.ts / apply-template.ts / ArticlePage / BaseLayout 等)改动优先组件化拆分而非追加。来源:群友「誓言」外部代码审查(2026-09-15);细则见 `docs/development.md`。
+14. **全仓一致性扫描** — 任何优化(文案/版本号/功能/文档)必须全仓一致性扫描:landing 中英、README、docs、AGENTS、skills、双语 JSON、版本号各处同步更新,禁止「这里更新了那里还是旧版」;提交前 grep 旧文案/旧卖点并列检查清单。来源:用户工作指令(2026-08-15);发版同步面见 `docs/development.md` 发版清单。
 
 ## i18n Fallback Rules
 

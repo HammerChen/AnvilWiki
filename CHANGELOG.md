@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **AGENTS Engineering Constraints 新增第 14 条「全仓一致性扫描」**:任何优化(文案/版本号/功能/文档)必须全仓一致性扫描并禁止「这里更新了那里还是旧版」——把长期只存在于维护者个人记忆的用户工作指令(2026-08-15)收编为所有 agent 的 workspace 契约;发版同步面见 docs/development.md 发版清单。同批补录 06291d5 进 [2.29.0](文章页 meta 行 flex-wrap,v2.21.0 移动批漏网)。
+
 ## [2.29.0] — 2026-09-16
 
 ### Fixed
@@ -14,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **anvil-ops 1.0.4——submit 私钥安全网引号路径绕过(十五轮 24h 审计唯一 HIGH)**:staged 清单取自 `git diff --cached --name-only` 未加 `-z`+`core.quotePath=false`,git 默认 quotePath=true 会把非 ASCII/含引号文件名 C-quote 成 `"\350..."` 八进制转义串——带引号串匹配不上文件名模式、进不了内容扫描、比对不上 .env GSC 路径,三层防线全部静默落空后 commit+push 照常执行=零警告泄钥;现清单改 `-z`(NUL 分隔,顺带容忍文件名含换行)+禁 quotePath 获取,新增真实 git 集成测试以 `谷歌密钥.json` 复现钉死。配套三件:①内容扫描**去扩展名门**——staged 全文件做 64KB 头扫描,不再只查 .json/无扩展名(.md 草稿贴 key 同样拦截);②**submit 跨进程文件锁**(tmpdir 按 site realpath 键控,owner pid 活性检测、死锁自动盗取,包住 CLI+MCP+offload worker;src/mcp 进程内 mutex 保留为快路径,watchdog 10min 释放与 spawnSync 15min 僵尸窗口的并发面一并关死);③PR body **GFM 围栏按 summary 内最长反引号串自适应**(固定 ``` 会被工具输出里的 ``` 提前闭合)+offload worker **exit 事件兜底**(硬崩退出不再伪装成 10 分钟 watchdog 超时)。
 - **apply-template 重跑三个静默数据丢失洞(十五轮审计 MED)**:①wrangler 值保留解析识别**行尾内联注释**与**单引号 TOML 字面串**(旧正则 `"(.*)"\s*$` 对 `KEY = "G-ABC" # prod` 解析失败,重跑即把用户 env 静默重置为空);②`'Announcements'` 移出 `DEMO_VAR_VALUES` 平铺清单(giscus 最常见真实分类名,fork 合法同名+自有 ID 重跑被清空=评论静默关闭),demo 判定改为 **category+category ID 配对规则**(demo 对仍清空,fork 存活;漂移守卫测试同步配对口径);③`parseSiteTsIdentity` 支持**手改双引号字面量**(旧单引号正则整体读到 null→重跑提示词默认值静默回落 demo 且无 ♻️ 横幅,enter-through 把 fork 改回 demo 身份)。
 - **MobileAnchorAd 文末补偿计入 iOS safe-area(十五轮审计 LOW)**:body 补偿改 `calc(62px + env(safe-area-inset-bottom))` 双行级联(无 env 引擎保持 62px 兜底)——锚条真实高度含 inset,固定 62px 在刘海屏上会让文末 ~31px 最大滚动时仍被盖。
+- **文章页头部 meta 行 flex-wrap(补录,commit 06291d5)**:徽章+分享按钮行补 `flex-wrap`,375px 下不再撑出 102px 横向溢出——横向滚动条会顶起 fixed 底部锚条使其不贴底(v2.21.0 移动批漏网)。教训:门禁与契约测试抓不到横向溢出,移动端批次验收须 ≤375px viewport 实测。
 - **astro.config extractFrontmatter 剥 UTF-8 BOM(十五轮审计 LOW)**:BOM 头 mdx 使 `^---` 失配→frontmatter 切片为空→draft/lastModified 检查静默旁路。
 
 ## [2.28.0] — 2026-09-15
