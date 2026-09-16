@@ -144,6 +144,32 @@ SITE_URL=https://your-domain.wiki
 
 Cloudflare 会自动签发 Let's Encrypt SSL 证书。DNS 生效后等 5-15 分钟，`https://` 就能访问了。期间浏览器报证书错误（CN=`*.pages.dev`）是正常的，证书变 **Active** 后就好。
 
+### Step 5 — 收编旧的 `*.pages.dev` 域名（绑完域名必做）
+
+绑完自定义域后，Cloudflare 不会自动停掉 `*.pages.dev`——它仍然 200 直接出内容，和主域并行同内容。Google 会把主域判成「重复页」，**canonical 继续留在老的 pages.dev 上**：收录、排名、点击全都不迁移（GSC「网址检查」里能看到判定 "Duplicate, Google chose different canonical than user"，Google 选定的 canonical 是 pages.dev 地址）。
+
+`public/_redirects` 解决不了这个问题——它对所有域名生效，会把主域也带进无限重定向。官方做法是用 **Bulk Redirects**（账户级配置，不碰站点代码）：
+
+1. Cloudflare dashboard 左侧栏 → **Bulk Redirects** → 创建一个**批量重定向列表**
+2. 添加条目：
+   - **源 URL**：`https://<project>.pages.dev`
+   - **目标 URL**：`https://your-domain.wiki`
+   - **状态**：`301`
+   - **四个参数全开**：Preserve query string / Subpath matching / Preserve path suffix / Include subdomains（路径和查询串原样带到主域）
+3. 回到 Bulk Redirects 主页再创建一条 **Bulk Redirect Rule** 引用该列表 → **保存并部署**
+
+验证（期望都返回 301 + 主域地址）：
+
+```bash
+curl -sI https://<project>.pages.dev/ | grep -i location
+# location: https://your-domain.wiki/
+curl -sI "https://<project>.pages.dev/bosses/x/?a=1" | grep -i location
+# location: https://your-domain.wiki/bosses/x/?a=1
+```
+
+> Include subdomains 会把 preview 部署的随机子域也 301 到主域；CI 测试不走 Cloudflare preview 的话没有影响。
+> 旧地址的收录收敛需要几天到两周（Google 顺着 301 重新归并），之后 GSC 网址检查里的 canonical 应显示主域。
+
 ---
 
 ## 方式二：Wrangler CLI 部署（进阶）

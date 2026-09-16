@@ -85,6 +85,7 @@ git push
 **怎么做**:在 [Cloudflare Registrar](https://www.cloudflare.com/products/registrar/)(按成本价卖,不赚差价)或 [Porkbun](https://porkbun.com) 等注册商搜一个 `.com` / `.wiki` 域名买下;然后 Cloudflare Pages → 你的项目 → **Custom domains** → Set up,按提示把域名指过来(DNS 在 Cloudflare 管的话全程点下一步)。
 **你会看到**:几分钟后(最长几小时),你的域名打开就是你的站。
 **确认做对了**:用自己的域名能打开网站后,把跑站那一课配置里的 Domain 和 Cloudflare 的 `SITE_URL` 变量都改成这个域名(`https://` 开头,不能少),重新部署。
+> ⚠️ 绑完域名还有最后一步:老的 `项目名.pages.dev` 仍在原地出内容,Google 会把你的新域名当「重复页」,收录全留在老地址上。去 Cloudflare 左侧 **Bulk Redirects** 把 `项目名.pages.dev` 整域 301 到主域(十分钟,逐步操作见部署指南「绑定自定义域名」的 Step 5),别省。
 
 ## 卡住了怎么办
 
@@ -97,7 +98,7 @@ git push
 
 - 你的网址,手机流量(不用 WiFi 也行)能打开,页面正常
 - `wrangler.toml` 已删除,以后所有设置都在 Cloudflare 网页加
-- ☐ 有域名的:`SITE_URL` 已改成 `https://你的域名`
+- ☐ 有域名的:`SITE_URL` 已改成 `https://你的域名`,且旧 `项目名.pages.dev` 已经 301 过去(见部署指南 Step 5)
 
 ## 下一步
 

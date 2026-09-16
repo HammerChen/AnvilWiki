@@ -85,6 +85,7 @@ git push
 **How to do it**: search for a `.com` / `.wiki` domain at [Cloudflare Registrar](https://www.cloudflare.com/products/registrar/) (sells at cost, no markup) or a registrar like [Porkbun](https://porkbun.com) and buy it; then Cloudflare Pages → your project → **Custom domains** → Set up, and follow the prompts to point the domain over (with DNS on Cloudflare, it's next-next-next the whole way).
 **You'll see**: within minutes (a few hours at most), your domain opens your site.
 **Confirm it worked**: once your domain opens the site, change both the Domain in the the run-your-site lesson config and Cloudflare's `SITE_URL` variable to this domain (must start with `https://`, no exceptions), and redeploy.
+> ⚠️ One more step after binding the domain: the old `project-name.pages.dev` still serves content at its original address, and Google treats your new domain as a "duplicate", keeping all indexing on the old address. Go to **Bulk Redirects** in the Cloudflare sidebar and 301 the whole `project-name.pages.dev` domain to your main domain (ten minutes; step-by-step in the deployment guide, "Bind a custom domain", Step 5). Don't skip it.
 
 ## If you get stuck
 
@@ -97,7 +98,7 @@ git push
 
 - Your URL opens on phone data (no WiFi needed), pages rendering normally
 - `wrangler.toml` is deleted, and every setting from now on goes into the Cloudflare web UI
-- ☐ If you have a domain: `SITE_URL` has been changed to `https://your-domain`
+- ☐ If you have a domain: `SITE_URL` has been changed to `https://your-domain`, and the old `project-name.pages.dev` now 301s to it (see the deployment guide, Step 5)
 
 ## Next step
 

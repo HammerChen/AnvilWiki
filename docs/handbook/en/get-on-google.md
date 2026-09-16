@@ -71,6 +71,7 @@ All three run clean — every URL returns 200 (opens fine) and no internal link 
 - **"Sitemap submission says couldn't fetch"**: wait a few hours and retry (Google's crawling lags); also confirm `https://your-domain/sitemap-index.xml` opens.
 - **"Discovered URLs still 0 after days"**: wait a few more days and click Request indexing a few more rounds; indexing has its own pace, and the weekly-ops lesson's weekly routine keeps nudging it.
 - **GSC's "Page indexing" report, four statuses at a glance**: "Indexed" = done, leave it alone; "Discovered – currently not indexed" = Google knows about the URL but hasn't crawled it yet — wait, or nudge it again with IndexNow / Request indexing; "Crawled – currently not indexed" = Google looked and judged the content thin or duplicate — go rework the page instead of pushing it over and over; "Excluded" = dropped for reasons like noindex, duplicate, or redirect — open each row, read the reason, and confirm it's something you set on purpose.
+- **"I bound my own domain but indexing still accrues to pages.dev"**: both domains serve content at once, so Google judges the main domain a "duplicate" and keeps the canonical on the old address (verifiable via GSC's URL Inspection). Use Cloudflare **Bulk Redirects** to 301 the whole `project-name.pages.dev` domain to your main domain, then wait a week or two for Google to re-consolidate — steps in the deployment guide, "Bind a custom domain", Step 5.
 
 ## ✅ Acceptance criteria (all must hold)
 
