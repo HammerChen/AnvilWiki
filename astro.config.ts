@@ -45,7 +45,9 @@ import { fallbackDetailPaths } from './src/lib/fallback-paths';
  * value — keys after it (noindex, lastModified, …) would be missed.
  */
 function extractFrontmatter(src: string): string {
-  return src.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/)?.[1] ?? '';
+  // Strip a UTF-8 BOM first: on a BOM-headed file `^---` fails, yielding ''
+  // and silently exempting the draft from the draft/lastModified checks.
+  return src.replace(/^\uFEFF/, '').match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/)?.[1] ?? '';
 }
 
 function buildLastmodMap(

@@ -204,14 +204,23 @@ describe('rewriteWranglerVars is value-aware (a re-run must not wipe the user en
     expect(values.length, 'the shipped wrangler.toml should carry demo values').toBeGreaterThan(0);
     // "pathname" is the template's GENERIC giscus mapping default (a user may
     // legitimately set "url"/"topic" — the rewrite preserves those), not demo
-    // identity; it is deliberately not in DEMO_VAR_VALUES. Anything else
+    // identity; it is deliberately not in DEMO_VAR_VALUES. "Announcements" is
+    // deliberately not registered either (real forks legitimately use that
+    // giscus category name) — its demo-ness is the PAIRED rule: demo category
+    // name + demo category ID together, asserted below. Anything else
     // non-empty must be registered.
     const genericDefaults = new Set(['pathname']);
     for (const v of values) {
       expect(
-        v === '' || genericDefaults.has(v) || DEMO_VAR_VALUES.includes(v),
+        v === '' || genericDefaults.has(v) || v === 'Announcements' || DEMO_VAR_VALUES.includes(v),
         `unregistered demo value: "${v}"`,
       ).toBe(true);
+    }
+    // Paired-rule guard: the shipped file must carry Announcements TOGETHER
+    // with the demo category ID (only that pair is auto-cleared; a fork with
+    // its own ID keeps the name).
+    if (values.includes('Announcements')) {
+      expect(values).toContain('DIC_kwDOT1aRPc4DDODo');
     }
   });
 });
@@ -690,5 +699,97 @@ describe('re-run identity detection (S12: re-run = confirm current, never demo d
     expect(id).not.toBeNull();
     expect(isDemoSiteTsIdentity(id!)).toBe(true);
     expect(DEMO_DOMAINS).toContain(id!.domain);
+  });
+});
+
+describe('rewriteWranglerVars parses hand-edited TOML forms (round-15: silent env resets)', () => {
+  // A fork owner hand-edits wrangler.toml — trailing inline comments and
+  // single-quoted literal strings are both valid TOML. The old
+  // `"(.*)"\s*$` parse missed them, and the value-aware rewrite silently
+  // RESET the value to blank on a re-run.
+  const HAND_EDITED = [
+    'name = "anvilwiki"',
+    '',
+    '[vars]',
+    'SITE_URL = "https://mygame.dev"',
+    'PUBLIC_GA_ID = "G-ABC123" # production property',
+    "PUBLIC_SPONSOR_URL = 'https://buymeacoffee.com/mygame'",
+    'PUBLIC_CF_BEACON_TOKEN = "cf#token" # trailing comment after a #-bearing value',
+    '',
+    '[env.production]',
+    'name = "production"',
+    '',
+  ].join('\n');
+
+  test('a trailing inline comment no longer drops the value', () => {
+    const out = rewriteWranglerVars(makeInput(), HAND_EDITED)!;
+    expect(out).toContain('PUBLIC_GA_ID = "G-ABC123"');
+  });
+
+  test('a single-quoted TOML literal is parsed and re-emitted double-quoted', () => {
+    const out = rewriteWranglerVars(makeInput(), HAND_EDITED)!;
+    expect(out).toContain('PUBLIC_SPONSOR_URL = "https://buymeacoffee.com/mygame"');
+  });
+
+  test('a value containing # survives intact (no premature comment split)', () => {
+    const out = rewriteWranglerVars(makeInput(), HAND_EDITED)!;
+    expect(out).toContain('PUBLIC_CF_BEACON_TOKEN = "cf#token"');
+  });
+});
+
+describe('giscus category "Announcements" (round-15: demo-value collision)', () => {
+  test('a fork with its OWN category ID + the common name survives the re-run', () => {
+    const src = LF_WRANGLER.replace('"DIC_kwDOT1aRPc4DDODo"', '"DIC_forkOwnId"');
+    const out = rewriteWranglerVars(makeInput(), src)!;
+    expect(out).toContain('PUBLIC_GISCUS_CATEGORY = "Announcements"');
+    expect(out).toContain('PUBLIC_GISCUS_CATEGORY_ID = "DIC_forkOwnId"');
+  });
+
+  test('the demo pair (Announcements + demo category ID) is still cleared', () => {
+    const out = rewriteWranglerVars(makeInput(), LF_WRANGLER)!;
+    expect(out).toContain('PUBLIC_GISCUS_CATEGORY = ""');
+    expect(out).toContain('PUBLIC_GISCUS_CATEGORY_ID = ""');
+  });
+});
+
+describe('parseSiteTsIdentity reads hand-edited double-quoted site.ts (round-15)', () => {
+  // The old single-quote-only field regex returned null for a hand-edited
+  // double-quoted file, and a null identity makes a re-run fall back to demo
+  // defaults with no ♻️ banner — the destructive direction.
+  const DOUBLE_QUOTED = [
+    "import type { SiteConfig } from '~/lib/site';",
+    'export const site: SiteConfig = {',
+    '  name: "My Game Wiki",',
+    '  shortName: "MGW",',
+    '  domain: "mygame.dev",',
+    '  tagline: "Tagline",',
+    '  description: "Description",',
+    '  legalNotice: "Notice",',
+    '  social: { official: "https://example.com" },',
+    '  game: {',
+    '    name: "My Game",',
+    '    platform: "PC",',
+    '    developer: "D",',
+    '    genre: "G",',
+    '    releaseDate: "",',
+    '  },',
+    '};',
+  ].join('\n');
+
+  test('double-quoted literals parse instead of nulling the identity', () => {
+    const id = parseSiteTsIdentity(DOUBLE_QUOTED);
+    expect(id).not.toBeNull();
+    expect(id!.name).toBe('My Game Wiki');
+    expect(id!.shortName).toBe('MGW');
+    expect(id!.domain).toBe('mygame.dev');
+    expect(id!.gameName).toBe('My Game');
+    expect(id!.officialUrl).toBe('https://example.com');
+  });
+
+  test('mixed quote styles parse too', () => {
+    const id = parseSiteTsIdentity(DOUBLE_QUOTED.replace('  shortName: "MGW",', "  shortName: 'MGW',"));
+    expect(id).not.toBeNull();
+    expect(id!.shortName).toBe('MGW');
+    expect(id!.name).toBe('My Game Wiki');
   });
 });

@@ -332,12 +332,17 @@ export interface SiteTsIdentity {
   releaseDate: string;
 }
 
-/** Undo tsEscape's two escapes (`\\` → `\`, `\'` → `'`). */
-const tsUnescape = (s: string) => s.replace(/\\(['\\])/g, '$1');
+/** Undo tsEscape's two escapes (`\\` → `\`, `\'` → `'`) — plus `\"` for
+ * hand-edited double-quoted files (canonical CLI writes are single-quoted). */
+const tsUnescape = (s: string) => s.replace(/\\(['"\\])/g, '$1');
 
-/** A single-quoted TS literal on its own line (`  field: 'value',`). */
+/** A TS string literal on its own line (`  field: 'value',`) — single OR
+ * double quoted. Canonical CLI output is single-quoted; the double-quote
+ * branch exists so a hand-edited file still reads back as the user's
+ * identity instead of null — null makes a re-run fall back to demo defaults
+ * with no ♻️ banner, which is the destructive direction. */
 const tsField = (field: string) =>
-  new RegExp(`^\\s*${field}:\\s*'((?:\\\\.|[^'\\\\])*)'`, 'm');
+  new RegExp(`^\\s*${field}:\\s*(?:'((?:\\\\.|[^'\\\\])*)'|"((?:\\\\.|[^"\\\\])*)")`, 'm');
 
 /**
  * Read the CURRENT identity back out of src/config/site.ts, with the same
@@ -348,7 +353,10 @@ const tsField = (field: string) =>
  * first-run defaults rather than guessing a half-read identity.
  */
 export function parseSiteTsIdentity(src: string): SiteTsIdentity | null {
-  const pick = (re: RegExp) => re.exec(src)?.[1];
+  const pick = (re: RegExp) => {
+    const m = re.exec(src);
+    return m?.[1] ?? m?.[2];
+  };
   const raw = {
     name: pick(tsField('name')),
     shortName: pick(tsField('shortName')),
@@ -356,8 +364,8 @@ export function parseSiteTsIdentity(src: string): SiteTsIdentity | null {
     domain: pick(tsField('domain')),
     tagline: pick(tsField('tagline')),
     legalNotice: pick(tsField('legalNotice')),
-    officialUrl: pick(/official:\s*'((?:\\.|[^'\\])*)'/),
-    gameName: pick(/\bgame:\s*\{\s*name:\s*'((?:\\.|[^'\\])*)'/),
+    officialUrl: pick(/official:\s*(?:'((?:\\.|[^'\\])*)'|"((?:\\.|[^"\\])*)")/),
+    gameName: pick(/\bgame:\s*\{\s*name:\s*(?:'((?:\\.|[^'\\])*)'|"((?:\\.|[^"\\])*)")/),
     platform: pick(tsField('platform')),
     developer: pick(tsField('developer')),
     genre: pick(tsField('genre')),
@@ -527,7 +535,10 @@ export const DEMO_VAR_VALUES: readonly string[] = [
   // Demo Giscus
   'PNGTRID/AnvilWiki',
   'R_kgDOT1aRPQ',
-  'Announcements',
+  // NOTE: 'Announcements' is deliberately NOT here — it is GitHub's suggested
+  // giscus category name, so real forks legitimately run with it. Whether
+  // PUBLIC_GISCUS_CATEGORY is demo leftover is decided by the paired-ID rule
+  // in isDemoVarValue below.
   'DIC_kwDOT1aRPc4DDODo',
   // Demo Adsterra unit keys
   '72f65aae2e14988904cffe17cfe697e2',
@@ -539,6 +550,21 @@ export const DEMO_VAR_VALUES: readonly string[] = [
   // Demo GA4 measurement ID
   'G-X10CG7N6P6',
 ];
+
+/**
+ * Demo-value test with key context. Flat list for unguessable values; the one
+ * guessable demo value (category name "Announcements") only counts as demo
+ * when paired with the demo category ID — a fork with its own ID and the same
+ * name must survive a re-run (wiping it silently disabled their comments
+ * while the preserved ID left the config self-contradictory).
+ */
+function isDemoVarValue(key: string, value: string, existing: Map<string, string>): boolean {
+  if (DEMO_VAR_VALUES.includes(value)) return true;
+  if (key === 'PUBLIC_GISCUS_CATEGORY' && value === 'Announcements') {
+    return existing.get('PUBLIC_GISCUS_CATEGORY_ID') === 'DIC_kwDOT1aRPc4DDODo';
+  }
+  return false;
+}
 
 /** One [vars] line of the reset template, in shipped order. */
 interface VarSpec {
@@ -629,11 +655,16 @@ export function rewriteWranglerVars(input: { domain: string }, src: string): str
 
   // Parse the CURRENT [vars] block's uncommented `KEY = "value"` lines.
   // Commented `#KEY = ""` placeholders hold no value and never participate.
+  // Forms beyond the bare double-quoted line are valid TOML a hand editor
+  // produces — a trailing inline comment (`KEY = "G-ABC" # prod`) or a
+  // single-quoted literal string. Failing to parse them used to make the
+  // value-aware rewrite silently RESET that value on re-run. Value char
+  // classes are escape-aware so `\"` inside doesn't end the string early.
   const section = src.match(/(?:^|\n)\[vars\]\r?\n([\s\S]*?)(?=\r?\n\[|$)/)?.[1] ?? '';
   const existing = new Map<string, string>();
   for (const line of section.split(/\r?\n/)) {
-    const m = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"(.*)"\s*$/);
-    if (m) existing.set(m[1], m[2]);
+    const m = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?:"((?:\\.|[^"\\])*)"|'([^']*)')\s*(?:#.*)?$/);
+    if (m) existing.set(m[1], m[2] ?? m[3]);
   }
 
   const lines: string[] = ['[vars]'];
@@ -647,7 +678,7 @@ export function rewriteWranglerVars(input: { domain: string }, src: string): str
     }
     const current = existing.get(spec.key);
     const keep =
-      current !== undefined && current !== '' && !DEMO_VAR_VALUES.includes(current)
+      current !== undefined && current !== '' && !isDemoVarValue(spec.key, current, existing)
         ? current
         : null;
     const rendered =

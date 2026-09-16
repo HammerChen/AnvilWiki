@@ -77,12 +77,30 @@ export async function offload(msg: OffloadMessage): Promise<OffloadResult> {
   try {
     return await withWatchdog(
       new Promise<OffloadResult>((resolve, reject) => {
+        let settled = false;
         worker.once('message', (result: OffloadResult) => {
+          settled = true;
           void worker.terminate();
           resolve(result);
         });
         worker.once('error', (err) => {
+          settled = true;
           reject(err);
+        });
+        // A worker that dies via a hard non-zero process.exit emits neither
+        // 'message' nor 'error' — without this hook the promise would pend
+        // until the watchdog fires and report a misleading timeout instead
+        // of the real crash.
+        worker.once('exit', (code) => {
+          if (!settled) {
+            settled = true;
+            reject(
+              new OpsError(
+                `The ${msg.kind} worker exited unexpectedly (exit code ${code}) without returning a result.`,
+                'Re-run the tool. If it reproduces, run the equivalent CLI command (`anvil-ops audit` / `anvil-ops submit`) to see the raw error.',
+              ),
+            );
+          }
         });
       }),
       OFFLOAD_TIMEOUT_MS,

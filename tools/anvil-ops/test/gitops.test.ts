@@ -1,9 +1,9 @@
 import { execSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { findStagedSecrets, looksLikeSecretFile, submit } from '../src/core/gitops.js';
+import { acquireSubmitLock, findStagedSecrets, gfmFence, listStagedFiles, looksLikeSecretFile, submit, submitLockPath } from '../src/core/gitops.js';
 import { defaultRun, type RunFn } from '../src/core/content.js';
 import { OpsError } from '../src/core/errors.js';
 
@@ -83,12 +83,12 @@ describe('submit failure cleanup', () => {
     const repo = tmpRepo();
     const run = gitFlow((c) => {
       if (c.args[0] === 'rev-parse') return { ...ok, stdout: 'main\n' };
-      if (c.args[0] === 'diff') return { ...ok, stdout: '.env\n' };
+      if (c.args.includes('diff')) return { ...ok, stdout: '.env\0' };
       return ok;
     }, repo);
     await expect(submit({ cwd: repo, run })).rejects.toMatchObject({ name: 'OpsError' });
     const calls = run.calls;
-    const diffIdx = calls.findIndex((c) => c.args[0] === 'diff');
+    const diffIdx = calls.findIndex((c) => c.args.includes('diff'));
     const backIdx = calls.findIndex((c) => c.cmd === 'git' && c.args[0] === 'checkout' && c.args[1] === 'main');
     const delIdx = calls.findIndex((c) => c.cmd === 'git' && c.args[0] === 'branch' && c.args[1] === '-D');
     expect(backIdx).toBeGreaterThan(diffIdx);
@@ -102,7 +102,7 @@ describe('submit failure cleanup', () => {
     const repo = tmpRepo();
     const run = gitFlow((c) => {
       if (c.args[0] === 'rev-parse') return { ...ok, stdout: 'main\n' };
-      if (c.args[0] === 'diff') return { ...ok, stdout: '.env\n' };
+      if (c.args.includes('diff')) return { ...ok, stdout: '.env\0' };
       if (c.args[0] === 'checkout' && c.args[1] === 'main') return { status: 1, stdout: '', stderr: 'cannot switch' };
       if (c.args[0] === 'branch') return { status: 1, stdout: '', stderr: 'cannot delete' };
       return ok;
@@ -220,7 +220,7 @@ describe('staged-secret safety net layers', () => {
     writeFileSync(join(repo, 'server.pem'), 'not really a key\n');
     const err = await stageHit((c) => {
       if (c.args[0] === 'rev-parse') return { ...ok, stdout: 'main\n' };
-      if (c.args[0] === 'diff') return { ...ok, stdout: 'server.pem\n' };
+      if (c.args.includes('diff')) return { ...ok, stdout: 'server.pem\0' };
       return ok;
     }, repo);
     expect(err).toBeInstanceOf(OpsError);
@@ -237,7 +237,7 @@ describe('staged-secret safety net layers', () => {
     );
     const err = await stageHit((c) => {
       if (c.args[0] === 'rev-parse') return { ...ok, stdout: 'main\n' };
-      if (c.args[0] === 'diff') return { ...ok, stdout: 'anvilwiki-1234-abc.json\n' };
+      if (c.args.includes('diff')) return { ...ok, stdout: 'anvilwiki-1234-abc.json\0' };
       return ok;
     }, repo);
     expect(err).toBeInstanceOf(OpsError);
@@ -251,7 +251,7 @@ describe('staged-secret safety net layers', () => {
     writeFileSync(join(repo, 'gsc-robot.txt'), 'placeholder bytes\n');
     const err = await stageHit((c) => {
       if (c.args[0] === 'rev-parse') return { ...ok, stdout: 'main\n' };
-      if (c.args[0] === 'diff') return { ...ok, stdout: 'gsc-robot.txt\n' };
+      if (c.args.includes('diff')) return { ...ok, stdout: 'gsc-robot.txt\0' };
       return ok;
     }, repo);
     expect(err).toBeInstanceOf(OpsError);
@@ -265,7 +265,7 @@ describe('staged-secret safety net layers', () => {
     writeFileSync(join(repo, 'LICENSE'), 'MIT License\n');
     const run = gitFlow((c) => {
       if (c.args[0] === 'rev-parse') return { ...ok, stdout: 'main\n' };
-      if (c.args[0] === 'diff') return { ...ok, stdout: 'data.json\nLICENSE\n' };
+      if (c.args.includes('diff')) return { ...ok, stdout: 'data.json\0LICENSE\0' };
       if (c.cmd === 'gh') return { ...ok, stdout: 'https://github.com/o/r/pull/1\n' };
       return ok;
     }, repo);
@@ -385,5 +385,96 @@ describe('submit integration (real git, local bare origin)', () => {
     // nothing leaked: no commit, no push, worktree back on main
     expect(execSync(`git -C "${work}" rev-parse --abbrev-ref HEAD`).toString().trim()).toBe('main');
     expect(execSync(`git -C "${origin}" branch --list`).toString()).not.toContain('ops/submit-');
+  });
+});
+
+describe('round-15 audit fixes', () => {
+  const setupRepo = (prefix: string): string => {
+    const dir = mkdtempSync(join(tmpdir(), prefix));
+    const origin = join(dir, 'origin.git');
+    const work = join(dir, 'work');
+    execSync(`git init -q -b main "${origin}" --bare`);
+    execSync(`git init -q -b main "${work}"`);
+    execSync(`git -C "${work}" config user.email t@t.t`);
+    execSync(`git -C "${work}" config user.name t`);
+    execSync(`git -C "${work}" remote add origin "${origin}"`);
+    writeFileSync(join(work, 'wrangler.toml'), '[vars]\nSITE_URL = "https://x.com"\n');
+    execSync(`git -C "${work}" add -A`);
+    execSync(`git -C "${work}" commit -q -m init`);
+    return work;
+  };
+  const mixedRun: RunFn = (cmd, args, opts2) => {
+    if (cmd === 'gh') return { status: 0, stdout: '', stderr: '' };
+    if (cmd === 'pnpm') return ok;
+    return defaultRun(cmd, args, opts2);
+  };
+
+  it('HIGH regression: CJK-named staged key file aborts submit (real git, was silently bypassed)', async () => {
+    const work = setupRepo('ops-gitops-cjkkey-');
+    writeFileSync(join(work, 'new-article.mdx'), '---\ntitle: T\n---\nbody\n');
+    // With git's default quotePath=true the staged list used to carry this
+    // path C-quoted ("350..."), matching no safety-net layer, so commit+push
+    // proceeded with zero warnings.
+    writeFileSync(join(work, '谷歌密钥.json'), '{"private_key": "-----BEGIN PRIVATE KEY-----\\nMIIE\\n"}');
+
+    const err: OpsError = await submit({ cwd: work, title: 'cjk key', run: mixedRun }).then(
+      () => {
+        throw new Error('should have thrown');
+      },
+      (e) => e,
+    );
+    expect(err.message).toContain('谷歌密钥.json');
+    expect(execSync(`git -C "${work}" rev-parse --abbrev-ref HEAD`).toString().trim()).toBe('main');
+    expect(execSync(`git -C "${join(work, '..', 'origin.git')}" branch --list`).toString()).not.toContain('ops/submit-');
+  });
+
+  it('listStagedFiles returns decoded paths (unit via real git)', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'ops-gitops-quote-'));
+    execSync('git init -q', { cwd: dir });
+    writeFileSync(join(dir, '谷歌.json'), '{}');
+    execSync('git add -A', { cwd: dir });
+    expect(listStagedFiles(defaultRun, dir)).toContain('谷歌.json');
+  });
+
+  it('content layer has no extension gate: key material in .md/.txt is caught', () => {
+    const repo = tmpRepo();
+    writeFileSync(join(repo, 'notes.md'), '```json\n"private_key": "-----BEGIN PRIVATE KEY-----"\n```');
+    writeFileSync(join(repo, 'draft.txt'), '-----BEGIN RSA PRIVATE KEY-----');
+    const hits = findStagedSecrets(['notes.md', 'draft.txt'], repo);
+    expect(hits.map((h) => h.path).sort()).toEqual(['draft.txt', 'notes.md']);
+  });
+
+  describe('acquireSubmitLock (cross-process)', () => {
+    it('refuses while the owner pid is alive; release allows reacquire', () => {
+      const repo = tmpRepo();
+      const l1 = acquireSubmitLock(repo);
+      expect(() => acquireSubmitLock(repo)).toThrowError(OpsError);
+      l1.release();
+      const l2 = acquireSubmitLock(repo);
+      l2.release();
+    });
+
+    it('steals a stale lock whose owner pid is dead', () => {
+      const repo = tmpRepo();
+      const lockPath = submitLockPath(repo);
+      // 100000000 exceeds every real pid_max (Linux 4194304, macOS 99998) —
+      // provably dead, so the lock is stolen and rewritten with our pid.
+      writeFileSync(lockPath, '100000000\n');
+      const l = acquireSubmitLock(repo);
+      expect(readFileSync(lockPath, 'utf8').trim()).toBe(String(process.pid));
+      l.release();
+      expect(existsSync(lockPath)).toBe(false);
+    });
+  });
+
+  describe('gfmFence', () => {
+    it('plain summary gets a triple-backtick fence', () => {
+      expect(gfmFence('check passed\n2 files ok')).toBe('```');
+    });
+
+    it('a summary containing backtick runs gets a longer fence so it cannot break out', () => {
+      expect(gfmFence('a```b')).toBe('````');
+      expect(gfmFence('a````b')).toBe('`````');
+    });
   });
 });

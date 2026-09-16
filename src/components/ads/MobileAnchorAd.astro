@@ -51,7 +51,13 @@ const anchorCss = `
      inherit the padding if the viewport is resized after reveal. */
   @media (max-width: 767px) {
     body.has-mobile-anchor {
+      /* Plain 62px first: engines without env() drop the calc() line and
+         keep the fallback instead of losing the compensation entirely. The
+         inset is part of the bar's real height (#mobile-anchor-ad below
+         grows by it), so a fixed 62px left the article tail covered on
+         notched iPhones. */
       padding-bottom: 62px;
+      padding-bottom: calc(62px + env(safe-area-inset-bottom));
     }
   }
   /* iOS home-indicator safe area — bar content rides above it. */

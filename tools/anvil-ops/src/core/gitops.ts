@@ -1,4 +1,6 @@
-import { closeSync, openSync, readFileSync, readSync, realpathSync, statSync } from 'node:fs';
+import { closeSync, openSync, readFileSync, readSync, realpathSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { parse as parseDotenv } from 'dotenv';
 import { defaultRun, runValidation, type RunFn } from './content.js';
@@ -79,11 +81,12 @@ function gscKeyPathFromDotenv(root: string): string | undefined {
  * that users drop in the repo root — staging one pushed a live private key to
  * the (usually public) origin on the very next commit. Layers:
  *   1. filename patterns (.env*, *.pem, *.key, *-secret.json);
- *   2. content scan of staged .json / extensionless files for private-key
- *      material (first 64 KB);
+ *   2. content scan of EVERY staged file (first 64 KB) for private-key
+ *      material — key material pasted into an .md draft leaks exactly as hard
+ *      as a misnamed .json, so there is deliberately no extension gate;
  *   3. the exact key file referenced by .env's GSC_SERVICE_ACCOUNT_JSON.
  * `root` is the git toplevel (= site.root; submit aborts earlier otherwise) —
- * `git diff --cached --name-only` paths are relative to it.
+ * staged paths are relative to it and arrive decoded via listStagedFiles.
  */
 export function findStagedSecrets(stagedFiles: string[], root: string): StagedSecretHit[] {
   const hits = new Map<string, string>();
@@ -99,9 +102,6 @@ export function findStagedSecrets(stagedFiles: string[], root: string): StagedSe
   }
   for (const f of stagedFiles) {
     if (hits.has(f)) continue;
-    // Only .json and extensionless files carry hidden key material with any
-    // plausibility; everything else has a type-specific extension.
-    if (!/\.json$/i.test(f) && /\.[^/]+$/.test(f)) continue;
     const abs = join(root, f);
     let st: ReturnType<typeof statSync>;
     try {
@@ -120,11 +120,117 @@ export function findStagedSecrets(stagedFiles: string[], root: string): StagedSe
 
 // --- submit orchestration ----------------------------------------------------
 
+/**
+ * Staged file list for the secret sweep. `-z` + `core.quotePath=false` are
+ * load-bearing: with git's default quotePath=true, any non-ASCII / quote /
+ * control-char path comes back C-quoted (`"\350\257..."`), and a quoted
+ * string matches no filename pattern, fails no content scan on its real
+ * path, and never equals the .env-referenced key path — all three
+ * safety-net layers would silently miss a staged key file while commit+push
+ * proceeded. `\0` separators also make newline-in-filename safe.
+ */
+export function listStagedFiles(run: RunFn, cwd: string): string[] {
+  const staged = run('git', ['-c', 'core.quotePath=false', 'diff', '--cached', '--name-only', '-z'], { cwd });
+  return staged.stdout.split('\0').filter(Boolean);
+}
+
+export interface SubmitLock {
+  release(): void;
+}
+
+/**
+ * Cross-process interlock for submit. The CLI and the MCP server (possibly
+ * several MCP server processes on one machine) can target the same site, and
+ * two concurrent submits would each `git add -A` the worktree and open two
+ * PRs for one batch; the in-process submit-mutex (src/mcp/submit-mutex.ts)
+ * stays as the fast path, this file lock is the cross-process truth. Keyed by
+ * the site realpath (different sites never contend) and stored in tmpdir to
+ * dodge .git-layout quirks (a linked worktree's .git is a file). A lock left
+ * behind by a crashed run is stolen: the owner pid is liveness-probed
+ * (process.kill(pid, 0); EPERM counts as alive — conservative), a dead or
+ * unreadable owner is reclaimed.
+ */
+/** Where a site's submit lock lives (tmpdir, keyed by the site realpath).
+ * Exported for tests and for surfacing the exact cleanup path in errors. */
+export function submitLockPath(siteRoot: string): string {
+  let key: string;
+  try {
+    key = createHash('sha1').update(realpathSync(siteRoot)).digest('hex').slice(0, 16);
+  } catch {
+    key = createHash('sha1').update(resolve(siteRoot)).digest('hex').slice(0, 16);
+  }
+  return join(tmpdir(), `anvil-ops-submit-${key}.lock`);
+}
+
+export function acquireSubmitLock(siteRoot: string): SubmitLock {
+  const lockPath = submitLockPath(siteRoot);
+  const pidAlive = (pid: number): boolean => {
+    if (pid <= 0) return false;
+    try {
+      process.kill(pid, 0);
+      return true;
+    } catch (e) {
+      return (e as NodeJS.ErrnoException).code === 'EPERM';
+    }
+  };
+  for (let attempt = 0; ; attempt++) {
+    try {
+      writeFileSync(lockPath, `${process.pid}\n`, { flag: 'wx' });
+      return {
+        release(): void {
+          try {
+            unlinkSync(lockPath);
+          } catch {
+            /* best effort — a stolen/cleaned lock must not break the caller */
+          }
+        },
+      };
+    } catch (e) {
+      const err = e as NodeJS.ErrnoException;
+      if (err.code !== 'EEXIST' || attempt >= 4) {
+        throw new OpsError(
+          `Could not acquire the submit lock at ${lockPath}.`,
+          'Another submit may be running for this site. If none is, delete the lock file and re-run submit.',
+        );
+      }
+      let ownerPid = -1;
+      try {
+        ownerPid = Number.parseInt(readFileSync(lockPath, 'utf8').trim(), 10);
+      } catch {
+        ownerPid = -1; // unreadable → treat as dead and steal
+      }
+      if (pidAlive(ownerPid)) {
+        throw new OpsError(
+          `Another submit is already running for this site (pid ${ownerPid}).`,
+          'Wait for it to finish, or — if no submit is actually running — delete the stale lock file and re-run submit.',
+        );
+      }
+      // Dead owner: steal. unlink+retry converges (last writer wins the wx create).
+      try {
+        unlinkSync(lockPath);
+      } catch {
+        /* another waiter stole it first — retry */
+      }
+    }
+  }
+}
+
+/**
+ * A markdown fence strictly longer than any backtick run inside `s` (min 3),
+ * so tool output containing triple backticks can't close the fence early and
+ * inject GFM into the PR body.
+ */
+export function gfmFence(s: string): string {
+  const longest = (s.match(/`+/g) ?? []).reduce((m, r) => Math.max(m, r.length), 0);
+  return '`'.repeat(Math.max(3, longest + 1));
+}
+
 export async function submit(opts: { cwd: string; title?: string; base?: string; run?: RunFn }): Promise<SubmitResult> {
   const run = opts.run ?? defaultRun;
   const site = loadSiteConfig(opts.cwd);
 
-  // 1. require a dirty worktree — never submit nothing
+  // 1. require a dirty worktree — never submit nothing (cheap read-only
+  // probe, taken before the cross-process lock so trivial errors stay cheap)
   const status = run('git', ['status', '--porcelain'], { cwd: opts.cwd });
   if (!status.stdout.trim()) {
     throw new OpsError(
@@ -132,6 +238,21 @@ export async function submit(opts: { cwd: string; title?: string; base?: string;
       'Write content first (agent flow: .agent/skills/anvil-new-article), or make the config/content change you want to publish, then re-run submit.',
     );
   }
+
+  // Cross-process interlock (CLI + MCP + offloaded workers all funnel here).
+  const lock = acquireSubmitLock(site.root);
+  try {
+    return await runSubmit(opts, site, run);
+  } finally {
+    lock.release();
+  }
+}
+
+async function runSubmit(
+  opts: { cwd: string; title?: string; base?: string; run?: RunFn },
+  site: ReturnType<typeof loadSiteConfig>,
+  run: RunFn,
+): Promise<SubmitResult> {
 
   // 1.5 Monorepo guard: `git add -A` stages the ENTIRE git worktree. When the
   // site root is a subdirectory of a bigger repo (monorepo, dotfiles repo), a
@@ -214,12 +335,9 @@ export async function submit(opts: { cwd: string; title?: string; base?: string;
   }
   // Safety net for secrets: abort BEFORE anything is committed/pushed. The
   // staged list is the full `git add -A` result — see findStagedSecrets for
-  // the three detection layers.
-  const staged = git(['diff', '--cached', '--name-only']);
-  const stagedFiles = staged.stdout
-    .split('\n')
-    .map((l) => l.trim())
-    .filter(Boolean);
+  // the three detection layers and listStagedFiles for why the list must be
+  // fetched unquoted.
+  const stagedFiles = listStagedFiles(run, opts.cwd);
   const secretHits = findStagedSecrets(stagedFiles, site.root);
   if (secretHits.length > 0) {
     const cleanup = unwindBranch();
@@ -246,9 +364,16 @@ export async function submit(opts: { cwd: string; title?: string; base?: string;
 
   // 4. open PR via gh
   // Validation summaries are raw tool output — fence them so paths/backticks/
-  // markdown in check output can't inject GFM into the PR body.
+  // markdown in check output can't inject GFM into the PR body. The fence is
+  // sized per summary: a longer backtick run inside the output would close a
+  // fixed ``` fence early.
   const body =
-    validation.map((v) => `## ${v.name} ${v.ok ? 'PASS' : 'FAIL'}\n\`\`\`\n${v.summary}\n\`\`\``).join('\n\n') +
+    validation
+      .map((v) => {
+        const fence = gfmFence(v.summary);
+        return `## ${v.name} ${v.ok ? 'PASS' : 'FAIL'}\n${fence}\n${v.summary}\n${fence}`;
+      })
+      .join('\n\n') +
     '\n\n---\nSubmitted via `anvil-ops submit`. Merge after review; Cloudflare Pages deploys automatically.';
   const pr = run('gh', ['pr', 'create', '--title', title, '--base', opts.base ?? 'main', '--body', body], { cwd: opts.cwd });
   if (pr.status !== 0) {
