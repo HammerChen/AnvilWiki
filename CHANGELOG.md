@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.30.0] — 2026-09-17
+
+### Added
+
+- **对比页新增「为什么 Fandom 用户搬家」节（中英同步，只增不改）**：`comparisonPage` 接口新增顶层字段 `fandomSwitch`（title/subtitle/items×4/note，en/zh 同步，typecheck 拦漏译），渲染于核心对比表与自托管引擎表之间；现有节文案/结构/URL 零改动（保已有收录），`pageTitle`/`pageDescription` 不变。承接 Fandom 模板受限老用户的搜索意图（SimilarWeb Keyword Generator，2026-08，global，已核实：「how to create a wiki template on fandom」约 1,380/月、「templates fandom」约 610/月——数据写进节内 subtitle 作数据支撑）。四要点：①Fandom 页面模板/布局由平台固定（主题系统内改配色可行，页面骨架不可换，社区 CSS 是最接近的变通）②广告由平台运营、收益分成不可控（广告网络/版位/形式平台决定，不能接自己的 AdSense）③内容锁在 *.fandom.com 子域，无自定义域名与数据主权（外链与品牌积累记在平台域名名下，搬家=从 dump 重建）④无 AI 内容工作流（AnvilWiki 差异点自然带出：MDX 进 git、agent 起草、你审校、CI 把关，不硬销）。语气遵守对比页既有「诚实、数据支撑」基调：陈述事实与取舍、不贬损 Fandom，note 保留既有结论「大型公开社区百科 → MediaWiki 或 Fandom」（`notFor` 节零改动）。全仓一致性扫描（AGENTS 第 14 条）同步两处：README 中文快速链接行对比页枚举补「Fandom 用户搬家指南」（英文行无枚举，零改动）、llms.txt 对比页行补「plus why Fandom users switch (platform-fixed page templates, platform-run ads, no custom domain)」；其余 fandom 引用（game-selection/read-serp 的竞品判断语境）与对比页描述无关，核实无需同步。移动端目检（en/zh，375px，全域坑 60）：新节四卡片单列堆叠、文字换行正常、零横向溢出；八门禁全绿（test 274）。
+
 ## [2.29.1] — 2026-09-17
 
 ### Added
@@ -1192,7 +1198,8 @@ This release covers everything since v0.2.0: the full PRD roadmap (v1.1–v2.0) 
 - Docs: PRD (1600+ lines), deployment, apply-template (4-step guide), content-format, seo, ads, migration-from-nextjs
 - Build: 27 pages, typecheck 0 errors
 
-[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.29.1...HEAD
+[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.30.0...HEAD
+[2.30.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.29.1...v2.30.0
 [2.29.1]: https://github.com/PNGTRID/AnvilWiki/compare/v2.29.0...v2.29.1
 [2.29.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.28.0...v2.29.0
 [2.28.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.27.1...v2.28.0
