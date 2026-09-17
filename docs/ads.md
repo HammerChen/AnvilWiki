@@ -107,11 +107,13 @@ Adsterra 是 AdSense 之外最常用的备选:**零流量门槛、审核分钟�
 
 ### 注册和加站(10 分钟)
 
-1. 打开 [adsterra.com](https://adsterra.com) → 右上角 **Sign Up** → 身份选 **Publisher**
+1. 打开 [Adsterra 注册入口](https://beta.publishers.adsterra.com/referral/tF1usSmNwD) → 右上角 **Sign Up** → 身份选 **Publisher**
 2. 去邮箱点验证链接,进后台
 3. **Websites → Add Website**:填你的域名、选网站分类(游戏站选 Games 或 Entertainment)、勾选想要的广告格式
 4. 等审核——官方口径 **5-10 分钟**(自动化审核),慢则几小时。**没有最低流量要求**;被拒基本只有三种原因:违法/成人内容、误导性内容、采集拼凑的垃圾内容——认真写攻略的站不会踩
 5. 通过后,每种格式各拿到一段代码片段
+
+> **透明披露**:上面的注册入口(以及第五节平台表里的 Adsterra 链接)是 AnvilWiki 的**推荐链接**:通过它注册,Adsterra 会按官方推荐计划把被推荐发布者收入的 5% 终身返佣给本项目——奖励由 Adsterra 侧支付,不影响你的收益和账号条件([官方说明](https://adsterra.com/blog/extra-income-with-adsterra-referral-program/))。介意的话直接访问 [adsterra.com](https://adsterra.com) 注册,流程完全一样。
 
 ### 广告格式怎么选
 
@@ -230,7 +232,7 @@ Adsterra 的 wire transfer(电汇)默认最低支付额是 $1000(另收手续费
 | 档位 | 平台 | 门槛(2026-08 快照) | 起付/结算 | 一句话定位 |
 | --- | --- | --- | --- | --- |
 | 起步·主力 | [Google AdSense](https://adsense.google.com) | 无流量门槛,内容审核制 | $100,月结 21 日 | 默认起点;完整教程见手册课 22「开广告」+ 本文第二节 |
-| 起步·备胎 | [Adsterra](https://adsterra.com) | 零流量门槛,分钟级审核 | USDT $100(首两笔 $20) | AdSense 被拒/等待期的回血位;教程见本文第三节 |
+| 起步·备胎 | [Adsterra](https://beta.publishers.adsterra.com/referral/tF1usSmNwD) | 零流量门槛,分钟级审核 | USDT $100(首两笔 $20) | AdSense 被拒/等待期的回血位;教程见本文第三节 |
 | 起步·备胎 | [PropellerAds](https://propellerads.com) / [HilltopAds](https://hilltopads.com) | 无流量门槛 | 约 $20-100,按收款方式 | 和 Adsterra 同模式(注册→加站→粘脚本);popunder 类格式体验差,只做兜底 |
 | 进阶 | [Journey by Mediavine](https://www.journeymv.com) | 1,000 sessions/月 + 连 GA4 + 原创 brand-safe 内容 | 平台分成(发布商约七成),月结 | 2026 年起门槛大降,1 千 session 就能上车的正规军 |
 | 进阶 | [Monumetric(Propel 档)](https://www.monumetric.com) | 10,000 pageviews/月,需至少 6 个广告位 | 一次性 $99 安装费,NET-60 | 管理型;小站先算清 $99+两月账期能不能回本 |
@@ -258,7 +260,7 @@ Adsterra 的 wire transfer(电汇)默认最低支付额是 $1000(另收手续费
 
 | 你的站(每月) | 主力方案 | 备注 |
 | --- | --- | --- |
-| 0 - 1k sessions | [AdSense](https://adsense.google.com) + [Adsterra](https://adsterra.com) 备胎 | 唯一零门槛正规军 |
+| 0 - 1k sessions | [AdSense](https://adsense.google.com) + [Adsterra](https://beta.publishers.adsterra.com/referral/tF1usSmNwD) 备胎 | 唯一零门槛正规军 |
 | 1k - 10k sessions | [Journey by Mediavine](https://www.journeymv.com) | 2026 年起的最低上车点,需连 GA4 |
 | 10k - 100k PV | Journey 续跑 / [Raptive](https://raptive.com)(25k PV 起) / [Monumetric](https://www.monumetric.com) | Monumetric 的 $99 安装费 + NET-60 要先算账 |
 | 100k - 100 万 PV | [NitroPay](https://nitropay.com)(游戏垂直) / Journey / Raptive | 到这档先并行测试 NitroPay 再决定切不切 |
