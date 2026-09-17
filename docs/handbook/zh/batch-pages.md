@@ -93,4 +93,4 @@ pnpm bulk-new-posts             # 真实写入。全部是 draft:true 草稿,不
 
 ## 学完之后
 
-批量铺完内页,学习手册还差最后一块拼图:收录只是入场券,排名和 AI 引用才是流量——[去选词与把一个词做满](/zh/landing/docs/rank-one-keyword),把每个内页对准的搜索词真正做满。之后:回每周保鲜那一课把周节奏跑稳;进[开发手册](/zh/landing/docs/architecture)深度定制;或把你的站提 PR 加进 AnvilWiki 官网展示墙(改 `src/config/landing.ts` 的 showcase 数据)——你的真实案例,就是这套模板最好的广告。
+批量铺完内页,学习手册还差最后一块拼图:收录只是入场券,排名和 AI 引用才是流量——[去选词与把一个词做满](/zh/landing/docs/rank-one-keyword),把每个内页对准的搜索词真正做满。之后:回每周保鲜那一课把周节奏跑稳;进[开发手册](/zh/landing/docs/architecture)深度定制;或把你的站提 PR 加进 AnvilWiki 官网展示墙(改 `src/config/landing-shared.ts` 的 showcase 数据)——你的真实案例,就是这套模板最好的广告。

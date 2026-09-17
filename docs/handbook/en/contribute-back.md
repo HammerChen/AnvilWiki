@@ -22,7 +22,7 @@ Using the template you fixed bugs and built good things — letting them rot in 
 
 ## Your site itself is a contribution
 
-PR your site onto the official showcase wall by editing the showcase data in `src/config/landing.ts` (site name, link, one-liner). **A real, working site is the most persuasive ad this template can have** — and the wall doubles as selection and design inspiration for future builders.
+PR your site onto the official showcase wall by editing the showcase data in `src/config/landing-shared.ts` (site name, link, one-liner). **A real, working site is the most persuasive ad this template can have** — and the wall doubles as selection and design inspiration for future builders.
 
 ## Stuck?
 

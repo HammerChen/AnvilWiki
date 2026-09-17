@@ -530,7 +530,11 @@ rendered from the frontmatter title), and start each section with a direct
  */
 const LANDING_PATHS = [
   'src/components/landing', // directory (16 components incl. docs hub/chapter/nav/comparison)
-  'src/config/landing.ts',
+  'src/config/landing.ts', // facade re-exporting the split landing modules below
+  'src/config/landing-types.ts', // LandingLocale + LandingContent types
+  'src/config/landing-shared.ts', // PROJECT_VERSION + GitHub URLs + COMMUNITY_SITES
+  'src/config/landing-en.ts', // English landing copy
+  'src/config/landing-zh.ts', // Chinese landing copy
   'src/pages/landing.astro', // file — coexists with the src/pages/landing/ dir
   'src/pages/landing', // directory (docs hub + chapter routes)
   'src/pages/zh/landing.astro', // file — coexists with the src/pages/zh/landing/ dir
@@ -900,7 +904,7 @@ async function main() {
   if (skinInput.clearLanding) {
     const n = removeLandingPage();
     if (n > 0) {
-      console.log(`   🗑️  Removed ${n} project landing page file${n === 1 ? '' : 's'} (src/components/landing/, src/config/landing.ts, src/pages/landing* incl. the /landing/docs center, public/images/showcase/ + wechat-qr.jpg; docs/handbook markdown stays as repo docs)`);
+      console.log(`   🗑️  Removed ${n} project landing page file${n === 1 ? '' : 's'} (src/components/landing/, src/config/landing*.ts, src/pages/landing* incl. the /landing/docs center, public/images/showcase/ + wechat-qr.jpg; docs/handbook markdown stays as repo docs)`);
     }
   }
 

@@ -1439,9 +1439,9 @@ describe('sitemap', () => {
 | nomanssky.wiki | 无人深空（Steam） |
 | steal-anegg.wiki | Steal an Egg（Roblox） |
 
-- **数据源唯一**：`src/config/landing.ts` 的 `COMMUNITY_SITES`（locale 无关数组 + 中英双语简介），用户提 PR 追加即可。
+- **数据源唯一**：`src/config/landing-shared.ts` 的 `COMMUNITY_SITES`（locale 无关数组 + 中英双语简介；v2.31.1 起自 landing.ts 门面拆出），用户提 PR 追加即可。
 - **展示位 3 处**：官网 `/landing` 与 `/zh/landing` 的「Built with AnvilWiki」区块（`CommunitySites.astro`，位于特性网格 6 卡之后、对比表之前）+ README 中英双语 Showcase 表格。
-- **fork 自动清理**：案例数据与组件均在 `src/config/landing.ts` / `src/components/landing/` 内，属 `apply-template` 的 `LANDING_PATHS` 删除清单，fork 用户得到纯净模板（零案例残留）。
+- **fork 自动清理**：案例数据与组件均在 `src/config/landing*.ts`（门面 + types/shared/en/zh 五模块）/ `src/components/landing/` 内，属 `apply-template` 的 `LANDING_PATHS` 删除清单，fork 用户得到纯净模板（零案例残留）。
 
 ---
 
