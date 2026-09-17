@@ -91,6 +91,12 @@ export const GET: APIRoute = async () => {
     lines.push(
       `- [AnvilWiki Community Highlights](${siteUrl}/landing/community/): Daily AI-curated digest of the AnvilWiki WeChat group — know-how, monetization pitfalls, real Q&A and template feedback from game-wiki builders (in Chinese).`,
     );
+
+    // Templates showcase — every page type the template produces, each linked
+    // to a real page on the live demo. Catches "wiki page templates" queries.
+    lines.push(
+      `- [Game Wiki Page Templates — every page type, live](${siteUrl}/landing/templates/): One card per page type the AnvilWiki template produces (boss guide, codes page, tier list, beginner guide, item pages, docs center), each linked to a real page on the demo wiki, with the template mechanics behind each (structured codes frontmatter, gallery layout, Quick Answer summary, gameVersion badge).`,
+    );
   }
 
   return new Response(lines.join('\n') + '\n', {

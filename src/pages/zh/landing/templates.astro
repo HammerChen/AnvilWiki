@@ -1,0 +1,32 @@
+---
+/**
+ * 模板展示页中文版 (/zh/landing/templates) — 「游戏 wiki 页面模板」:模板能
+ * 产出的每种页型,各挂一个 demo 真实页面。English version lives at
+ * /landing/templates. 独立于 wiki i18n 系统(官网自带 en/zh 一对,见
+ * src/config/landing-templates.ts)。随整个 landing 层被 apply-template 清理。
+ */
+import LandingLayout from '~/components/landing/LandingLayout.astro';
+import AdsterraSlotPair from '~/components/ads/AdsterraSlotPair.astro';
+import TemplatesPage from '~/components/landing/TemplatesPage.astro';
+import { templatesContent } from '~/config/landing-templates';
+import { siteUrl } from '~/config/site';
+
+const t = templatesContent.zh;
+const alternates = [
+  { hreflang: 'en', href: `${siteUrl}/landing/templates/` },
+  { hreflang: 'zh', href: `${siteUrl}/zh/landing/templates/` },
+];
+---
+
+<LandingLayout
+  locale="zh"
+  alternates={alternates}
+  pageTitle={t.title}
+  pageDescription={t.subtitle}
+  togglePath="/landing/templates/"
+>
+  {/* Adsterra pair: 728×90 above the cards, responsive native after them. */}
+  <AdsterraSlotPair>
+    <TemplatesPage t={t} />
+  </AdsterraSlotPair>
+</LandingLayout>

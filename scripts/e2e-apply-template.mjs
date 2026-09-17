@@ -109,7 +109,7 @@ if (/left over/.test((cli.stdout || '') + (cli.stderr || ''))) {
 
 // 4. Assert the output shape — the exact fields the home components render.
 step('Assert output shape');
-for (const p of ['src/config/landing.ts', 'src/config/landing-types.ts', 'src/config/landing-shared.ts', 'src/config/landing-en.ts', 'src/config/landing-zh.ts', 'src/components/landing', 'src/pages/landing', 'src/pages/zh/landing']) {
+for (const p of ['src/config/landing.ts', 'src/config/landing-types.ts', 'src/config/landing-shared.ts', 'src/config/landing-en.ts', 'src/config/landing-zh.ts', 'src/config/landing-templates.ts', 'src/components/landing', 'src/pages/landing', 'src/pages/zh/landing']) {
   if (existsSync(join(scratch, p))) fail(`landing path still present after removal: ${p}`);
 }
 // Upstream's own search-console token must not ride along into forks

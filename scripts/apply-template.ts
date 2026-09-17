@@ -535,6 +535,7 @@ const LANDING_PATHS = [
   'src/config/landing-shared.ts', // PROJECT_VERSION + GitHub URLs + COMMUNITY_SITES
   'src/config/landing-en.ts', // English landing copy
   'src/config/landing-zh.ts', // Chinese landing copy
+  'src/config/landing-templates.ts', // "wiki page templates" showcase copy (v2.32.0)
   'src/pages/landing.astro', // file — coexists with the src/pages/landing/ dir
   'src/pages/landing', // directory (docs hub + chapter routes)
   'src/pages/zh/landing.astro', // file — coexists with the src/pages/zh/landing/ dir

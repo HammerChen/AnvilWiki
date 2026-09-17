@@ -1,0 +1,35 @@
+---
+/**
+ * Templates page (/landing/templates, English) — "game wiki page templates"
+ * showcase: every page type the template produces, each linked to a real
+ * demo page. Catches page-template-intent search (SimilarWeb 2026-08:
+ * "wiki template" ~1,000/mo, "wiki page template" ~870/mo, "wiki template
+ * character" ~1,490/mo). 中文版在 /zh/landing/templates。Removed together
+ * with the whole landing layer by apply-template (lives under
+ * src/pages/landing/).
+ */
+import LandingLayout from '~/components/landing/LandingLayout.astro';
+import AdsterraSlotPair from '~/components/ads/AdsterraSlotPair.astro';
+import TemplatesPage from '~/components/landing/TemplatesPage.astro';
+import { templatesContent } from '~/config/landing-templates';
+import { siteUrl } from '~/config/site';
+
+const t = templatesContent.en;
+const alternates = [
+  { hreflang: 'en', href: `${siteUrl}/landing/templates/` },
+  { hreflang: 'zh', href: `${siteUrl}/zh/landing/templates/` },
+];
+---
+
+<LandingLayout
+  locale="en"
+  alternates={alternates}
+  pageTitle={t.title}
+  pageDescription={t.subtitle}
+  togglePath="/zh/landing/templates/"
+>
+  {/* Adsterra pair: 728×90 above the cards, responsive native after them. */}
+  <AdsterraSlotPair>
+    <TemplatesPage t={t} />
+  </AdsterraSlotPair>
+</LandingLayout>

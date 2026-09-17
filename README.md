@@ -47,6 +47,7 @@
 | 深度定制 / 给模板写代码 | 🔧 [开发手册](https://anvil.wiki/zh/landing/docs/dev) |
 | 看看做出来长什么样 | 🎮 [在线 Demo](https://anvil.wiki/)——虚构游戏「Anvil Quest」的完整 wiki |
 | 对比 Fandom / Wiki.js / 其他方案 | ⚖️ [完整对比页](https://anvil.wiki/zh/landing/comparison)——三种物种、Fandom 用户搬家指南、自托管引擎数据表、什么时候不该选 AnvilWiki |
+| 看「游戏 wiki 页面模板」长什么样 | 🧩 [模板展示页](https://anvil.wiki/zh/landing/templates)——Boss 攻略/兑换码/强度榜/物品页/文档中心,每型挂 demo 真实页面 |
 
 ## 📖 中文文档
 
@@ -188,6 +189,7 @@ fork 后用 ZCode / Claude Code / Codex / Cursor 打开仓库,直接对话即可
 | Customize deeply / contribute code | 🔧 [Development Manual](https://anvil.wiki/landing/docs/dev) |
 | See what it looks like | 🎮 [Live demo](https://anvil.wiki/) — a complete wiki for the fictional game "Anvil Quest" |
 | Compare Fandom / Wiki.js / alternatives | ⚖️ [Full comparison](https://anvil.wiki/landing/comparison) |
+| See what the wiki page templates look like | 🧩 [Templates showcase](https://anvil.wiki/landing/templates) — boss guide, codes, tier list, item pages, docs center, each linked to a real demo page |
 
 ### Quick Start (5 min)
 

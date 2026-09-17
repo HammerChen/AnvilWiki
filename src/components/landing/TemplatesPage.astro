@@ -1,0 +1,98 @@
+---
+/**
+ * TemplatesPage — the "wiki page templates" showcase
+ * (/landing/templates + /zh/landing/templates).
+ *
+ * Catches page-template-intent search ("what does a game wiki page look
+ * like") and doubles as a product demo: one card per page type the template
+ * produces, each card linking to a REAL page on the live demo wiki, then a
+ * closing CTA to the GitHub fork. Copy lives in landing-templates.ts
+ * (standalone module, v2.32.0); apply-template removes the whole landing
+ * layer.
+ */
+import { Icon } from 'astro-icon/components';
+import type { TemplatesPageContent } from '~/config/landing-templates';
+
+interface Props {
+  t: TemplatesPageContent;
+}
+const { t } = Astro.props;
+/* Per-card icons; index-aligned with t.cards (6 entries). */
+const CARD_ICONS = [
+  'lucide:skull',
+  'lucide:ticket',
+  'lucide:list-ordered',
+  'lucide:map',
+  'lucide:swords',
+  'lucide:book-open',
+];
+---
+
+<section class="section" data-pagefind-body>
+  <div class="mx-auto max-w-4xl">
+    <h1 class="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">{t.title}</h1>
+    <p class="mt-3 text-lg text-muted-foreground">{t.intro}</p>
+
+    <!-- Page-type cards: every link is a real demo page -->
+    <h2 class="mt-12 text-2xl font-bold tracking-tight text-foreground">{t.cardsTitle}</h2>
+    <p class="mt-2 flex items-start gap-2 text-muted-foreground">
+      <Icon name="lucide:info" class="mt-1 h-4 w-4 shrink-0 text-nav" />
+      {t.cardsHint}
+    </p>
+    <div class="mt-6 grid gap-4 sm:grid-cols-2">
+      {t.cards.map((card, i) => (
+        <div class="flex flex-col rounded-lg border border-border bg-muted/40 p-4">
+          <div class="flex items-center gap-2 font-semibold text-foreground">
+            <Icon name={CARD_ICONS[i] ?? 'lucide:file-text'} class="h-4 w-4 shrink-0 text-nav" />
+            {card.name}
+          </div>
+          <p class="mt-2 text-sm text-muted-foreground">{card.description}</p>
+          <ul class="mt-3 space-y-1.5 text-sm text-muted-foreground">
+            {card.points.map((point) => (
+              <li class="flex items-start gap-1.5">
+                <Icon name="lucide:check" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-nav" />
+                <span>{point}</span>
+              </li>
+            ))}
+          </ul>
+          <div class="mt-4 flex flex-col gap-1.5 border-t border-border pt-3">
+            {card.links.map((link) => (
+              <a
+                href={link.href}
+                class="inline-flex items-center gap-1.5 text-sm font-medium text-nav transition hover:text-foreground"
+              >
+                <Icon name="lucide:arrow-right" class="h-4 w-4 shrink-0" />
+                {link.label}
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Cross-link to the comparison page (one-directional: this page →
+        /landing/comparison; the comparison page stays untouched) -->
+    <p class="mt-6 flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+      <Icon name="lucide:scale" class="h-4 w-4 shrink-0 text-nav" />
+      {t.compareNote.text}
+      <a href={t.compareNote.href} class="font-medium text-nav transition hover:text-foreground">
+        {t.compareNote.label}
+      </a>
+    </p>
+
+    <!-- CTA: fork -->
+    <div class="mt-12 rounded-xl border border-border bg-nav/5 p-8 text-center">
+      <h2 class="text-2xl font-extrabold tracking-tight text-foreground">{t.cta.title}</h2>
+      <p class="mt-2 text-muted-foreground">{t.cta.subtitle}</p>
+      <div class="mt-6 flex flex-wrap justify-center gap-3">
+        <a href={t.cta.primaryHref} class="btn-primary inline-flex items-center gap-1.5">
+          <Icon name="lucide:external-link" class="h-4 w-4" />
+          {t.cta.primaryLabel}
+        </a>
+        <a href={t.cta.secondaryHref} class="btn-outline inline-flex items-center gap-1.5">
+          {t.cta.secondaryLabel}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
