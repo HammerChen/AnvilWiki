@@ -44,7 +44,7 @@
 | demo 站验证文件 | `public/` 根目录下 demo 站自己的搜索引擎验证 token（如 `google8362d9398114b66b.html`，清单 `DEMO_PUBLIC_FILES`） | 这是上游 demo 站域名的运维 token；你验证**自己的**站点时 GSC 会生成不同的随机文件名，按精确文件名删除绝不会误删你自己的验证文件 |
 | 项目官网 | `src/components/landing/`、`src/config/landing.ts`、`src/pages/landing*`（含站内文档中心 /landing/docs）、`src/pages/zh/landing*`（中文官网）、`public/images/showcase/`、`public/images/wechat-qr.jpg`、`public/_redirects`（手册旧 slug 301 重定向，只有 demo 的 /landing/docs 路由用得到） | fork 站不需要 AnvilWiki 项目自述页；`docs/handbook/` **markdown 源保留**当参考文档，只删路由 |
 | 官网回链 | `src/config/project.ts` 的 `landingLinkEnabled` 翻为 `false` | 页面 header 的"返回官网"按钮随删随关 |
-| demo 凭据 | `wrangler.toml` `[vars]` 重写：`SITE_URL` 换成你的域名，仍是 demo 占位的 Giscus/Sponsor/CF Analytics 键清空，AdSense/Adsterra 等可选槽留注释位。**重跑安全（value-aware）**：你已手改的值会被识别并原样保留（解析兼容行尾内联注释与单引号/双引号字面量），只有未改动的 demo 占位才重置 | 不重置的话，你站的评论区会指回官方仓库的 Discussions |
+| demo 凭据 | `wrangler.toml` `[vars]` 重写：`SITE_URL` 换成你的域名，仍是 demo 占位的 Giscus/Sponsor/CF Analytics 键清空，AdSense/Adsterra 等可选槽留注释位。**重跑安全（value-aware）**：你已手改的值会被识别并原样保留（解析兼容行尾内联注释、单引号/双引号字面量与裸标量——`KEY = 42` 这类数字/布尔按字面保留、重写为双引号字符串），只有未改动的 demo 占位才重置 | 不重置的话，你站的评论区会指回官方仓库的 Discussions |
 | demo 作者 | `src/config/authors.ts` 里 `// DEMO` 标记的作者条目 | 否则 Person JSON-LD 会引用虚构作者 |
 
 **保留不删（有意设计）**：favicon/hero 图等二进制资产（CLI 生成不了，脚手架下一步指引你手动换）；`docs/handbook/` 手册源码。

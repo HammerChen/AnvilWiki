@@ -20,7 +20,7 @@ npx anvilwiki-ops metrics --import-aio ~/Downloads/aio.csv   # GSC AI-report CSV
 `submit` validates first (check-content + non-strict check-i18n + a full build), then branches and opens a PR — it never pushes main. Two rails run inside every submit:
 
 - **Private-key safety net** — staged files are screened three ways before anything commits: filename patterns mirror the repo's `.gitignore` secret rules, every staged file's first 64 KB is scanned for key-like content (so a key pasted into a `.md` draft is caught too, not just `.json` files), and staged paths are compared against the `.env` `GSC_SERVICE_ACCOUNT_JSON` path. The staged listing runs `git -c core.quotePath=false ... -z`, so non-ASCII filenames (e.g. `谷歌密钥.json`) are screened under their real names instead of git's C-quoted escapes — quoting them would silently bypass all three screens.
-- **Cross-process lock** — concurrent `submit` runs against the same site are serialized: the lock is keyed by the site's realpath in the OS temp dir, and a lock left behind by a dead process is reclaimed via owner-pid liveness. Covers the CLI, the MCP server, and offload workers.
+- **Cross-process lock** — concurrent `submit` runs against the same site are serialized: the lock is keyed by the site's realpath in the OS temp dir, and a lock left behind by a dead process is reclaimed via owner-pid liveness — or stolen automatically once it has been held for over 30 minutes, because the OS can recycle a dead submit's pid onto an unrelated process and liveness alone would then deadlock forever. Covers the CLI, the MCP server, and offload workers.
 
 ## Multi-site management
 

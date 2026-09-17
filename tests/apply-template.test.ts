@@ -165,6 +165,28 @@ describe('rewriteWranglerVars is value-aware (a re-run must not wipe the user en
     expect(out).not.toContain('#PUBLIC_GA_ID = "G-USER1234"');
   });
 
+  test('bare TOML scalars (numbers/booleans, with or without a trailing comment) survive a re-run', () => {
+    // A hand editor can drop the quotes entirely (`KEY = 42`). The old parser
+    // matched neither form → keep=null → the value was silently reset. Bare
+    // scalars are preserved verbatim and re-emitted double-quoted (Pages env
+    // vars are strings anyway).
+    const out = rewriteWranglerVars(
+      makeInput(),
+      USER_WRANGLER.replace('PUBLIC_CF_BEACON_TOKEN = "cf-beacon-user"', 'PUBLIC_CF_BEACON_TOKEN = 12345678')
+        .replace('PUBLIC_GISCUS_MAPPING = "pathname"', 'PUBLIC_GISCUS_MAPPING = true # user hand-edit'),
+    )!;
+    expect(out).toContain('PUBLIC_CF_BEACON_TOKEN = "12345678"');
+    expect(out).toContain('PUBLIC_GISCUS_MAPPING = "true"');
+  });
+
+  test('an empty bare value still resets (no value to preserve)', () => {
+    const out = rewriteWranglerVars(
+      makeInput(),
+      USER_WRANGLER.replace('PUBLIC_CF_BEACON_TOKEN = "cf-beacon-user"', 'PUBLIC_CF_BEACON_TOKEN ='),
+    )!;
+    expect(out).toContain('PUBLIC_CF_BEACON_TOKEN = ""');
+  });
+
   test('demo values are still cleared on a first run (blank template shape intact)', () => {
     const out = rewriteWranglerVars(makeInput(), LF_WRANGLER)!;
     expect(out).toContain('PUBLIC_GISCUS_REPO = ""');

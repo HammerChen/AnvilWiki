@@ -148,7 +148,9 @@ export interface SubmitLock {
  * dodge .git-layout quirks (a linked worktree's .git is a file). A lock left
  * behind by a crashed run is stolen: the owner pid is liveness-probed
  * (process.kill(pid, 0); EPERM counts as alive — conservative), a dead or
- * unreadable owner is reclaimed.
+ * unreadable owner is reclaimed, and a lock held for over SUBMIT_LOCK_STALE_MS
+ * is stolen even when its pid looks alive (the OS recycles pids, so liveness
+ * alone cannot tell a reused pid from a genuine long-running submit).
  */
 /** Where a site's submit lock lives (tmpdir, keyed by the site realpath).
  * Exported for tests and for surfacing the exact cleanup path in errors. */
@@ -162,10 +164,15 @@ export function submitLockPath(siteRoot: string): string {
   return join(tmpdir(), `anvil-ops-submit-${key}.lock`);
 }
 
+/** 30 min ≈ 2x the worst legitimate hold: the MCP offload watchdog is 10 min
+ * and CLI validation includes a build, but a 30-minute hold means the machine
+ * is effectively dead anyway — far likelier the pid was recycled. */
+const SUBMIT_LOCK_STALE_MS = 30 * 60 * 1000;
+
 export function acquireSubmitLock(siteRoot: string): SubmitLock {
   const lockPath = submitLockPath(siteRoot);
   const pidAlive = (pid: number): boolean => {
-    if (pid <= 0) return false;
+    if (pid <= 0 || !Number.isFinite(pid)) return false;
     try {
       process.kill(pid, 0);
       return true;
@@ -175,7 +182,9 @@ export function acquireSubmitLock(siteRoot: string): SubmitLock {
   };
   for (let attempt = 0; ; attempt++) {
     try {
-      writeFileSync(lockPath, `${process.pid}\n`, { flag: 'wx' });
+      // Line 2 is the creation timestamp — the age-based steal needs it
+      // because a recycled pid defeats the liveness probe.
+      writeFileSync(lockPath, `${process.pid}\n${Date.now()}\n`, { flag: 'wx' });
       return {
         release(): void {
           try {
@@ -194,18 +203,24 @@ export function acquireSubmitLock(siteRoot: string): SubmitLock {
         );
       }
       let ownerPid = -1;
+      let createdAt = Number.NaN; // absent → age check disabled (1.0.4-era locks)
       try {
-        ownerPid = Number.parseInt(readFileSync(lockPath, 'utf8').trim(), 10);
+        const [pidLine, tsLine] = readFileSync(lockPath, 'utf8').split('\n');
+        ownerPid = Number.parseInt(pidLine.trim(), 10);
+        createdAt = Number.parseInt(tsLine?.trim() ?? '', 10);
       } catch {
         ownerPid = -1; // unreadable → treat as dead and steal
       }
-      if (pidAlive(ownerPid)) {
+      const stale =
+        Number.isFinite(createdAt) && Date.now() - createdAt > SUBMIT_LOCK_STALE_MS;
+      if (pidAlive(ownerPid) && !stale) {
         throw new OpsError(
           `Another submit is already running for this site (pid ${ownerPid}).`,
-          'Wait for it to finish, or — if no submit is actually running — delete the stale lock file and re-run submit.',
+          'Wait for it to finish — a lock held for over 30 minutes is stolen automatically on the next run — or, if no submit is actually running, delete the lock file and re-run submit.',
         );
       }
-      // Dead owner: steal. unlink+retry converges (last writer wins the wx create).
+      // Dead owner, or a recycled pid squatting on a >30-min-old lock: steal.
+      // unlink+retry converges (last writer wins the wx create).
       try {
         unlinkSync(lockPath);
       } catch {

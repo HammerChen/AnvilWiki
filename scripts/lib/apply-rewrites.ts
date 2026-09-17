@@ -656,15 +656,18 @@ export function rewriteWranglerVars(input: { domain: string }, src: string): str
   // Parse the CURRENT [vars] block's uncommented `KEY = "value"` lines.
   // Commented `#KEY = ""` placeholders hold no value and never participate.
   // Forms beyond the bare double-quoted line are valid TOML a hand editor
-  // produces — a trailing inline comment (`KEY = "G-ABC" # prod`) or a
-  // single-quoted literal string. Failing to parse them used to make the
-  // value-aware rewrite silently RESET that value on re-run. Value char
-  // classes are escape-aware so `\"` inside doesn't end the string early.
+  // produces — a trailing inline comment (`KEY = "G-ABC" # prod`), a
+  // single-quoted literal string, or a bare scalar (`KEY = 42` / `true`;
+  // preserved verbatim and re-emitted quoted — Pages env vars are strings
+  // anyway, and resetting a hand-set value is the destructive direction).
+  // Failing to parse them used to make the value-aware rewrite silently
+  // RESET that value on re-run. Value char classes are escape-aware so `\"`
+  // inside doesn't end the string early.
   const section = src.match(/(?:^|\n)\[vars\]\r?\n([\s\S]*?)(?=\r?\n\[|$)/)?.[1] ?? '';
   const existing = new Map<string, string>();
   for (const line of section.split(/\r?\n/)) {
-    const m = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?:"((?:\\.|[^"\\])*)"|'([^']*)')\s*(?:#.*)?$/);
-    if (m) existing.set(m[1], m[2] ?? m[3]);
+    const m = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?:"((?:\\.|[^"\\])*)"|'([^']*)'|([^#\s][^#]*?))\s*(?:#.*)?$/);
+    if (m) existing.set(m[1], m[2] ?? m[3] ?? m[4]);
   }
 
   const lines: string[] = ['[vars]'];

@@ -1,5 +1,5 @@
 import { execSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -461,9 +461,42 @@ describe('round-15 audit fixes', () => {
       // provably dead, so the lock is stolen and rewritten with our pid.
       writeFileSync(lockPath, '100000000\n');
       const l = acquireSubmitLock(repo);
-      expect(readFileSync(lockPath, 'utf8').trim()).toBe(String(process.pid));
+      const [stolenPid, stolenTs] = readFileSync(lockPath, 'utf8').trim().split('\n');
+      expect(stolenPid).toBe(String(process.pid));
+      expect(Number(stolenTs)).toBeGreaterThan(Date.now() - 60_000);
       l.release();
       expect(existsSync(lockPath)).toBe(false);
+    });
+
+    it('steals a lock whose pid was recycled but which is older than the stale window', () => {
+      const repo = tmpRepo();
+      const lockPath = submitLockPath(repo);
+      // OUR pid (provably alive) squatting on a 31-minute-old lock: the OS
+      // can hand a dead submit's pid to an unrelated process, so liveness
+      // alone would deadlock forever — age is the tiebreaker.
+      writeFileSync(lockPath, `${process.pid}\n${Date.now() - 31 * 60_000}\n`);
+      const l = acquireSubmitLock(repo);
+      expect(readFileSync(lockPath, 'utf8').trim().split('\n')[0]).toBe(String(process.pid));
+      l.release();
+      expect(existsSync(lockPath)).toBe(false);
+    });
+
+    it('still refuses a fresh timestamped lock with a live pid (age steal must not shortcut safety)', () => {
+      const repo = tmpRepo();
+      const lockPath = submitLockPath(repo);
+      writeFileSync(lockPath, `${process.pid}\n${Date.now()}\n`);
+      expect(() => acquireSubmitLock(repo)).toThrowError(OpsError);
+      unlinkSync(lockPath);
+    });
+
+    it('a timestamp-less lock from an older version still refuses a live pid (no age shortcut)', () => {
+      const repo = tmpRepo();
+      const lockPath = submitLockPath(repo);
+      // 1.0.4 wrote pid only. Missing timestamp → age check disabled →
+      // fail-closed on a live pid, exactly as before.
+      writeFileSync(lockPath, `${process.pid}\n`);
+      expect(() => acquireSubmitLock(repo)).toThrowError(OpsError);
+      unlinkSync(lockPath);
     });
   });
 
