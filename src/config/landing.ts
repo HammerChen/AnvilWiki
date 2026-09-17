@@ -11,7 +11,7 @@
  */
 
 /** Keep in sync with package.json "version" (used by the announcement bar). */
-export const PROJECT_VERSION = '2.30.0';
+export const PROJECT_VERSION = '2.31.0';
 
 export type LandingLocale = 'en' | 'zh';
 
@@ -369,7 +369,7 @@ const en: LandingContent = {
   description:
     'An open-source game wiki template with an AI-native content workflow: pick the right game, generate pages by talking to your AI tool, codes pages stay fresh on autopilot. Lighthouse 4×100, free on Cloudflare, 100% ad revenue yours.',
   announcement: {
-    text: `AnvilWiki template update log (v${PROJECT_VERSION}): the comparison page gains a new section — "Why Fandom users switch" — covering Fandom's platform-fixed page templates, platform-run ads, the fandom.com subdomain lock-in, and the missing AI content workflow, with the search data behind it (SimilarWeb 2026-08) and the honest trade-offs. Existing sections untouched. Zero fork migration: merge upstream and pnpm install as usual. This bar tracks template releases — details & full changelog on GitHub Releases.`,
+    text: `AnvilWiki template update log (v${PROJECT_VERSION}): docs batch — the keyword research guide (docs/sourcing.md) gains a "generic-term noise check": search volume ≠ demand match, so open the actual SERP before a high-volume generic word enters your decision table ("wiki game" at ~75.6k/month turns out to be the Wikipedia speedrun game — zero game-guide demand). The anvil-find-keywords skill ships the same check. Zero code changes: merge upstream and pnpm install as usual. This bar tracks template releases — details & full changelog on GitHub Releases.`,
     href: RELEASES,
     dismissLabel: 'Dismiss announcement',
   },
@@ -923,7 +923,7 @@ const zh: LandingContent = {
   description:
     '开源游戏 wiki 模板 + AI 原生内容工作流:选对游戏、和 AI 对话就能产页、codes 页自动保鲜。Lighthouse 4×100、Cloudflare 免费部署、广告收入 100% 归你。',
   announcement: {
-    text: `AnvilWiki 模板更新日志（v${PROJECT_VERSION}）：对比页新增「为什么 Fandom 用户搬家」一节——讲清 Fandom 页面模板由平台固定、广告由平台运营、fandom.com 子域锁定、缺 AI 内容工作流四件事，附背后的搜索量数据（SimilarWeb 2026-08）与诚实的取舍说明；既有内容零改动。fork 常规 merge 零迁移，照常 pnpm install 即可。本条为模板发版通告，非站点故障；详情与完整变更见 GitHub Releases。`,
+    text: `AnvilWiki 模板更新日志（v${PROJECT_VERSION}）：文档批——挖词指南（docs/sourcing.md）新增「泛词噪音核查」：搜索量 ≠ 需求匹配，高量泛词入决策表前先点开实际 SERP 验意图（"wiki game" 月搜约 7.5 万，点开全是维基百科竞速小游戏，与游戏攻略需求无关）；anvil-find-keywords 技能同步同一核查动作。零代码变更，merge 上游照常 pnpm install 即可。本条为模板发版通告，非站点故障；详情与完整变更见 GitHub Releases。`,
     href: RELEASES,
     dismissLabel: '关闭公告',
   },

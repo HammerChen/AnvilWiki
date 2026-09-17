@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.31.0] — 2026-09-17
+
+### Added
+
+- **挖词方法论新增「泛词噪音核查」判据（docs/sourcing.md 判决框架第一道门 + anvil-find-keywords Step 2 同步，纯文档批零代码变更）**：口径**「搜索量 ≠ 需求匹配：先验意图，再入决策表」**——高量泛词（尤其一词多义的英文短词）入决策表前必须点开实际 SERP 确认搜索意图，第一页答的不是「游戏攻略」意图的，无论量多大都不进需求轨打分，直接记【不做】并注明原因。实例钉死（SimilarWeb Keyword Generator，2026-08，global，已核实）：「wiki game」词族月搜索量约 75,590，其中 66,300 来自「wikipedia game / the wiki game / Wikipedia speedrun game」类变体——点开第一页全是「维基百科竞速」小游戏（比谁最快从一条百科词条点到另一条），搜的人不是找攻略的玩家，7.5 万/月的量零需求匹配。小节点破与第二节「意图满足度」的两种意图错位防混：**词对、供给答错**（玩家确实在找这个游戏，首页没答好）=强可做信号；**词义本就是另一件事**（搜索量属于别的市场）=量再大也不是你的需求。SKILL.md Step 2 插入同一核查动作，措辞与 sourcing.md 逐字口径对齐（标点随各文件惯例，v2.15.1 防漂移先例）+方法论文源头枚举同步+排障清单「Step 2 第 5 条」序号引用顺改第 6 条；学习手册课 5/6（SERP 判读+意图满足度）已有等价内容（五步检查表第 1 步「玩家搜这个词想解决什么」+经典错误「只看词面不看目的」），按「避免三处重复」不动手册。roadmap 候选池同步记账三条（标注数据依据与触发条件，本轮均不启动）：ja 落地面验证（「ゲーム wiki」2,390/月+「ゲーム攻略」2,050/月，SimilarWeb 2026-08 Japan；触发=日文 showcase 站或 ja 社群信号；约束=landing.ts 复杂度预算已告警，排拆分批后）/「wiki page templates」模板展示页（承接「wiki template」约 1,000/月 score 19+「wiki template character」约 1,490/月长尾，SimilarWeb 2026-08 global；排 landing.ts 拆分批后）/showcase 收录标准补「站点 README 回链 anvil.wiki」（依据=SimilarWeb 反向链接实测，anvil.wiki 全站仅 28 个引荐域且均为自动收录型目录，外链是最短板；触发=下一次投稿受理）。八门禁全绿（test 274）。
+
 ## [2.30.0] — 2026-09-17
 
 ### Added
@@ -1198,7 +1204,8 @@ This release covers everything since v0.2.0: the full PRD roadmap (v1.1–v2.0) 
 - Docs: PRD (1600+ lines), deployment, apply-template (4-step guide), content-format, seo, ads, migration-from-nextjs
 - Build: 27 pages, typecheck 0 errors
 
-[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.30.0...HEAD
+[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.31.0...HEAD
+[2.31.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.30.0...v2.31.0
 [2.30.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.29.1...v2.30.0
 [2.29.1]: https://github.com/PNGTRID/AnvilWiki/compare/v2.29.0...v2.29.1
 [2.29.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.28.0...v2.29.0
