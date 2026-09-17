@@ -30,7 +30,7 @@ export const zh: LandingContent = {
   description:
     '开源游戏 wiki 模板 + AI 原生内容工作流:选对游戏、和 AI 对话就能产页、codes 页自动保鲜。Lighthouse 4×100、Cloudflare 免费部署、广告收入 100% 归你。',
   announcement: {
-    text: `AnvilWiki 模板更新日志（v${PROJECT_VERSION}）：文档批——挖词指南（docs/sourcing.md）新增「泛词噪音核查」：搜索量 ≠ 需求匹配，高量泛词入决策表前先点开实际 SERP 验意图（"wiki game" 月搜约 7.5 万，点开全是维基百科竞速小游戏，与游戏攻略需求无关）；anvil-find-keywords 技能同步同一核查动作。零代码变更，merge 上游照常 pnpm install 即可。本条为模板发版通告，非站点故障；详情与完整变更见 GitHub Releases。`,
+    text: `AnvilWiki 模板更新日志（v${PROJECT_VERSION}）：内部重构——全仓最大核心文件、6.4 万字节的官网配置 src/config/landing.ts 拆为五模块门面家族（types/shared/en/zh，单文件均 <30KB）：零行为变更，公共导入路径不变，构建产物逐字节一致，fork CLI 的 landing 删除清单已覆盖新文件；顺带文档修正：站内手册的 Adsterra 返佣链接补 rel="sponsored nofollow"。fork 用户 merge 上游、照常 pnpm install 即可。本条为模板发版通告，非站点故障；详情与完整变更见 GitHub Releases。`,
     href: RELEASES,
     dismissLabel: '关闭公告',
   },

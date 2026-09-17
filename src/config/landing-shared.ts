@@ -12,12 +12,12 @@
 /** Keep in sync with package.json "version" (used by the announcement bar).
  *  Lives on this leaf module (not the landing.ts facade) so the en/zh copy
  *  modules can interpolate it without an import cycle through the facade. */
-export const PROJECT_VERSION = '2.31.0';
+export const PROJECT_VERSION = '2.31.1';
 
 export const RELEASES = 'https://github.com/PNGTRID/AnvilWiki/releases';
 export const FORK_URL = 'https://github.com/PNGTRID/AnvilWiki/fork';
 export const SHOWCASE_DATA =
-  'https://github.com/PNGTRID/AnvilWiki/blob/main/src/config/landing.ts';
+  'https://github.com/PNGTRID/AnvilWiki/blob/main/src/config/landing-shared.ts';
 
 /**
  * Community-built sites — locale-independent list shown by CommunitySites.astro.

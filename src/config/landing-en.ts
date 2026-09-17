@@ -18,7 +18,7 @@ export const en: LandingContent = {
   description:
     'An open-source game wiki template with an AI-native content workflow: pick the right game, generate pages by talking to your AI tool, codes pages stay fresh on autopilot. Lighthouse 4×100, free on Cloudflare, 100% ad revenue yours.',
   announcement: {
-    text: `AnvilWiki template update log (v${PROJECT_VERSION}): docs batch — the keyword research guide (docs/sourcing.md) gains a "generic-term noise check": search volume ≠ demand match, so open the actual SERP before a high-volume generic word enters your decision table ("wiki game" at ~75.6k/month turns out to be the Wikipedia speedrun game — zero game-guide demand). The anvil-find-keywords skill ships the same check. Zero code changes: merge upstream and pnpm install as usual. This bar tracks template releases — details & full changelog on GitHub Releases.`,
+    text: `AnvilWiki template update log (v${PROJECT_VERSION}): internal refactor — the 64KB landing config (src/config/landing.ts, the repo's largest core file) is now a 5-module family behind the same facade (types / shared / en / zh, each under 30KB): zero behavior change, every public import path unchanged, build output byte-identical, and the fork CLI's landing-removal list already covers the new files. Plus docs fixes: the Adsterra referral link inside the on-site manual now carries rel="sponsored nofollow". Forks: merge upstream and pnpm install as usual. This bar tracks template releases — details & full changelog on GitHub Releases.`,
     href: RELEASES,
     dismissLabel: 'Dismiss announcement',
   },

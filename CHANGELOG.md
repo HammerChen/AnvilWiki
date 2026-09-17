@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.31.1] — 2026-09-17
+
+### Changed
+
+- **`src/config/landing.ts`（63,868B，全仓最大核心文件）拆为五模块门面家族（纯重构，零行为变更）**：landing.ts 保留薄门面（1,701B，`LandingLocale`/`LandingContent` 类型、`COMMUNITY_SITES`、`PROJECT_VERSION` 全部 re-export，`~/config/landing` 原公共导出与 import 路径零变化，全仓 20 个 importer 零改动）；新增四模块——`landing-types.ts`（8,155B，类型；`ManualCopy` 维持模块内私有）、`landing-shared.ts`（5,403B，PROJECT_VERSION+RELEASES/FORK_URL/SHOWCASE_DATA+COMMUNITY_SITES；版本常量有意落 leaf 模块：en/zh 横幅模板字面量内插它，若留门面则 en/zh→门面循环 import 在 ESM 深度优先求值序下命中 TDZ 直接 ReferenceError）、`landing-en.ts`（26,099B）/`landing-zh.ts`（25,246B），en/zh 文案 sed 逐字节搬移零手抄、仍以 `LandingContent` 类型注解（漏译照旧 typecheck 拦），五文件全部 <30KB（AGENTS 第 13 条复杂度预算；docs/development.md 体积敏感清单首个拆分先例，ArticlePage/BaseLayout/apply-template 拆分仍在 roadmap 候选池不混批）。零行为变更实证：八门禁全绿（test 274）+ dist 零漂移钉死（v2.27.1 先例：拆分前后 179 个 dist html sha256 逐字节一致）；🚨 fork 红线全通道同步——`scripts/apply-template.ts` `LANDING_PATHS` 补四个新文件（删除日志改 `landing*.ts`）、`.github/workflows/setup.yml` rm 行同步、`scripts/e2e-apply-template.mjs` 纯净性断言补四路径，`pnpm test:e2e` 真实 fork 模拟绿；全仓一致性扫描（AGENTS 第 14 条）：PRD showcase 数据源/fork 清理两处、apply-template.md 删除清单表、development.md 版本五处行（PROJECT_VERSION 新址）+体积敏感清单、手册 contribute-back/batch-pages 中英 showcase 指路改 `landing-shared.ts`；`SHOWCASE_DATA` 指路 URL 随本版转指 `landing-shared.ts`（refactor 提交为保 dist 零漂移暂留原值，属行为面与横幅同批生效）。
+
+### Added
+
+- **Adsterra 注册入口换邀请返佣链接+手册课补推荐位（commit 4df01e4，零代码变更）**：docs/ads.md 第三节注册步骤与第五节两处平台表（起步·备胎行+0-1k 三档表）的 Adsterra 入口统一指向推荐链接 `beta.publishers.adsterra.com/referral/tF1usSmNwD`，注册步骤后新增透明披露块（官方推荐计划口径：被推荐发布者收入的 5% 终身返佣、由 Adsterra 侧支付、不影响被推荐人收益与账号条件，附官方博客说明+直接访问 adsterra.com 的等价替代通道；第四节官方 payout 博文等引用链接有意保持原链）；学习手册课 22 enable-ads 中英平台全景指路句后各补一句 Adsterra 回血位定位+推荐链接注册+返佣归属。
+
+### Fixed
+
+- **第 17 轮 24h 审计三发现（commit 15c3b1c，零代码变更）**：①手册课 22 enable-ads（en+zh）Adsterra 返佣链接由裸 markdown 锚点改内联 HTML 补 `rel="sponsored nofollow"`（站内页联盟链接合规，根除 fork 随 merge 复现路径；docs/ads.md 仓库文档侧维持裸链裁决：GitHub 渲染自动 nofollow+披露块已覆盖）；②手册课 6 search-intent（en+zh）进阶指路补「泛词噪音核查」节（消 v2.31.0「不动手册避重复」裁决的指路缺口）；③PRD 更新记录 v2.31.0 行撇号笔误。
+
 ## [2.31.0] — 2026-09-17
 
 ### Added
@@ -1204,7 +1218,8 @@ This release covers everything since v0.2.0: the full PRD roadmap (v1.1–v2.0) 
 - Docs: PRD (1600+ lines), deployment, apply-template (4-step guide), content-format, seo, ads, migration-from-nextjs
 - Build: 27 pages, typecheck 0 errors
 
-[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.31.0...HEAD
+[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.31.1...HEAD
+[2.31.1]: https://github.com/PNGTRID/AnvilWiki/compare/v2.31.0...v2.31.1
 [2.31.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.30.0...v2.31.0
 [2.30.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.29.1...v2.30.0
 [2.29.1]: https://github.com/PNGTRID/AnvilWiki/compare/v2.29.0...v2.29.1
