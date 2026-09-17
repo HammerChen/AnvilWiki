@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.32.0] — 2026-09-17
+
+### Added
+
+- **「wiki page templates」模板展示页（/landing/templates + /zh/landing/templates，en+zh 双语，SEO 布局批次 3）**：承接 roadmap 候选池记账的真实长尾需求（SimilarWeb Keyword Generator，2026-08，global，已核实：「wiki template」约 1,000/月（score 19 细分池最高相关分）、「wiki page template」约 870/月、「wiki template character」约 1,490/月——意图=用户想看「游戏 wiki 页面模板长什么样」），前置 landing.ts 拆分批（v2.31.1）已完成。页面=hero（标题自然含 "wiki page templates"/「游戏 wiki 页面模板」，副标题带搜索意图与数据）→ 六页型卡片区（每型=名称+说明+demo 真实链接+「模板要点」三条，要点措辞与 docs/content-format.md 口径一致）→ 对比页互链一句 → GitHub fork CTA（FORK_URL）+「页面怎么写」指路 first-article 课。六页型全挂 demo 真实页面（先 `ls src/content/wiki/en/` 逐条核实后落笔，零 mockup）：Boss 攻略 `/bosses/stormcaller/`（gallery 型：boss frontmatter 属性卡+封面+2–4 机制图+videos 登记→VideoObject JSON-LD）/兑换码 `/codes/all-codes/`（结构化 codes frontmatter 自动分 Active 一键复制+Expired 表格+FAQPage JSON-LD）/Tier List `/guides/weapon-tier-list/`（gameVersion 版本徽章+summary 40–60 词直答→Quick Answer+AI Overviews 候选）/新手攻略 `/guides/beginner-guide/`（画廊零 CLS 图框+Accordion/Callout+check-content 逐页体检）/装备物品 `/items/forging-materials-guide/`+`/items/emberforged-armor-set/`（双链接：Markdown 表格+StatBar）/文档中心 `/landing/docs/`（data-pagefind-body 分语言索引）。实现：新路由两页与 comparison 完全同构（LandingLayout+AdsterraSlotPair 包 TemplatesPage），新组件 `src/components/landing/TemplatesPage.astro`，新文案独立文件 `src/config/landing-templates.ts`（自带 `TemplatesPageContent` 接口+en/zh 两份+`templatesNavLabel` 导航标签——不往 landing-en/zh.ts 里加一个字，守住 v2.31.1 刚完成的拆分）；LandingLayout 导航三处（移动菜单/桌面 header/页脚）加 Templates 入口（lucide:layout-template，en "Templates"/zh "模板展示"）；页面标 `data-pagefind-body` 进全站搜索（对比页先例）；SEO title/description 精简自然含关键词+hreflang en/zh 互指；内链全部以 `/` 结尾（trailingSlash 'always'）。🚨 fork 红线三通道逐一同步：`scripts/apply-template.ts` `LANDING_PATHS` 增 `src/config/landing-templates.ts` 显式条目（新路由已被 `src/pages/landing`/`src/pages/zh/landing` 目录级条目覆盖，读现状代码核实后不加冗余）、`.github/workflows/setup.yml` rm 行同步、`scripts/e2e-apply-template.mjs` 纯净性断言补路径，`pnpm test:e2e` 真实 fork 模拟绿。全仓一致性扫描（AGENTS 第 14 条）：llms.txt 加 templates 一行（landing 层生命周期内）、README 中英快速链接表各补一行、roadmap 候选池条目标 ✅ 已交付（v2.32.0）。移动端验收（坑 60/61）：playwright resize 钳 468 故以 CDP Emulation.setDeviceMetricsOverride 强制 375px 程序断言为准——en/zh `document.scrollingElement.scrollWidth = 375`（横向零溢出），fullPage 截图双语留档 /tmp。八门禁全绿：lint/typecheck/test 274/check-config/check-content/check-i18n --strict-ui 138/138/build/check-links 11,848 链接全通。
+
 ## [2.31.1] — 2026-09-17
 
 ### Changed
@@ -1218,7 +1224,8 @@ This release covers everything since v0.2.0: the full PRD roadmap (v1.1–v2.0) 
 - Docs: PRD (1600+ lines), deployment, apply-template (4-step guide), content-format, seo, ads, migration-from-nextjs
 - Build: 27 pages, typecheck 0 errors
 
-[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.31.1...HEAD
+[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.32.0...HEAD
+[2.32.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.31.1...v2.32.0
 [2.31.1]: https://github.com/PNGTRID/AnvilWiki/compare/v2.31.0...v2.31.1
 [2.31.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.30.0...v2.31.0
 [2.30.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.29.1...v2.30.0

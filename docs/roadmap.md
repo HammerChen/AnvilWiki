@@ -2,7 +2,7 @@
 
 > 本页回答两个问题:**这套模板过去按什么方向演化**(帮你判断它的成熟度和侧重),以及**接下来会往哪走**(帮你决定现在入场合不合适)。逐版本的完整变更见 [CHANGELOG](../CHANGELOG.md);正在做什么见 [PRD](./PRD.md) 第 14 章。
 
-> **当前版本:v2.31.1**(2026-09-17 发布)。发版历史与最新版本见 [Releases](https://github.com/PNGTRID/AnvilWiki/releases)。
+> **当前版本:v2.32.0**(2026-09-17 发布)。发版历史与最新版本见 [Releases](https://github.com/PNGTRID/AnvilWiki/releases)。
 
 ## 演化主线:从「建站模板」到「内容经营操作系统」
 
@@ -41,7 +41,7 @@ AnvilWiki 的版本历史不是功能大杂烩,而是一条主线:**不断把「
 - **核心文件复杂度治理**([誓言](https://github.com/lyglzhl) 外部代码审查报告 2026-09-15,P2):少数核心文件体积与职责持续膨胀——landing.ts 58KB / apply-template.ts 41KB / apply-rewrites.ts 30KB / CommunityHighlights.astro 29KB / SearchButton.astro 23KB / ArticlePage.astro 23KB / BaseLayout.astro 14KB——单个功能点看都合理,但一个小需求可能同时波及 SEO/广告/i18n/导航/构建。方案:拆 ArticlePage(结构化数据/文章辅助区/商业化插槽/导航组件化)、拆 BaseLayout(Head/SEO 与 Tracking/Consent 与 Theme Init 分离)、拆 apply-template(问答采集/计划生成/文件变更执行分层,CLI 只留 orchestration)。改动面大、回归风险高,按项目惯例拆成独立小批做,每批全门禁+E2E 伴随。
 - **类型逃生口收敛 + 复杂度预算**(同一报告 P2/P3):src/ 下 17 处 `as unknown as Record<string, any>`(集中在 `shared` UI 对象,`lib/shared-ui.ts` 已有类型化 helper 未全面换用)继续贯通 UI JSON 类型;同时建立「复杂度预算」习惯——新能力先判断属于核心模板/可选插件/运维工具/文档 SOP,不全进主运行时;生产构建以「零 warning」为常态目标(fallback 构建日志两类警告已随 v2.27.0 清零,astro-icon 空目录 + getEntry 降噪)。
 - **ja 落地面验证**(关键词依据:SimilarWeb Keyword Generator,2026-08,Japan:「ゲーム wiki」2,390/月 +「ゲーム攻略」2,050/月):ja wiki UI 已内建(`pnpm new-locale` 脚手架 + i18n 契约门禁),缺的是落地验证——日文市场对静态攻略站的接受度与广告变现(ja eCPM、广告位表现)。**触发条件**:出现日文 showcase 站或 ja 社群信号(日文用户的真实反馈/需求);**约束**:landing.ts 复杂度预算已告警(见上方复杂度治理条),ja 落地会再增 landing 文案面,不提前启动,排在拆分批之后。
-- **「wiki page templates」模板展示页**(承接长尾:SimilarWeb Keyword Generator,2026-08,global:「wiki template」约 1,000/月,score 19;「wiki template character」约 1,490/月):单页展示模板能产出的各页型(boss/codes/tier list/画廊等),每型挂 demo 真实链接,页内导流 GitHub fork。**排序约束**:排在 landing.ts 拆分批之后做——新页面类型会先加重 landing.ts,拆分前不加新面。
+- **「wiki page templates」模板展示页**(承接长尾:SimilarWeb Keyword Generator,2026-08,global:「wiki template」约 1,000/月,score 19;「wiki template character」约 1,490/月):单页展示模板能产出的各页型(boss/codes/tier list/画廊等),每型挂 demo 真实链接,页内导流 GitHub fork。**排序约束**:排在 landing.ts 拆分批之后做——新页面类型会先加重 landing.ts,拆分前不加新面。 ✅ **已交付(v2.32.0,2026-09-17)**:排序约束已满足(拆分批 v2.31.1 先行);/landing/templates + /zh/landing/templates 双语上线,文案独立新文件 src/config/landing-templates.ts(landing-en/zh.ts 零触碰),六页型卡(Boss 攻略/兑换码/Tier List/新手攻略/装备物品/文档中心)全挂 demo 真实链接(先 ls src/content/wiki/en/ 逐条核实),LandingLayout 导航+页脚三处加 Templates 入口,data-pagefind-body 进全站搜索,fork 三通道同步(apply-template LANDING_PATHS+setup.yml rm+e2e 纯净性断言),en+zh 375px 横向零溢出程序断言绿。
 - **showcase 收录标准补「站点 README 回链 anvil.wiki」**(依据:SimilarWeb 反向链接实测,anvil.wiki 全站仅 28 个引荐域且均为自动收录型目录——外链是当前最短板):showcase 站是真实内容站,收录时要求对方站点 README 回链,是最自然的获外通道。**触发**:下一次 showcase 投稿受理时随收录流程落地,存量站不追溯。
 
 ### 中期(v2.0 方向)——✅ 已随 v2.0.0 交付
