@@ -11,7 +11,7 @@
  */
 
 /** Keep in sync with package.json "version" (used by the announcement bar). */
-export const PROJECT_VERSION = '2.29.0';
+export const PROJECT_VERSION = '2.29.1';
 
 export type LandingLocale = 'en' | 'zh';
 
@@ -359,7 +359,7 @@ const en: LandingContent = {
   description:
     'An open-source game wiki template with an AI-native content workflow: pick the right game, generate pages by talking to your AI tool, codes pages stay fresh on autopilot. Lighthouse 4×100, free on Cloudflare, 100% ad revenue yours.',
   announcement: {
-    text: `AnvilWiki template update log (v${PROJECT_VERSION}): security-hardening release — the ops toolkit's private-key safety net now survives git's quoted (non-ASCII) file paths, submit gained a cross-process lock, and apply-template re-runs no longer silently reset hand-edited env values; plus mobile anchor safe-area polish. Zero fork migration: merge upstream and pnpm install as usual. This bar tracks template releases — details & full changelog on GitHub Releases.`,
+    text: `AnvilWiki template update log (v${PROJECT_VERSION}): hardening patch — the submit lock now recovers on its own when the OS recycles a crashed run's pid (locks held over 30 minutes are stolen automatically), and apply-template re-runs preserve hand-edited bare TOML env values (numbers/booleans) instead of silently resetting them. Zero fork migration: merge upstream and pnpm install as usual. This bar tracks template releases — details & full changelog on GitHub Releases.`,
     href: RELEASES,
     dismissLabel: 'Dismiss announcement',
   },
@@ -889,7 +889,7 @@ const zh: LandingContent = {
   description:
     '开源游戏 wiki 模板 + AI 原生内容工作流:选对游戏、和 AI 对话就能产页、codes 页自动保鲜。Lighthouse 4×100、Cloudflare 免费部署、广告收入 100% 归你。',
   announcement: {
-    text: `AnvilWiki 模板更新日志（v${PROJECT_VERSION}）：安全加固版——ops 工具箱私钥安全网修复 git 引号路径（非 ASCII 文件名）绕过、submit 新增跨进程锁、apply-template 重跑不再静默重置手改的 env 值；移动端锚位 safe-area 补偿修正。fork 常规 merge 零迁移，照常 pnpm install 即可。本条为模板发版通告，非站点故障；详情与完整变更见 GitHub Releases。`,
+    text: `AnvilWiki 模板更新日志（v${PROJECT_VERSION}）：加固补丁——submit 锁在操作系统把已崩进程的 pid 回收给无关进程时也能自恢复（持锁超 30 分钟自动盗取，不再要求手动删锁），apply-template 重跑保留手改的裸标量 env 值（数字/布尔按字面保留），不再静默重置。fork 常规 merge 零迁移，照常 pnpm install 即可。本条为模板发版通告，非站点故障；详情与完整变更见 GitHub Releases。`,
     href: RELEASES,
     dismissLabel: '关闭公告',
   },

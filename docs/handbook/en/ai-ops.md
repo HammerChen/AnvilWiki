@@ -85,7 +85,7 @@ Writes have exactly one path: **validate (check-content + check-i18n + full buil
 - `gh CLI not found`: install the GitHub CLI (submit needs it): https://cli.github.com/
 - `No site config found`: your repo deleted wrangler.toml (the launch lesson's recommendation) — add `SITE_URL=https://your-domain` to `.env`. **Never** rebuild wrangler.toml for this: its return kills every dashboard-configured variable.
 - `No uncommitted changes to submit`: the worktree is clean — have AI produce something first.
-- Package not found with `npx anvilwiki-ops`: needs 0.1.0+ (shipped with template v1.15; the current line is 1.0.4 — multi-site + AI referrals landed in 1.0.0, the submit private-key safety net and cross-process lock in 1.0.3/1.0.4).
+- Package not found with `npx anvilwiki-ops`: needs 0.1.0+ (shipped with template v1.15; the current line is 1.0.5 — multi-site + AI referrals landed in 1.0.0, the submit private-key safety net and cross-process lock in 1.0.3/1.0.4, pid-recycle lock recovery in 1.0.5).
 
 ## ✅ Acceptance (all must hold)
 

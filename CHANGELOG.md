@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.29.1] — 2026-09-17
+
 ### Added
 
 - **AGENTS Engineering Constraints 新增第 14 条「全仓一致性扫描」**:任何优化(文案/版本号/功能/文档)必须全仓一致性扫描并禁止「这里更新了那里还是旧版」——把长期只存在于维护者个人记忆的用户工作指令(2026-08-15)收编为所有 agent 的 workspace 契约;发版同步面见 docs/development.md 发版清单。同批补录 06291d5 进 [2.29.0](文章页 meta 行 flex-wrap,v2.21.0 移动批漏网)。
@@ -14,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **第 16 轮 24h 审计信息级双项闭环(加固,非缺陷)**:①`anvil-ops` submit 跨进程锁防 pid 复用死锁——锁文件增写创建时间戳(第 2 行),owner pid 活性探测之外新增超龄盗取:持锁超 30 分钟(≈2 倍最坏合法持有时长,offload watchdog 10 分钟)即视为 pid 已被操作系统回收给无关进程,下次运行自动盗取,不再要求用户手动删锁;无时间戳的 1.0.4 旧格式锁不启用超龄盗取(fail-closed 与旧版一致),错误指引同步注明 30 分钟自动盗取;ops 测试 169→172(超龄盗取/新鲜时间戳仍拒/旧格式兼容 3 用例+既有断言适配两行格式)。②apply-template 重跑 wrangler 值保留解析补裸标量 TOML——手改 `KEY = 42`/`true` 这类无引号标量(可带行尾内联注释)旧正则不识别→keep=null→重跑静默重置,现按字面保留并重写为双引号字符串(Pages env 本就全字符串,重置才是破坏方向);空裸值仍重置(无值可保);root 测试 272→274(裸标量存活+空裸值重置);docs/apply-template.md 值保留行与 tools/anvil-ops README 锁护栏行同步。
+- **deployment.md 新增 Step 5「绑完域名收编旧 `*.pages.dev`」(账户级 Bulk Redirects 301)+上线/收录课双语四处同步**:demo 站 GSC 实证 pages.dev 与主域并行同内容,Google 判主域「Duplicate, Google chose different canonical」、canonical 留在 pages.dev,168 URL 提交 0 收录;`_redirects` 对全域名生效会环路不可用,官方做法 Bulk Redirects(源 pages.dev→目标主域,301,Preserve query string/Subpath matching/Preserve path suffix/Include subdomains 四参数全开);附 curl 验证命令与「Include subdomains 波及 preview 随机子域/收录收敛需数天到两周」诚实标注;已在 demo 站落地并线上验证。
 - **文档漂移修复批(7 天变更对照审计,零代码变更)**:①tools/anvil-ops README 状态行 1.0.2→1.0.4,并补记 submit 两道护栏——私钥安全网(文件名镜像 gitignore/全 staged 文件 64KB 头扫描/.env GSC 路径比对,staged 清单 `-z`+`core.quotePath=false` 使非 ASCII 文件名按真名筛查)与跨进程文件锁(site realpath 键控+owner pid 活性盗死锁,包 CLI/MCP/offload),此前仅 handbook 一句带过;②AGENTS Ops Toolkit 段 semver 1.0.3→1.0.4、ops 测试计数 162→169(实跑确认,该两处无门禁纯纪律);③PRD 第 10 章新增 §10.7「Adsterra 扩展位」(AdsterraSlot sandbox 契约与诚实边界/MobileAnchorAd/DEMO_PUBLIC_FILES 双通道清理——v2.26.0–v2.28.0 广告批此前正文零覆盖,仅存于更新记录表)+附录 A.2 补 6 个 `PUBLIC_ADSTERRA_SLOT_*` 变量表+A.4 示例块同步(`.env.example` v2.26.0 起已含,PRD 是落后方);④deployment.md 环境变量清单补 Adsterra 6 键+方案 B `[vars]` 改值指引补 GA/Adsterra 键名;⑤apply-template.md demo 凭据行补「重跑 value-aware 保留手改值」保证(v2.26.1 落地、v2.29.0 加固的行为此前无用户文档);⑥README 中英变现行/对比表补 Adsterra 提及、前置要求 Node.js 22+→22.13+(engines `>=22.13.0`,v2.25.0 起)。
 - **文档整理第二批(全量扫描收尾,零代码变更)**:①PRD §3 技术选型表框架行 5.x→7.x(Astro 7 迁移 v2.23.0 漏网——当时只更了 AGENTS 技术栈表与 README,PRD 版本列漏更)+正文 3 处「Astro 5」措辞去版本锚(Content Layer 行为与 7 无关),§9 prefixDefaultLocale 验证注补「迁移 7.x 重验仍成立」;②PRD/deployment 共 7 处 SITE_URL 示例旧 demo 域名 anvilquestwiki.wiki→your-domain.wiki(与 `.env.example` 对齐;CHANGELOG/specs 历史存档有意不动);③PRD 附录 A.3 补全 CF_BEACON/SPONSOR×2/GISCUS×5(至此与 `.env.example` 全量对齐)+A.4 示例块同步扩展;④断链修复 2 处(CHANGELOG [2.15.0] 条目 game-selection.md 链缺 `docs/` 前缀、ROADMAP-v1.5-v1.6 归档文件 roadmap.md 链缺 `../`);⑤docs/README+开发手册 architecture 课(en+zh)「Astro 5 六个坑」→「Astro 六个坑(5→7 迁移全重验)」;⑥handbook ai-ops(en)排障行补当前版本线 1.0.4。126 个受跟踪 md 全量相对链接校验 0 断链(校验脚本本体也踩 core.quotePath 坑,加 `-c core.quotePath=false` 重跑)。
 
@@ -1189,7 +1192,8 @@ This release covers everything since v0.2.0: the full PRD roadmap (v1.1–v2.0) 
 - Docs: PRD (1600+ lines), deployment, apply-template (4-step guide), content-format, seo, ads, migration-from-nextjs
 - Build: 27 pages, typecheck 0 errors
 
-[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.29.0...HEAD
+[Unreleased]: https://github.com/PNGTRID/AnvilWiki/compare/v2.29.1...HEAD
+[2.29.1]: https://github.com/PNGTRID/AnvilWiki/compare/v2.29.0...v2.29.1
 [2.29.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.28.0...v2.29.0
 [2.28.0]: https://github.com/PNGTRID/AnvilWiki/compare/v2.27.1...v2.28.0
 [2.27.1]: https://github.com/PNGTRID/AnvilWiki/compare/v2.27.0...v2.27.1
