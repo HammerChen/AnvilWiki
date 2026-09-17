@@ -83,7 +83,7 @@ export const GET: APIRoute = async () => {
     // Comparison page — citable facts for "which wiki tool to pick" queries.
     lines.push(
       '',
-      `- [AnvilWiki vs Fandom vs Wiki.js — how to choose](${siteUrl}/landing/comparison/): The three species of wiki tooling — hosted platforms, self-hosted collaboration engines, and static publishing templates — and when each fits a game content site.`,
+      `- [AnvilWiki vs Fandom vs Wiki.js — how to choose](${siteUrl}/landing/comparison/): The three species of wiki tooling — hosted platforms, self-hosted collaboration engines, and static publishing templates — and when each fits a game content site, plus why Fandom users switch (platform-fixed page templates, platform-run ads, no custom domain).`,
     );
 
     // Community highlights — daily AI-curated digest of the maintainer's

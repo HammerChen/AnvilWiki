@@ -46,7 +46,7 @@
 | 看「从零到赚钱」的全部工作量 | 🗺️ [文档中心首页](https://anvil.wiki/zh/landing/docs)——10 件事全景清单,逐项点入 |
 | 深度定制 / 给模板写代码 | 🔧 [开发手册](https://anvil.wiki/zh/landing/docs/dev) |
 | 看看做出来长什么样 | 🎮 [在线 Demo](https://anvil.wiki/)——虚构游戏「Anvil Quest」的完整 wiki |
-| 对比 Fandom / Wiki.js / 其他方案 | ⚖️ [完整对比页](https://anvil.wiki/zh/landing/comparison)——三种物种、自托管引擎数据表、什么时候不该选 AnvilWiki |
+| 对比 Fandom / Wiki.js / 其他方案 | ⚖️ [完整对比页](https://anvil.wiki/zh/landing/comparison)——三种物种、Fandom 用户搬家指南、自托管引擎数据表、什么时候不该选 AnvilWiki |
 
 ## 📖 中文文档
 

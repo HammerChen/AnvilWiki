@@ -78,6 +78,16 @@ export interface LandingContent {
       columns: string[];
       rows: { label: string; values: string[] }[];
     };
+    /** "Why Fandom users switch" — long-tail section for creators hitting
+     *  Fandom's template/ads/domain limits (~2k combined monthly searches on
+     *  Fandom template queries, SimilarWeb 2026-08). Facts and trade-offs
+     *  only; Fandom stays the right home for big community wikis. */
+    fandomSwitch: {
+      title: string;
+      subtitle: string;
+      items: { title: string; text: string }[];
+      note: string;
+    };
     engines: {
       title: string;
       subtitle: string;
@@ -537,6 +547,30 @@ pnpm install && pnpm dev`,
           values: ['Your git repo — portable', 'Platform-locked, limited export', 'Your server'],
         },
       ],
+    },
+    fandomSwitch: {
+      title: 'Why Fandom users switch — custom page templates, ad control, and data ownership',
+      subtitle:
+        "'How to create a wiki template on Fandom' is searched about 1,380 times a month, and 'templates fandom' another 610 (SimilarWeb keyword data, global, 2026-08). Both queries come from the same place: creators who want their wiki to look and earn differently than the platform allows. The honest list of what stays in Fandom's hands:",
+      items: [
+        {
+          title: 'Page templates and layout are platform-fixed',
+          text: "Communities can recolor and restyle within Fandom's theme system, but the page skeleton — skin, layout structure, template components — ships as-is. There is no supported way to give your wiki its own page templates; community CSS is the closest workaround.",
+        },
+        {
+          title: "Ads are the platform's business, not yours",
+          text: "Fandom picks the ad networks, the placements, and the formats, and owns the advertiser relationships. Whether revenue is shared with contributors — and how much — is the platform's call. Bringing your own AdSense is not an option.",
+        },
+        {
+          title: 'Your wiki lives under fandom.com',
+          text: "Communities sit on a *.fandom.com subdomain — there is no custom-domain option, so every backlink and every bit of brand equity accrues to the platform's domain. Exports exist, but leaving means rebuilding from dumps, not flipping a switch.",
+        },
+        {
+          title: 'No workflow for AI-assisted writing',
+          text: 'Fandom is built around volunteer editors in a web UI — no git history, no review pipeline, and bulk automated page creation runs into bot and spam policies. If you write with an AI agent, there is no equivalent path. AnvilWiki is the opposite shape: MDX in git, agent drafts, you review, CI gates the result.',
+        },
+      ],
+      note: "None of this makes Fandom a bad home — for a fan community that wants free hosting, built-in discovery, and zero maintenance, it remains a solid pick, and the advice above stands: large public community encyclopedias belong on MediaWiki or Fandom. The trade-offs above start to bite when the site is your own project — solo-run, SEO-driven, and meant to earn. That is the case where owning the templates, the ads, and the domain matters.",
     },
     engines: {
       title: 'The self-hosted engines, at a glance',
@@ -1046,6 +1080,30 @@ pnpm install && pnpm dev`,
         { label: '协议', values: ['MIT', '商业平台', 'GPL / AGPL / MIT(各异)'] },
         { label: '数据所有权', values: ['你的 git 仓库,随时迁走', '平台锁定,导出受限', '你的服务器'] },
       ],
+    },
+    fandomSwitch: {
+      title: '为什么 Fandom 用户搬家——自定义页面模板、广告控制权与数据主权',
+      subtitle:
+        '「how to create a wiki template on fandom」全球每月约 1,380 次搜索,「templates fandom」约 610 次(SimilarWeb 关键词数据,2026-08)。两组搜索背后是同一批人:想让 wiki 长得不一样、赚得也不一样的创作者。下面是诚实的清单——哪些东西仍然握在 Fandom 手里:',
+      items: [
+        {
+          title: '页面模板与布局由平台固定',
+          text: '社区可以在 Fandom 主题系统内改配色、调样式,但页面骨架——皮肤、布局结构、模板组件——由平台统一下发,没有官方途径给 wiki 换上自己的页面模板,最接近的变通只有社区 CSS。',
+        },
+        {
+          title: '广告是平台的生意,不是你的',
+          text: '广告网络、版位、形式都由 Fandom 决定,广告主关系也握在平台手里;收益是否分成、分多少,由平台说了算——接入自己的 AdSense 不在选项之内。',
+        },
+        {
+          title: 'wiki 住在 fandom.com 子域下',
+          text: '社区只能挂在 *.fandom.com 子域,没有自定义域名选项,每一条外链、每一分品牌积累都记在平台域名名下;导出是有的,但搬家意味着从 dump 重建,不是一键切换。',
+        },
+        {
+          title: '没有 AI 辅助写作的工作流',
+          text: 'Fandom 围绕网页编辑器里的志愿者编辑设计——没有 git 历史,没有评审流水线,批量自动建页会撞上机器人与反垃圾政策。如果你习惯和 AI agent 协作写内容,那边没有对应路径。AnvilWiki 是相反的形状:MDX 进 git,agent 起草、你审校、CI 把关。',
+        },
+      ],
+      note: '这些都不代表 Fandom 不是好归宿——对想要免费托管、自带曝光、零维护的粉丝社区,它依然是稳妥选择;上文的建议保持不变:大型公开社区百科,MediaWiki 或 Fandom 仍是正解。上面这些取舍真正咬人,是在站点成为你自己的项目时——单人运营、SEO 驱动、以变现为目标,这时「模板、广告、域名归谁」才开始要紧。',
     },
     engines: {
       title: '自托管引擎速览',

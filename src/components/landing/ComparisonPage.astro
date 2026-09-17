@@ -18,6 +18,7 @@ interface Props {
 const { t } = Astro.props;
 const c = t.comparisonPage;
 const TLDR_ICONS = ['lucide:building-2', 'lucide:server', 'lucide:hammer'];
+const FANDOM_ICONS = ['lucide:layout-template', 'lucide:badge-dollar-sign', 'lucide:globe', 'lucide:bot'];
 ---
 
 <section class="section" data-pagefind-body>
@@ -80,6 +81,25 @@ const TLDR_ICONS = ['lucide:building-2', 'lucide:server', 'lucide:hammer'];
         </tbody>
       </table>
     </div>
+
+    <!-- Why Fandom users switch (long-tail intent: Fandom template/ads/domain limits) -->
+    <h2 class="mt-12 text-2xl font-bold tracking-tight text-foreground">{c.fandomSwitch.title}</h2>
+    <p class="mt-2 text-muted-foreground">{c.fandomSwitch.subtitle}</p>
+    <div class="mt-5 grid gap-4 sm:grid-cols-2">
+      {c.fandomSwitch.items.map((item, i) => (
+        <div class="rounded-lg border border-border bg-muted/40 p-4">
+          <div class="flex items-center gap-2 font-semibold text-foreground">
+            <Icon name={FANDOM_ICONS[i]} class="h-4 w-4 shrink-0 text-nav" />
+            {item.title}
+          </div>
+          <p class="mt-2 text-sm text-muted-foreground">{item.text}</p>
+        </div>
+      ))}
+    </div>
+    <p class="mt-4 flex items-start gap-2 text-sm text-muted-foreground">
+      <Icon name="lucide:info" class="mt-0.5 h-4 w-4 shrink-0 text-nav" />
+      {c.fandomSwitch.note}
+    </p>
 
     <!-- Self-hosted engines, neutral facts -->
     <h2 class="mt-12 text-2xl font-bold tracking-tight text-foreground">{c.engines.title}</h2>
