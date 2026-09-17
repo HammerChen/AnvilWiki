@@ -45,7 +45,7 @@ This move is an **intent-satisfaction check**: page one can be full while the se
 - **Intent satisfaction**: how much of page one actually answers the question — it decides whether you have a seat.
 - **Direct answer**: the player's answer in the first sentence. The first discipline of every writing lesson in this manual.
 
-> **Going deeper**: the operator-grade version (batch-checking queries against the decision table, anti-self-deception checks) lives in the repo reference [docs/sourcing.md](https://github.com/PNGTRID/AnvilWiki/blob/main/docs/sourcing.md), section "Intent satisfaction". For now, the five steps above are all you need.
+> **Going deeper**: the operator-grade version (batch-checking queries against the decision table, anti-self-deception checks) lives in the repo reference [docs/sourcing.md](https://github.com/PNGTRID/AnvilWiki/blob/main/docs/sourcing.md), section "Intent satisfaction", plus the "generic-term noise check" in its decision framework (open the actual SERP before a high-volume generic word enters your table). For now, the five steps above are all you need.
 
 ## ✅ Acceptance (all must hold)
 

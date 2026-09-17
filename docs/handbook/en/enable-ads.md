@@ -19,7 +19,7 @@ The panels have numbers, and with them the temptation: flip the ad slots on and 
 - **A core query has touched the top two pages**: the ranking floor exists, so ad dilution can't hurt you.
 - **Weekly publishing continued past the first release**: ads amplify existing traffic; they don't replace it.
 
-The full timing checklist, the ads-platform landscape (Adsterra, Mediavine, NitroPay and gaming verticals as traffic grows) live in the repo doc [docs/ads.md](https://github.com/PNGTRID/AnvilWiki/blob/main/docs/ads.md). Adsterra itself is the zero-threshold fallback (a revenue floor while AdSense is rejected or pending): [sign up via our referral link](https://beta.publishers.adsterra.com/referral/tF1usSmNwD) — Adsterra pays the referral commission to AnvilWiki, at no cost to your earnings; setup steps are in section 3 of that doc.
+The full timing checklist, the ads-platform landscape (Adsterra, Mediavine, NitroPay and gaming verticals as traffic grows) live in the repo doc [docs/ads.md](https://github.com/PNGTRID/AnvilWiki/blob/main/docs/ads.md). Adsterra itself is the zero-threshold fallback (a revenue floor while AdSense is rejected or pending): <a href="https://beta.publishers.adsterra.com/referral/tF1usSmNwD" rel="sponsored nofollow">sign up via our referral link</a> — Adsterra pays the referral commission to AnvilWiki, at no cost to your earnings; setup steps are in section 3 of that doc.
 
 ## Step 1: apply to AdSense (self-check first)
 
